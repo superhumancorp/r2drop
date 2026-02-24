@@ -26,6 +26,7 @@ targets:
     platform: macOS
     sources:
       - path: App
+      - path: Assets.xcassets
     entitlements:
       path: R2Drop.entitlements
       properties:
@@ -111,6 +112,7 @@ schemes:
         FinderExtension: all
     run:
       config: Debug
+      executable: R2Drop
       commandLineArguments:
         "-com.apple.CoreData.ConcurrencyDebug 1": true
       environmentVariables:

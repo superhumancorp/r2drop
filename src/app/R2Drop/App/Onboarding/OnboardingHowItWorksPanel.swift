@@ -49,7 +49,8 @@ struct OnboardingHowItWorksPanel: View {
             .controlSize(.large)
             .keyboardShortcut(.defaultAction)
         }
-        .padding(32)
+        .padding(.bottom, 48)
+        .padding(.horizontal, 32)
     }
 
     /// A single step row with a numbered circle, icon, title, and description.

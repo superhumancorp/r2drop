@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
    LastUpgradeVersion = "1620"
-   wasCreatedForAppExtension = "YES"
    version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -47,9 +46,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "709FDF115FE2177A04582DBB"
-            BuildableName = "FinderExtension.appex"
-            BlueprintName = "FinderExtension"
+            BlueprintIdentifier = "FEB9D304B597761540AAC05C"
+            BuildableName = "R2Drop.app"
+            BlueprintName = "R2Drop"
             ReferencedContainer = "container:R2Drop.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -58,22 +57,21 @@
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
-      selectedDebuggerIdentifier = ""
-      selectedLauncherIdentifier = "Xcode.IDEFoundation.Launcher.PosixSpawn"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
       useCustomWorkingDirectory = "NO"
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
-      allowLocationSimulation = "YES"
-      launchAutomaticallySubstyle = "2">
+      allowLocationSimulation = "YES">
       <BuildableProductRunnable
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "709FDF115FE2177A04582DBB"
-            BuildableName = "FinderExtension.appex"
-            BlueprintName = "FinderExtension"
+            BlueprintIdentifier = "FEB9D304B597761540AAC05C"
+            BuildableName = "R2Drop.app"
+            BlueprintName = "R2Drop"
             ReferencedContainer = "container:R2Drop.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -101,9 +99,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "709FDF115FE2177A04582DBB"
-            BuildableName = "FinderExtension.appex"
-            BlueprintName = "FinderExtension"
+            BlueprintIdentifier = "FEB9D304B597761540AAC05C"
+            BuildableName = "R2Drop.app"
+            BlueprintName = "R2Drop"
             ReferencedContainer = "container:R2Drop.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
