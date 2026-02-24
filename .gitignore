@@ -1,0 +1,48 @@
+# =========================
+# Root .gitignore for R2Drop
+# =========================
+
+# --- macOS ---
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# --- Rust ---
+**/target/
+**/*.rs.bk
+
+# --- Swift / Xcode ---
+**/.build/
+**/.swiftpm/
+**/DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcworkspace/xcuserdata/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+
+# --- Credentials & Secrets ---
+src/app/credentials/
+src/app/.env
+.env
+*.p12
+*.cer
+*.mobileprovision
+*.provisionprofile
+
+# --- Website (deferred) ---
+src/www/
+
+# --- IDE ---
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# --- Misc ---
+*.log
+.r2drop-local/

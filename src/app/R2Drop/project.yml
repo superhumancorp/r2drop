@@ -1,0 +1,107 @@
+# R2Drop/project.yml
+# XcodeGen spec for generating R2Drop.xcodeproj.
+# Run: cd R2Drop && xcodegen generate
+
+name: R2Drop
+options:
+  bundleIdPrefix: com.superhumancorp
+  deploymentTarget:
+    macOS: "13.0"
+  xcodeVersion: "16.2"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+
+packages:
+  R2Core:
+    path: ../Packages/R2Core
+  R2Bridge:
+    path: ../Packages/R2Bridge
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: "2.6.0"
+
+targets:
+  R2Drop:
+    type: application
+    platform: macOS
+    sources:
+      - path: App
+    entitlements:
+      path: R2Drop.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - "group.com.superhumancorp.r2drop"
+        keychain-access-groups:
+          - "$(AppIdentifierPrefix)com.superhumancorp.r2drop"
+        com.apple.security.network.client: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.superhumancorp.r2drop
+        GENERATE_INFOPLIST_FILE: YES
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        MACOSX_DEPLOYMENT_TARGET: "13.0"
+        # Link the Rust static library + system frameworks needed by Rust deps
+        OTHER_LDFLAGS:
+          - "-L$(SRCROOT)/../engine/target/release"
+          - "-lr2_ffi"
+          - "-framework"
+          - "Security"
+          - "-framework"
+          - "SystemConfiguration"
+          - "-framework"
+          - "CoreFoundation"
+        LIBRARY_SEARCH_PATHS:
+          - "$(SRCROOT)/../engine/target/release"
+          - "$(inherited)"
+        SWIFT_VERSION: "5.9"
+        CODE_SIGN_ENTITLEMENTS: R2Drop.entitlements
+        # Menu bar only app (no Dock icon)
+        INFOPLIST_KEY_LSUIElement: YES
+    info:
+      path: Info.plist
+      properties:
+        CFBundleURLTypes:
+          - CFBundleURLName: "com.superhumancorp.r2drop"
+            CFBundleURLSchemes:
+              - "r2drop"
+        SUPublicEDKey: "NWlOpvs7+ccCaW6557MqyCO94w3KVziS7uAOOxR8gQk="
+        LSUIElement: true
+    dependencies:
+      - package: R2Core
+      - package: R2Bridge
+      - package: Sparkle
+      - target: FinderExtension
+        embed: true
+
+  FinderExtension:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: FinderExtension
+        excludes:
+          - "*.entitlements"
+    entitlements:
+      path: FinderExtension/FinderExtension.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - "group.com.superhumancorp.r2drop"
+        keychain-access-groups:
+          - "$(AppIdentifierPrefix)com.superhumancorp.r2drop"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.superhumancorp.r2drop.finder-extension
+        GENERATE_INFOPLIST_FILE: YES
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        MACOSX_DEPLOYMENT_TARGET: "13.0"
+        SWIFT_VERSION: "5.9"
+        CODE_SIGN_ENTITLEMENTS: FinderExtension/FinderExtension.entitlements
+    info:
+      path: FinderExtension/Info.plist
+      properties:
+        NSExtension:
+          NSExtensionPointIdentifier: "com.apple.FinderSync"
+          NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).FinderSync"
+    dependencies:
+      - package: R2Core
