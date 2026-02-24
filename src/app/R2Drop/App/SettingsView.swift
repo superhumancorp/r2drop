@@ -1,5 +1,5 @@
 // R2Drop/App/SettingsView.swift
-// Preferences window with tab navigation.
+// Preferences window with tab navigation and liquid glass background.
 // Defaults to Queue tab when uploads are active, otherwise Accounts tab.
 // SelectedTabStore allows deep links to switch tabs programmatically (US-022).
 
@@ -26,26 +26,31 @@ struct SettingsView: View {
     @ObservedObject private var tabStore = SelectedTabStore.shared
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            QueueTabView()
-                .tabItem { Label("Queue", systemImage: "list.bullet") }
-                .tag(SettingsTab.queue)
+        ZStack {
+            // Liquid glass background layer
+            GlassBackground()
 
-            AccountsTabView()
-                .tabItem { Label("Accounts", systemImage: "person.2") }
-                .tag(SettingsTab.accounts)
+            TabView(selection: $selectedTab) {
+                QueueTabView()
+                    .tabItem { Label("Queue", systemImage: "list.bullet") }
+                    .tag(SettingsTab.queue)
 
-            SettingsTabView()
-                .tabItem { Label("Settings", systemImage: "gearshape") }
-                .tag(SettingsTab.settings)
+                AccountsTabView()
+                    .tabItem { Label("Accounts", systemImage: "person.2") }
+                    .tag(SettingsTab.accounts)
 
-            HistoryTabView()
-                .tabItem { Label("History", systemImage: "clock") }
-                .tag(SettingsTab.history)
+                SettingsTabView()
+                    .tabItem { Label("Settings", systemImage: "gearshape") }
+                    .tag(SettingsTab.settings)
 
-            AboutTabView()
-                .tabItem { Label("About", systemImage: "info.circle") }
-                .tag(SettingsTab.about)
+                HistoryTabView()
+                    .tabItem { Label("History", systemImage: "clock") }
+                    .tag(SettingsTab.history)
+
+                AboutTabView()
+                    .tabItem { Label("About", systemImage: "info.circle") }
+                    .tag(SettingsTab.about)
+            }
         }
         .frame(width: 600, height: 520)
         .onAppear { selectDefaultTab() }

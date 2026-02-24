@@ -1,7 +1,7 @@
 // R2Drop/App/About/AboutTabView.swift
-// About tab for the Preferences window (US-021, FR-055 through FR-058).
-// Shows Hero1.png hero banner that scales with window width,
-// app info, version, links, copyright, and Sparkle auto-update controls.
+// About tab with liquid glass card sections (US-021, FR-055 through FR-058).
+// Hero1.png banner scales with window width. App info, links, copyright,
+// and Sparkle auto-update controls each in their own GlassCard.
 
 import SwiftUI
 
@@ -14,32 +14,20 @@ struct AboutTabView: View {
                 // Hero1.png banner — scales width with window
                 heroBanner
 
-                Spacer().frame(height: 20)
+                VStack(spacing: 16) {
+                    // App icon + title + version (FR-055)
+                    appInfoCard
 
-                // App icon + title + version (FR-055)
-                appInfoSection
+                    // Links: Privacy, Terms, Report Issue (FR-056)
+                    linksCard
 
-                Spacer().frame(height: 20)
+                    // Copyright & trademark (FR-057)
+                    copyrightCard
 
-                // Links: Privacy, Terms, Report Issue (FR-056)
-                linksSection
-
-                Spacer().frame(height: 16)
-
-                // Copyright & trademark (FR-057)
-                copyrightSection
-
-                Spacer().frame(height: 20)
-
-                Divider()
-                    .padding(.horizontal, 40)
-
-                Spacer().frame(height: 16)
-
-                // Auto-update controls (FR-058)
-                updateSection
-
-                Spacer().frame(height: 20)
+                    // Auto-update controls (FR-058)
+                    updateCard
+                }
+                .padding(20)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -71,69 +59,105 @@ struct AboutTabView: View {
 
     // MARK: - App Info (FR-055)
 
-    private var appInfoSection: some View {
-        VStack(spacing: 8) {
-            // App icon
-            Image(nsImage: NSApp.applicationIconImage)
-                .resizable()
-                .frame(width: 64, height: 64)
+    private var appInfoCard: some View {
+        GlassCard {
+            HStack(spacing: 16) {
+                // App icon
+                Image(nsImage: NSApp.applicationIconImage)
+                    .resizable()
+                    .frame(width: 56, height: 56)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
-            Text("R2Drop for macOS")
-                .font(.title2)
-                .fontWeight(.semibold)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("R2Drop for macOS")
+                        .font(.title3)
+                        .fontWeight(.semibold)
 
-            Text("Version \(viewModel.appVersion) (\(viewModel.buildNumber))")
-                .font(.body)
-                .foregroundColor(.secondary)
+                    Text("Version \(viewModel.appVersion) (\(viewModel.buildNumber))")
+                        .font(.callout)
+                        .foregroundColor(.secondary)
+                }
+                Spacer()
+            }
         }
     }
 
     // MARK: - Links (FR-056)
 
-    private var linksSection: some View {
-        HStack(spacing: 16) {
-            Button("Privacy Policy") { viewModel.openPrivacyPolicy() }
-                .buttonStyle(.link)
-
-            Text("|")
-                .foregroundColor(.secondary)
-
-            Button("Terms of Service") { viewModel.openTermsOfService() }
-                .buttonStyle(.link)
-
-            Text("|")
-                .foregroundColor(.secondary)
-
-            Button("Report an Issue") { viewModel.openReportIssue() }
-                .buttonStyle(.link)
+    private var linksCard: some View {
+        GlassCard(spacing: 0) {
+            linkRow(title: "Privacy Policy", icon: "lock.shield") {
+                viewModel.openPrivacyPolicy()
+            }
+            Divider().opacity(0.3)
+            linkRow(title: "Terms of Service", icon: "doc.text") {
+                viewModel.openTermsOfService()
+            }
+            Divider().opacity(0.3)
+            linkRow(title: "Report an Issue", icon: "exclamationmark.bubble") {
+                viewModel.openReportIssue()
+            }
         }
-        .font(.callout)
+    }
+
+    /// A single link row — icon, title, chevron.
+    private func linkRow(title: String, icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack {
+                Image(systemName: icon)
+                    .font(.body)
+                    .foregroundColor(.accentColor)
+                    .frame(width: 24)
+                Text(title)
+                    .font(.body)
+                    .foregroundColor(.primary)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .padding(.vertical, 6)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Copyright (FR-057)
 
-    private var copyrightSection: some View {
-        VStack(spacing: 4) {
-            Text("\u{00A9} 2026 Superhuman Corp. All rights reserved.")
-                .font(.callout)
-                .foregroundColor(.secondary)
+    private var copyrightCard: some View {
+        GlassCard {
+            VStack(spacing: 4) {
+                Text("\u{00A9} 2026 Superhuman Corp. All rights reserved.")
+                    .font(.callout)
+                    .foregroundColor(.secondary)
 
-            Text("R2Drop is a trademark of Superhuman Corp.")
-                .font(.caption)
-                .foregroundColor(.secondary)
+                Text("R2Drop is a trademark of Superhuman Corp.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .frame(maxWidth: .infinity)
         }
     }
 
     // MARK: - Update Controls (FR-058)
 
-    private var updateSection: some View {
-        VStack(spacing: 12) {
+    private var updateCard: some View {
+        GlassCard {
+            GlassSectionHeader(
+                title: "Updates",
+                systemImage: "arrow.triangle.2.circlepath"
+            )
+
             // Auto-check toggle
-            Toggle("Automatically check for updates", isOn: Binding(
-                get: { viewModel.automaticallyChecksForUpdates },
-                set: { viewModel.toggleAutoCheck($0) }
-            ))
-            .toggleStyle(.checkbox)
+            GlassToggleRow(
+                title: "Automatically check for updates",
+                isOn: Binding(
+                    get: { viewModel.automaticallyChecksForUpdates },
+                    set: { viewModel.toggleAutoCheck($0) }
+                )
+            )
+
+            Divider().opacity(0.3)
 
             // Check Now button + last checked timestamp
             HStack(spacing: 12) {
@@ -148,6 +172,7 @@ struct AboutTabView: View {
                         Text("Check Now")
                     }
                 }
+                .buttonStyle(.bordered)
                 .disabled(!viewModel.canCheckForUpdates || viewModel.isCheckingForUpdates)
 
                 Text("Last checked: \(viewModel.lastCheckDateString)")
@@ -155,6 +180,5 @@ struct AboutTabView: View {
                     .foregroundColor(.secondary)
             }
         }
-        .padding(.horizontal, 40)
     }
 }

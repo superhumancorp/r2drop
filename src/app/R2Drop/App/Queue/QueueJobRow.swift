@@ -1,7 +1,7 @@
 // R2Drop/App/Queue/QueueJobRow.swift
-// A single row in the upload queue list.
-// Shows file name, size, progress bar, speed, status badge, and action buttons.
-// Pause/Resume/Cancel buttons per job (FR-039).
+// A single upload job row with liquid glass card and StatusPill badges.
+// Shows file name, progress bar, speed, ETA, and action buttons (FR-039).
+// Wrapped in a frosted glass container for the Tailscale-style look.
 
 import SwiftUI
 import R2Core
@@ -17,25 +17,31 @@ struct QueueJobRow: View {
     @State private var showCancelConfirm = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            // Top row: file name + status badge + action buttons
+        VStack(alignment: .leading, spacing: 8) {
+            // Top row: file name + status pill + action buttons
             HStack {
-                // File name (just the last path component)
+                // File icon
+                Image(systemName: fileIcon)
+                    .font(.title3)
+                    .foregroundColor(.accentColor)
+
+                // File name
                 Text(fileName)
-                    .font(.system(.body, design: .default))
+                    .font(.body)
                     .lineLimit(1)
                     .truncationMode(.middle)
 
                 Spacer()
 
-                statusBadge
+                statusPill
                 actionButtons
             }
 
-            // Progress bar (only for uploading/paused/pending jobs)
+            // Progress bar (only for active jobs)
             if job.status != .completed && job.status != .failed {
                 ProgressView(value: job.progress)
                     .progressViewStyle(.linear)
+                    .tint(job.status == .paused ? .yellow : .accentColor)
             }
 
             // Bottom row: size + speed/ETA or error message
@@ -78,7 +84,7 @@ struct QueueJobRow: View {
 
                 Spacer()
 
-                // Bytes progress for uploading jobs
+                // Bytes progress for active jobs
                 if job.status == .uploading || job.status == .paused {
                     Text("\(formatSize(job.bytesUploaded)) / \(formatSize(job.totalBytes))")
                         .font(.caption)
@@ -86,7 +92,13 @@ struct QueueJobRow: View {
                 }
             }
         }
-        .padding(.vertical, 4)
+        .padding(12)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .strokeBorder(Color.primary.opacity(0.06), lineWidth: 0.5)
+        )
         .alert("Cancel Upload?", isPresented: $showCancelConfirm) {
             Button("Cancel Upload", role: .destructive) { onCancel() }
             Button("Keep", role: .cancel) {}
@@ -95,31 +107,21 @@ struct QueueJobRow: View {
         }
     }
 
-    // MARK: - Status Badge
+    // MARK: - Status Pill
 
     @ViewBuilder
-    private var statusBadge: some View {
+    private var statusPill: some View {
         switch job.status {
         case .pending:
-            Label("Pending", systemImage: "clock")
-                .font(.caption)
-                .foregroundColor(.orange)
+            StatusPill(text: "Pending", color: .orange, icon: "clock")
         case .uploading:
-            Label("Uploading", systemImage: "arrow.up.circle.fill")
-                .font(.caption)
-                .foregroundColor(.blue)
+            StatusPill(text: "Uploading", color: .blue, icon: "arrow.up.circle.fill")
         case .paused:
-            Label("Paused", systemImage: "pause.circle.fill")
-                .font(.caption)
-                .foregroundColor(.yellow)
+            StatusPill(text: "Paused", color: .yellow, icon: "pause.circle.fill")
         case .completed:
-            Label("Completed", systemImage: "checkmark.circle.fill")
-                .font(.caption)
-                .foregroundColor(.green)
+            StatusPill(text: "Done", color: .green, icon: "checkmark.circle.fill")
         case .failed:
-            Label("Failed", systemImage: "exclamationmark.circle.fill")
-                .font(.caption)
-                .foregroundColor(.red)
+            StatusPill(text: "Failed", color: .red, icon: "exclamationmark.circle.fill")
         }
     }
 
@@ -155,7 +157,7 @@ struct QueueJobRow: View {
                 .help("Cancel")
             }
 
-            // Browse button — opens R2 dashboard for this bucket (FR-040)
+            // Browse button — opens R2 dashboard (FR-040)
             Button(action: onBrowse) {
                 Image(systemName: "safari")
                     .font(.caption)
@@ -169,6 +171,25 @@ struct QueueJobRow: View {
 
     private var fileName: String {
         (job.filePath as NSString).lastPathComponent
+    }
+
+    /// Pick a file icon based on the file extension.
+    private var fileIcon: String {
+        let ext = (fileName as NSString).pathExtension.lowercased()
+        switch ext {
+        case "png", "jpg", "jpeg", "gif", "webp", "svg", "heic":
+            return "photo"
+        case "mp4", "mov", "avi", "mkv":
+            return "film"
+        case "mp3", "wav", "aac", "flac":
+            return "music.note"
+        case "zip", "tar", "gz", "rar":
+            return "archivebox"
+        case "pdf":
+            return "doc.richtext"
+        default:
+            return "doc.fill"
+        }
     }
 
     private var estimatedTimeRemaining: String? {

@@ -1,7 +1,7 @@
 // R2Drop/App/History/HistoryTabView.swift
-// History tab for the Preferences window (US-020, FR-052 through FR-054).
-// Searchable, scrollable list of completed uploads sorted most recent first.
-// Each row shows file name, size, timestamp, and a "Copy URL" button (FR-053).
+// History tab with liquid glass styling (US-020, FR-052 through FR-054).
+// GlassSearchBar in the frosted header. Scrollable list of completed uploads.
+// Each row shows file name, size, timestamp, and "Copy URL" button (FR-053).
 // "Clear History" button removes all entries (FR-054).
 
 import SwiftUI
@@ -12,11 +12,11 @@ struct HistoryTabView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Search bar and clear button
+            // Search bar and clear button — frosted glass toolbar
             toolbar
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
-                .background(Color(nsColor: .controlBackgroundColor))
+                .background(.thinMaterial)
 
             Divider()
 
@@ -34,29 +34,15 @@ struct HistoryTabView: View {
 
     private var toolbar: some View {
         HStack(spacing: 10) {
-            // Search field (FR-052)
-            HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundColor(.secondary)
-                TextField("Search by file name...", text: $viewModel.searchText)
-                    .textFieldStyle(.plain)
-                    .onChange(of: viewModel.searchText) { _ in
-                        viewModel.load()
-                    }
-                if !viewModel.searchText.isEmpty {
-                    Button(action: {
-                        viewModel.searchText = ""
-                        viewModel.load()
-                    }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.secondary)
-                    }
-                    .buttonStyle(.plain)
-                }
+            // Search field (FR-052) — glass search bar
+            GlassSearchBar(
+                text: $viewModel.searchText,
+                placeholder: "Search by file name...",
+                onClear: { viewModel.load() }
+            )
+            .onChange(of: viewModel.searchText) { _ in
+                viewModel.load()
             }
-            .padding(6)
-            .background(Color(nsColor: .controlColor))
-            .cornerRadius(6)
 
             // Clear History button (FR-054)
             Button("Clear History") {
@@ -69,34 +55,28 @@ struct HistoryTabView: View {
     // MARK: - Entry List
 
     private var entryList: some View {
-        List {
-            ForEach(viewModel.entries) { entry in
-                HistoryRow(entry: entry, viewModel: viewModel)
+        ScrollView {
+            LazyVStack(spacing: 6) {
+                ForEach(viewModel.entries) { entry in
+                    HistoryRow(entry: entry, viewModel: viewModel)
+                }
             }
+            .padding(16)
         }
     }
 
     // MARK: - Empty State
 
     private var emptyState: some View {
-        VStack(spacing: 12) {
-            Spacer()
-            Image(systemName: "clock")
-                .font(.system(size: 40))
-                .foregroundColor(.secondary)
-            Text(viewModel.searchText.isEmpty
-                 ? "No upload history"
-                 : "No results for \"\(viewModel.searchText)\"")
-                .font(.headline)
-                .foregroundColor(.secondary)
-            Text(viewModel.searchText.isEmpty
-                 ? "Completed uploads will appear here."
-                 : "Try a different search term.")
-                .font(.caption)
-                .foregroundColor(.secondary)
-            Spacer()
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        GlassEmptyState(
+            icon: "clock",
+            title: viewModel.searchText.isEmpty
+                ? "No upload history"
+                : "No results for \"\(viewModel.searchText)\"",
+            subtitle: viewModel.searchText.isEmpty
+                ? "Completed uploads will appear here."
+                : "Try a different search term."
+        )
     }
 
     // MARK: - Actions
@@ -117,7 +97,7 @@ struct HistoryTabView: View {
 
 // MARK: - HistoryRow
 
-/// A single row in the history list showing file info and a Copy URL button.
+/// A single row in the history list with liquid glass card styling.
 private struct HistoryRow: View {
     let entry: HistoryEntry
     let viewModel: HistoryViewModel
@@ -147,13 +127,14 @@ private struct HistoryRow: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
 
+                    // Bucket badge
                     Text(entry.bucket)
                         .font(.caption)
                         .foregroundColor(.secondary)
-                        .padding(.horizontal, 4)
-                        .padding(.vertical, 1)
-                        .background(Color(nsColor: .controlColor))
-                        .cornerRadius(3)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(.ultraThinMaterial)
+                        .clipShape(Capsule())
                 }
             }
 
@@ -172,7 +153,13 @@ private struct HistoryRow: View {
             }
             .buttonStyle(.bordered)
         }
-        .padding(.vertical, 4)
+        .padding(10)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .strokeBorder(Color.primary.opacity(0.06), lineWidth: 0.5)
+        )
     }
 
     /// Brief "Copied" feedback, reverts after 1.5 seconds.

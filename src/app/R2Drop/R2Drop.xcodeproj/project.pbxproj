@@ -12,6 +12,7 @@
 		0721F6E94D65FF46B2027AE5 /* Hero4.png in Resources */ = {isa = PBXBuildFile; fileRef = 8787DED0FC77F0AD054CA323 /* Hero4.png */; };
 		0C4EC35B7770884EB39D14C0 /* R2Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD90BD3564BED9B179739294 /* R2Log.swift */; };
 		0F2CDC8165FB3442DF5FB49B /* AccountsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1F07D637845620D21D51236 /* AccountsViewModel.swift */; };
+		1B3EDC56F9ACE50974548C76 /* GlassComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7291541A708E05FA97C9FF2A /* GlassComponents.swift */; };
 		1B5B336EBB3AE3FFCC632FB1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6BE1681DC9D485DE5BFFDCC7 /* Assets.xcassets */; };
 		1DC6605C3B322B25C9F3ABB4 /* R2Bridge in Frameworks */ = {isa = PBXBuildFile; productRef = 9A0B2592ABA6D517E479184E /* R2Bridge */; };
 		244CF342C83CE84F5B20254D /* AboutTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0303EC699D6329DB04D261F5 /* AboutTabView.swift */; };
@@ -108,6 +109,7 @@
 		61084A1955269B0E3E233C04 /* OnboardingHowItWorksPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingHowItWorksPanel.swift; sourceTree = "<group>"; };
 		66AA868AD68E0206A57BD8EC /* ConflictDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConflictDialog.swift; sourceTree = "<group>"; };
 		6BE1681DC9D485DE5BFFDCC7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		7291541A708E05FA97C9FF2A /* GlassComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassComponents.swift; sourceTree = "<group>"; };
 		7579519F793101201BDE7A67 /* OnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewModel.swift; sourceTree = "<group>"; };
 		8501464791299D219B21F14E /* SettingsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTabView.swift; sourceTree = "<group>"; };
 		8786A46A12B9274C56F04EBB /* ConflictResolution.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConflictResolution.swift; sourceTree = "<group>"; };
@@ -202,6 +204,7 @@
 				9E2EB54091718754465BE53F /* StatusBarDragView.swift */,
 				695A7C4D8BEDDC3E5FA2E6C8 /* About */,
 				653DA828C5A420523CB0699D /* Accounts */,
+				D50B1EC1919AB1979A5ED0A9 /* Components */,
 				6BB0F5260C075F0CDF0070A0 /* ConflictResolution */,
 				1DF84A74C3E5A57DE72ED15E /* History */,
 				5CD2103F31F29DEDECA50562 /* Onboarding */,
@@ -292,6 +295,14 @@
 				F4F557B9EA45CA9816EABF0A /* Info.plist */,
 			);
 			path = FinderExtension;
+			sourceTree = "<group>";
+		};
+		D50B1EC1919AB1979A5ED0A9 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				7291541A708E05FA97C9FF2A /* GlassComponents.swift */,
+			);
+			path = Components;
 			sourceTree = "<group>";
 		};
 		E7957E96A4D7F967C50D1960 /* Services */ = {
@@ -429,6 +440,7 @@
 				92AFD08BCCF0BE6CB16D01DD /* ConflictResolution.swift in Sources */,
 				51E14B44F7505EC41B3DE7F0 /* DeepLinkHandler.swift in Sources */,
 				BEA5130470E8F652BC311DDB /* FinderQueueBridge.swift in Sources */,
+				1B3EDC56F9ACE50974548C76 /* GlassComponents.swift in Sources */,
 				EFFDA890F678B796EFF8BC96 /* HistoryTabView.swift in Sources */,
 				DD540FEA0F6C9D9B2A221A9B /* HistoryViewModel.swift in Sources */,
 				AA6E9523D29409C640C17CA0 /* MenuBarController.swift in Sources */,

@@ -1,8 +1,8 @@
 // R2Drop/App/Queue/QueueTabView.swift
-// Main Queue tab for the Preferences window (FR-037, FR-038).
-// Shows an aggregate status bar at top and a scrollable list of upload jobs.
-// Each job shows progress, speed, and pause/resume/cancel controls (FR-039).
-// "Browse" button per job opens the Cloudflare R2 dashboard (FR-040).
+// Queue tab with liquid glass styling (FR-037, FR-038).
+// Aggregate status bar in a frosted glass header. Scrollable job list below.
+// Each job shows progress, speed, and controls (FR-039).
+// Empty state uses GlassEmptyState component.
 
 import SwiftUI
 import R2Core
@@ -12,11 +12,11 @@ struct QueueTabView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Aggregate status bar (FR-038)
+            // Aggregate status bar (FR-038) — frosted glass header
             aggregateBar
                 .padding(.horizontal, 16)
-                .padding(.vertical, 10)
-                .background(Color(nsColor: .controlBackgroundColor))
+                .padding(.vertical, 12)
+                .background(.thinMaterial)
 
             Divider()
 
@@ -45,11 +45,13 @@ struct QueueTabView: View {
             if viewModel.hasActiveUploads {
                 let speed = viewModel.aggregateSpeed
                 if speed > 0 {
-                    Image(systemName: "arrow.up")
-                        .foregroundColor(.blue)
-                    Text(formatSpeed(speed))
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                    HStack(spacing: 4) {
+                        Image(systemName: "arrow.up")
+                            .foregroundColor(.accentColor)
+                        Text(formatSpeed(speed))
+                            .font(.callout)
+                            .foregroundColor(.secondary)
+                    }
                 }
             }
         }
@@ -58,39 +60,31 @@ struct QueueTabView: View {
     // MARK: - Job List (FR-037)
 
     private var jobList: some View {
-        List {
-            ForEach(viewModel.jobs) { job in
-                QueueJobRow(
-                    job: job,
-                    speed: viewModel.speed(for: job),
-                    onPause: { viewModel.pauseJob(job) },
-                    onResume: { viewModel.resumeJob(job) },
-                    onCancel: { viewModel.cancelJob(job) },
-                    onBrowse: { openBrowse(for: job) }
-                )
+        ScrollView {
+            LazyVStack(spacing: 8) {
+                ForEach(viewModel.jobs) { job in
+                    QueueJobRow(
+                        job: job,
+                        speed: viewModel.speed(for: job),
+                        onPause: { viewModel.pauseJob(job) },
+                        onResume: { viewModel.resumeJob(job) },
+                        onCancel: { viewModel.cancelJob(job) },
+                        onBrowse: { openBrowse(for: job) }
+                    )
+                }
             }
+            .padding(16)
         }
     }
 
     // MARK: - Empty State
 
     private var emptyState: some View {
-        VStack(spacing: 12) {
-            Spacer()
-            Image(systemName: "tray")
-                .font(.system(size: 40))
-                .foregroundColor(.secondary)
-            Text("No uploads in queue")
-                .font(.headline)
-                .foregroundColor(.secondary)
-            Text("Right-click files in Finder or drag them onto the menu bar icon to upload.")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 280)
-            Spacer()
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        GlassEmptyState(
+            icon: "tray",
+            title: "No uploads in queue",
+            subtitle: "Right-click files in Finder or drag them onto the menu bar icon to upload."
+        )
     }
 
     // MARK: - Helpers

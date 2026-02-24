@@ -1,9 +1,8 @@
 // R2Drop/App/Accounts/AccountsTabView.swift
-// Accounts tab for the Preferences window (US-018, FR-041 through FR-044).
-// Left sidebar lists configured accounts with selection.
-// Right panel shows editable account details.
-// "Add Account" button at bottom of sidebar (FR-042).
-// Empty state: "Set up your first account" card when no accounts exist.
+// Accounts tab with Tailscale-style sidebar + detail layout and liquid glass styling.
+// Left sidebar lists configured accounts with frosted background.
+// Right panel shows editable account details via GlassCard sections.
+// Empty state uses GlassEmptyState. "Add Account" at bottom of sidebar (FR-042).
 
 import SwiftUI
 import R2Core
@@ -26,13 +25,14 @@ struct AccountsTabView: View {
 
     private var sidebarDetailLayout: some View {
         HSplitView {
-            // Left sidebar: account list + add button
+            // Left sidebar: account list + add button with frosted glass
             VStack(spacing: 0) {
                 accountList
                 Divider()
                 addAccountButton
             }
             .frame(minWidth: 150, idealWidth: 170, maxWidth: 200)
+            .background(.thinMaterial)
 
             // Right panel: account detail
             AccountDetailView(viewModel: viewModel)
@@ -45,6 +45,11 @@ struct AccountsTabView: View {
     private var accountList: some View {
         List(viewModel.accounts, id: \.name, selection: $viewModel.selectedAccountName) { account in
             HStack {
+                // Account icon
+                Image(systemName: "person.circle.fill")
+                    .font(.title3)
+                    .foregroundColor(.accentColor)
+
                 VStack(alignment: .leading, spacing: 2) {
                     Text(account.name)
                         .font(.body)
@@ -73,45 +78,37 @@ struct AccountsTabView: View {
 
     private var addAccountButton: some View {
         Button(action: { viewModel.addAccount() }) {
-            HStack {
-                Image(systemName: "plus")
+            HStack(spacing: 6) {
+                Image(systemName: "plus.circle.fill")
+                    .foregroundColor(.accentColor)
                 Text("Add Account")
+                    .font(.body)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
+            .padding(.vertical, 10)
         }
         .buttonStyle(.borderless)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
     }
 
     // MARK: - Empty State
 
     private var emptyState: some View {
-        VStack(spacing: 16) {
-            Spacer()
-
-            Image(systemName: "person.crop.circle.badge.plus")
-                .font(.system(size: 48))
-                .foregroundColor(.secondary)
-
-            Text("Set up your first account")
-                .font(.headline)
-
-            Text("Connect your Cloudflare R2 account to start uploading files.")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 300)
+        VStack(spacing: 20) {
+            GlassEmptyState(
+                icon: "person.crop.circle.badge.plus",
+                title: "Set up your first account",
+                subtitle: "Connect your Cloudflare R2 account to start uploading files."
+            )
 
             Button("Add Account") {
                 viewModel.addAccount()
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
-
-            Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(20)
     }
 }
