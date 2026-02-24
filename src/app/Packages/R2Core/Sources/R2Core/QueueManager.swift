@@ -17,6 +17,9 @@ public final class QueueManager {
     /// Open (or create) the queue database at the given path.
     public init(path: String) throws {
         db = try SQLiteConnection(path: path)
+        #if DEBUG
+        print("[R2Core:QueueManager] init: db path \(path)")
+        #endif
         try createTable()
     }
 
@@ -50,6 +53,9 @@ public final class QueueManager {
         accountName: String,
         totalBytes: UInt64 = 0
     ) throws -> Int64 {
+        #if DEBUG
+        print("[R2Core:QueueManager] insertJob: \(filePath) -> \(r2Key)")
+        #endif
         try db.run(
             """
             INSERT INTO jobs (file_path, r2_key, bucket, account_name, total_bytes)
@@ -108,6 +114,9 @@ public final class QueueManager {
         errorMessage: String? = nil,
         uploadId: String? = nil
     ) throws {
+        #if DEBUG
+        print("[R2Core:QueueManager] updateStatus: id=\(id) status=\(status.rawValue)")
+        #endif
         try db.run(
             """
             UPDATE jobs SET status = ?1, error_message = ?2, upload_id = ?3,
@@ -132,6 +141,9 @@ public final class QueueManager {
     /// Delete a job by ID. Returns true if a row was deleted.
     @discardableResult
     public func deleteJob(id: Int64) throws -> Bool {
+        #if DEBUG
+        print("[R2Core:QueueManager] deleteJob: id=\(id)")
+        #endif
         let changed = try db.run(
             "DELETE FROM jobs WHERE id = ?1",
             params: [id]

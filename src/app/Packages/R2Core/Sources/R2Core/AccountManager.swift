@@ -18,6 +18,9 @@ public final class AccountManager {
     public init() throws {
         self.configPath = nil
         self.config = try ConfigManager.load()
+        #if DEBUG
+        print("[R2Core:AccountManager] init: config loaded with \(self.config.accounts.count) accounts")
+        #endif
     }
 
     /// Create a manager backed by a specific config file (for testing).
@@ -53,6 +56,9 @@ public final class AccountManager {
         if config.accounts.count == 1 {
             config.activeAccount = account.name
         }
+        #if DEBUG
+        print("[R2Core:AccountManager] addAccount: \(account.name)")
+        #endif
         try save()
     }
 
@@ -62,6 +68,9 @@ public final class AccountManager {
             return
         }
         config.accounts[idx] = account
+        #if DEBUG
+        print("[R2Core:AccountManager] updateAccount: \(account.name)")
+        #endif
         try save()
     }
 
@@ -72,6 +81,9 @@ public final class AccountManager {
         if config.activeAccount == name {
             config.activeAccount = config.accounts.first?.name
         }
+        #if DEBUG
+        print("[R2Core:AccountManager] removeAccount: \(name)")
+        #endif
         try save()
     }
 
@@ -80,9 +92,15 @@ public final class AccountManager {
     @discardableResult
     public func switchAccount(to name: String) throws -> Bool {
         guard config.accounts.contains(where: { $0.name == name }) else {
+            #if DEBUG
+            print("[R2Core:AccountManager] switchAccount: account not found \(name)")
+            #endif
             return false
         }
         config.activeAccount = name
+        #if DEBUG
+        print("[R2Core:AccountManager] switchAccount: \(name)")
+        #endif
         try save()
         return true
     }

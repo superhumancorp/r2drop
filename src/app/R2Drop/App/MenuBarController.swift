@@ -28,15 +28,24 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     /// Load the custom menu bar icon from the asset catalog.
     /// Marked as template so macOS auto-tints for light/dark menu bar.
     private static let menuBarIcon: NSImage? = {
-        let img = NSImage(named: "MenuBarIcon")
-        img?.isTemplate = true
-        return img
+        // Try custom asset first, fall back to SF Symbol if asset catalog fails
+        if let img = NSImage(named: "MenuBarIcon") {
+            img.isTemplate = true
+            return img
+        }
+        // SF Symbol fallback — icloud.and.arrow.up is a reasonable stand-in
+        let fallback = NSImage(systemSymbolName: "icloud.and.arrow.up", accessibilityDescription: "R2Drop")
+        fallback?.isTemplate = true
+        return fallback
     }()
 
     // MARK: - Init
 
     override init() {
         super.init()
+        #if DEBUG
+        R2Log.menubar.debug("MenuBarController.init")
+        #endif
         setupStatusItem()
         startUploadCheck()
     }
@@ -50,6 +59,9 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     private func setupStatusItem() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        #if DEBUG
+        R2Log.menubar.debug("setupStatusItem: icon=\(Self.menuBarIcon != nil ? "loaded" : "nil")")
+        #endif
         updateIcon()
 
         // Dropdown menu
@@ -133,6 +145,11 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         let wasUploading = isUploading
         isUploading = hasActiveUploads()
         if wasUploading != isUploading { updateIcon() }
+        #if DEBUG
+        if wasUploading != isUploading {
+            R2Log.menubar.debug("Upload state changed: \(wasUploading) → \(self.isUploading)")
+        }
+        #endif
     }
 
     private func hasActiveUploads() -> Bool {
@@ -153,12 +170,15 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     private func rebuildMenu(_ menu: NSMenu) {
         menu.removeAllItems()
 
-        // 1. On/Off toggle
-        let toggleTitle = isEnabled ? "R2Drop is On" : "R2Drop is Off"
-        let toggleItem = NSMenuItem(title: toggleTitle, action: #selector(toggleEnabled), keyEquivalent: "")
-        toggleItem.target = self
-        toggleItem.state = isEnabled ? .on : .off
-        menu.addItem(toggleItem)
+        // 1. Tailscale-style header: app name, status text, toggle switch
+        let headerView = MenuBarHeaderView()
+        headerView.isEnabled = isEnabled
+        headerView.onToggle = { [weak self] enabled in
+            self?.isEnabled = enabled
+        }
+        let headerItem = NSMenuItem()
+        headerItem.view = headerView
+        menu.addItem(headerItem)
         menu.addItem(.separator())
 
         // 2. Account section
@@ -238,7 +258,6 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     // MARK: - Menu Actions
 
-    @objc private func toggleEnabled() { isEnabled.toggle() }
 
     @objc private func addAccount() { appDelegate?.showAddAccount() }
 
@@ -279,6 +298,9 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     /// Handle files dropped on the status item. Shows confirmation unless "Never ask again".
     private func handleDroppedFiles(_ urls: [URL]) {
+        #if DEBUG
+        R2Log.menubar.debug("handleDroppedFiles: \(urls.count) files")
+        #endif
         guard isEnabled else { return }
 
         // Need an active account to upload
@@ -332,6 +354,9 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     /// If an object already exists, prompts the user for Overwrite / Skip / Rename
     /// unless "Apply to all" was previously selected in this session.
     private func queueUploads(urls: [URL], account: ConfigAccount) {
+        #if DEBUG
+        R2Log.menubar.debug("queueUploads: \(urls.count) files to account=\(account.name) bucket=\(account.bucket)")
+        #endif
         guard let qm = try? QueueManager() else { return }
 
         // Get token for head_object checks

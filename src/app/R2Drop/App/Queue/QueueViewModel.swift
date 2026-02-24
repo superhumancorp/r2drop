@@ -26,6 +26,9 @@ final class QueueViewModel: ObservableObject {
     // MARK: - Lifecycle
 
     func start() {
+        #if DEBUG
+        R2Log.ui.debug("QueueViewModel: start")
+        #endif
         poll() // Immediate first poll
         timer = Timer.scheduledTimer(withTimeInterval: pollInterval, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.poll() }
@@ -33,6 +36,9 @@ final class QueueViewModel: ObservableObject {
     }
 
     func stop() {
+        #if DEBUG
+        R2Log.ui.debug("QueueViewModel: stop")
+        #endif
         timer?.invalidate()
         timer = nil
     }
@@ -116,18 +122,27 @@ final class QueueViewModel: ObservableObject {
     // MARK: - Actions (FR-039)
 
     func pauseJob(_ job: UploadJob) {
+        #if DEBUG
+        R2Log.ui.debug("QueueViewModel: pauseJob id=\(job.id)")
+        #endif
         guard let qm = try? QueueManager() else { return }
         try? qm.updateStatus(id: job.id, status: .paused)
         poll()
     }
 
     func resumeJob(_ job: UploadJob) {
+        #if DEBUG
+        R2Log.ui.debug("QueueViewModel: resumeJob id=\(job.id)")
+        #endif
         guard let qm = try? QueueManager() else { return }
         try? qm.updateStatus(id: job.id, status: .pending)
         poll()
     }
 
     func cancelJob(_ job: UploadJob) {
+        #if DEBUG
+        R2Log.ui.debug("QueueViewModel: cancelJob id=\(job.id)")
+        #endif
         guard let qm = try? QueueManager() else { return }
         try? qm.deleteJob(id: job.id)
         poll()

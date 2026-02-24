@@ -56,8 +56,6 @@ targets:
           - "$(inherited)"
         SWIFT_VERSION: "5.9"
         CODE_SIGN_ENTITLEMENTS: R2Drop.entitlements
-        # Menu bar only app (no Dock icon)
-        INFOPLIST_KEY_LSUIElement: YES
     info:
       path: Info.plist
       properties:
@@ -66,7 +64,6 @@ targets:
             CFBundleURLSchemes:
               - "r2drop"
         SUPublicEDKey: "NWlOpvs7+ccCaW6557MqyCO94w3KVziS7uAOOxR8gQk="
-        LSUIElement: true
     dependencies:
       - package: R2Core
       - package: R2Bridge

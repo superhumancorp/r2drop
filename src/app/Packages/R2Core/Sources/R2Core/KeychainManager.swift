@@ -68,6 +68,9 @@ public final class KeychainManager {
     /// Throws `duplicateItem` if a token already exists — use `updateToken` instead.
     public func saveToken(account: String, token: String) throws {
         let tokenData = Data(token.utf8)
+        #if DEBUG
+        print("[R2Core:KeychainManager] saveToken: \(account)")
+        #endif
 
         var query = baseQuery(account: account)
         query[kSecValueData as String] = tokenData
@@ -80,6 +83,9 @@ public final class KeychainManager {
         case errSecDuplicateItem:
             throw KeychainError.duplicateItem
         default:
+            #if DEBUG
+            print("[R2Core:KeychainManager] saveToken error: OSStatus \(status)")
+            #endif
             throw KeychainError.unexpectedError(status)
         }
     }
@@ -100,10 +106,19 @@ public final class KeychainManager {
                   let token = String(data: data, encoding: .utf8) else {
                 return nil
             }
+            #if DEBUG
+            print("[R2Core:KeychainManager] getToken: \(account) found")
+            #endif
             return token
         case errSecItemNotFound:
+            #if DEBUG
+            print("[R2Core:KeychainManager] getToken: \(account) not found")
+            #endif
             return nil
         default:
+            #if DEBUG
+            print("[R2Core:KeychainManager] getToken error: OSStatus \(status)")
+            #endif
             throw KeychainError.unexpectedError(status)
         }
     }
@@ -112,6 +127,9 @@ public final class KeychainManager {
     /// Throws `itemNotFound` if no token exists for this account.
     public func deleteToken(account: String) throws {
         let query = baseQuery(account: account)
+        #if DEBUG
+        print("[R2Core:KeychainManager] deleteToken: \(account)")
+        #endif
         let status = SecItemDelete(query as CFDictionary)
 
         switch status {
@@ -120,6 +138,9 @@ public final class KeychainManager {
         case errSecItemNotFound:
             throw KeychainError.itemNotFound
         default:
+            #if DEBUG
+            print("[R2Core:KeychainManager] deleteToken error: OSStatus \(status)")
+            #endif
             throw KeychainError.unexpectedError(status)
         }
     }
@@ -128,6 +149,9 @@ public final class KeychainManager {
     /// Throws `itemNotFound` if no token exists for this account.
     public func updateToken(account: String, token: String) throws {
         let query = baseQuery(account: account)
+        #if DEBUG
+        print("[R2Core:KeychainManager] updateToken: \(account)")
+        #endif
         let attributes: [String: Any] = [
             kSecValueData as String: Data(token.utf8)
         ]
@@ -140,6 +164,9 @@ public final class KeychainManager {
         case errSecItemNotFound:
             throw KeychainError.itemNotFound
         default:
+            #if DEBUG
+            print("[R2Core:KeychainManager] updateToken error: OSStatus \(status)")
+            #endif
             throw KeychainError.unexpectedError(status)
         }
     }

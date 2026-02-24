@@ -31,6 +31,9 @@ final class UploadMonitor {
     // MARK: - Lifecycle
 
     func start() {
+        #if DEBUG
+        R2Log.upload.debug("UploadMonitor: start")
+        #endif
         // Seed the initial state so we don't fire notifications for pre-existing jobs
         seedInitialState()
         timer = Timer.scheduledTimer(withTimeInterval: pollInterval, repeats: true) { [weak self] _ in
@@ -39,6 +42,9 @@ final class UploadMonitor {
     }
 
     func stop() {
+        #if DEBUG
+        R2Log.upload.debug("UploadMonitor: stop")
+        #endif
         timer?.invalidate()
         timer = nil
     }
@@ -64,6 +70,9 @@ final class UploadMonitor {
         )
 
         hadActiveUploads = !previousActiveIds.isEmpty
+        #if DEBUG
+        R2Log.upload.debug("UploadMonitor: seedInitialState active=\(self.previousActiveIds.count) completed=\(self.notifiedCompleteIds.count) failed=\(self.notifiedFailedIds.count)")
+        #endif
     }
 
     /// Check for state transitions and fire notifications.
@@ -104,9 +113,15 @@ final class UploadMonitor {
             // Single upload completed — include URL from history if available
             let url = lookupURL(for: job)
             service.notifyUploadComplete(fileName: fileNameFromPath(job.filePath), url: url)
+            #if DEBUG
+            R2Log.upload.debug("UploadMonitor: notified single upload complete")
+            #endif
         } else if completedJobs.count > 1 {
             // Batch completed
             service.notifyBatchComplete(count: completedJobs.count)
+            #if DEBUG
+            R2Log.upload.debug("UploadMonitor: notified batch complete count=\(completedJobs.count)")
+            #endif
         }
 
         for job in failedJobs {
@@ -117,9 +132,17 @@ final class UploadMonitor {
                 jobId: job.id
             )
         }
+        #if DEBUG
+        if !failedJobs.isEmpty {
+            R2Log.upload.debug("UploadMonitor: notified failed uploads count=\(failedJobs.count)")
+        }
+        #endif
 
         if wasPaused {
             service.notifyUploadPaused()
+            #if DEBUG
+            R2Log.upload.debug("UploadMonitor: notified uploads paused")
+            #endif
         }
 
         // Update tracking state

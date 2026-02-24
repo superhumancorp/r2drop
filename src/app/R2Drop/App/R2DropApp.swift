@@ -48,13 +48,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let uploadMonitor = UploadMonitor()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        #if DEBUG
+        R2Log.app.debug("applicationDidFinishLaunching")
+        #endif
         // Create the persistent menu bar icon (FR-034)
         menuBarController = MenuBarController()
+        #if DEBUG
+        R2Log.app.debug("MenuBarController created")
+        #endif
 
         // Start notification service — requests permission and registers categories (FR-061)
         NotificationService.shared.start()
 
+        // Apply dock icon visibility from config.
+        // Default is .regular (dock icon visible). If user set hide_dock_icon = true,
+        // switch to .accessory (menu bar only).
+        let config = (try? ConfigManager.load()) ?? R2Config()
+        NSApp.setActivationPolicy(config.preferences.hideDockIcon ? .accessory : .regular)
+        #if DEBUG
+        R2Log.app.debug("Activation policy: \(config.preferences.hideDockIcon ? ".accessory" : ".regular")")
+        #endif
+
         let hasAccounts = accountsExist()
+        #if DEBUG
+        R2Log.app.debug("Accounts exist: \(hasAccounts)")
+        #endif
         // Start polling the Finder extension's shared queue (FR-021)
         finderQueueBridge.start()
 
@@ -62,18 +80,38 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         uploadMonitor.start()
 
         if !hasAccounts {
+            #if DEBUG
+            R2Log.app.debug("No accounts — showing onboarding")
+            #endif
             showOnboarding()
         } else {
             // FR-003: Retrieve tokens from Keychain and validate on launch
             // FR-004: Start periodic 24h re-validation
             tokenValidationService.start()
+
+            // Open the Preferences window so the user sees something on launch.
+            // Dispatched async because SwiftUI's Settings scene needs
+            // one runloop iteration to be ready.
+            DispatchQueue.main.async {
+                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+                NSApp.activate(ignoringOtherApps: true)
+            }
         }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        #if DEBUG
+        R2Log.app.debug("applicationWillTerminate — stopping services")
+        #endif
         tokenValidationService.stop()
         finderQueueBridge.stop()
         uploadMonitor.stop()
+    }
+
+    /// Prevent app from quitting when Settings window (or any window) is closed.
+    /// Menu bar apps must stay running — the user quits via the dropdown Quit item.
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        return false
     }
 
     // MARK: - Deep Links (US-022)
@@ -81,6 +119,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Handle r2drop:// URL scheme invocations from CLI, browser, or other apps.
     /// Delegates to DeepLinkHandler for parsing and routing.
     func application(_ application: NSApplication, open urls: [URL]) {
+        #if DEBUG
+        R2Log.app.debug("Deep link received: \(urls.map { $0.absoluteString })")
+        #endif
         for url in urls {
             DeepLinkHandler.handle(url, appDelegate: self)
         }
@@ -116,6 +157,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// Remove an account's Keychain entry and config with a confirmation dialog.
     func logOut(accountName: String) {
+        #if DEBUG
+        R2Log.app.debug("logOut: \(accountName)")
+        #endif
         let alert = NSAlert()
         alert.messageText = "Log out of \"\(accountName)\"?"
         alert.informativeText = "This will remove the API token from Keychain and delete the account configuration."
@@ -157,6 +201,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Present an onboarding/setup window with the given mode and title.
     /// Closes any existing onboarding window first.
     private func presentOnboardingWindow(mode: OnboardingMode, title: String) {
+        #if DEBUG
+        R2Log.app.debug("presentOnboardingWindow: mode=\(String(describing: mode)), title=\(title)")
+        #endif
         // Close existing window if open
         onboardingWindow?.close()
         onboardingWindow = nil

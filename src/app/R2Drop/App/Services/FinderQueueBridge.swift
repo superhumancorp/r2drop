@@ -16,6 +16,9 @@ final class FinderQueueBridge {
 
     /// Start polling the App Groups queue for new jobs.
     func start() {
+        #if DEBUG
+        R2Log.service.debug("FinderQueueBridge: start")
+        #endif
         guard pollTimer == nil else { return }
         pollTimer = Timer.scheduledTimer(
             withTimeInterval: 2.0, repeats: true
@@ -28,6 +31,9 @@ final class FinderQueueBridge {
 
     /// Stop polling.
     func stop() {
+        #if DEBUG
+        R2Log.service.debug("FinderQueueBridge: stop")
+        #endif
         pollTimer?.invalidate()
         pollTimer = nil
     }
@@ -50,6 +56,10 @@ final class FinderQueueBridge {
         guard let sharedJobs = try? sharedQM.listJobs(status: .pending),
               !sharedJobs.isEmpty else { return }
 
+        #if DEBUG
+        R2Log.service.debug("FinderQueueBridge: transferPendingJobs found \(sharedJobs.count) jobs")
+        #endif
+
         // Transfer each job with conflict checking
         for job in sharedJobs {
             do {
@@ -61,9 +71,15 @@ final class FinderQueueBridge {
                     case .skip:
                         // User chose to skip — delete from shared queue, don't transfer
                         try sharedQM.deleteJob(id: job.id)
+                        #if DEBUG
+                        R2Log.service.debug("FinderQueueBridge: job \(job.id) skipped due to conflict")
+                        #endif
                         continue
                     case .rename:
                         r2Key = ConflictManager.renamedKey(job.r2Key)
+                        #if DEBUG
+                        R2Log.service.debug("FinderQueueBridge: job \(job.id) renamed")
+                        #endif
                     case .overwrite:
                         break // Transfer as-is
                     }
@@ -77,7 +93,13 @@ final class FinderQueueBridge {
                     totalBytes: job.totalBytes
                 )
                 try sharedQM.deleteJob(id: job.id)
+                #if DEBUG
+                R2Log.service.debug("FinderQueueBridge: job \(job.id) transferred successfully")
+                #endif
             } catch {
+                #if DEBUG
+                R2Log.service.error("FinderQueueBridge: Failed to transfer job \(job.id): \(error)")
+                #endif
                 NSLog("R2Drop: Failed to transfer job \(job.id): \(error)")
             }
         }

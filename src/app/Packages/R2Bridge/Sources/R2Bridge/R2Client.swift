@@ -15,21 +15,37 @@ public final class R2Client: Sendable {
 
     /// Validate an API token against the Cloudflare API.
     public func validateToken(_ token: String) async throws {
+        #if DEBUG
+        print("[R2Bridge:R2Client] validateToken begin")
+        #endif
         let result = token.withCString { r2_validate_token($0) }
         if result != 0 {
+            #if DEBUG
+            print("[R2Bridge:R2Client] validateToken failed: \(lastError())")
+            #endif
             throw R2BridgeError.ffiError(lastError())
         }
+        #if DEBUG
+        print("[R2Bridge:R2Client] validateToken success")
+        #endif
     }
 
     /// List Cloudflare accounts accessible with the given token.
     /// Returns array of dictionaries with "id" and "name" keys.
     public func listAccounts(token: String) async throws -> [[String: String]] {
         guard let ptr = token.withCString({ r2_list_accounts($0) }) else {
+            #if DEBUG
+            print("[R2Bridge:R2Client] listAccounts failed: \(lastError())")
+            #endif
             throw R2BridgeError.ffiError(lastError())
         }
         defer { r2_free_string(ptr) }
         let json = String(cString: ptr)
-        return try decodeJSON(json)
+        let accounts: [[String: String]] = try decodeJSON(json)
+        #if DEBUG
+        print("[R2Bridge:R2Client] listAccounts returned \(accounts.count) accounts")
+        #endif
+        return accounts
     }
 
     /// List R2 bucket names for an account.
@@ -39,11 +55,18 @@ public final class R2Client: Sendable {
                 r2_list_buckets(aid, tok)
             })
         }) else {
+            #if DEBUG
+            print("[R2Bridge:R2Client] listBuckets failed: \(lastError())")
+            #endif
             throw R2BridgeError.ffiError(lastError())
         }
         defer { r2_free_string(ptr) }
         let json = String(cString: ptr)
-        return try decodeJSON(json)
+        let buckets: [String] = try decodeJSON(json)
+        #if DEBUG
+        print("[R2Bridge:R2Client] listBuckets returned \(buckets.count) buckets")
+        #endif
+        return buckets
     }
 
     /// Create a new R2 bucket.
@@ -67,7 +90,14 @@ public final class R2Client: Sendable {
     public func headObject(
         accountId: String, token: String, bucket: String, key: String
     ) async throws -> R2ObjectInfo? {
-        return try headObjectSync(accountId: accountId, token: token, bucket: bucket, key: key)
+        #if DEBUG
+        print("[R2Bridge:R2Client] headObject key=\(key)")
+        #endif
+        let result = try headObjectSync(accountId: accountId, token: token, bucket: bucket, key: key)
+        #if DEBUG
+        print("[R2Bridge:R2Client] headObject exists=\(result != nil)")
+        #endif
+        return result
     }
 
     /// Synchronous head_object check — safe to call from any thread.
@@ -112,8 +142,14 @@ public final class R2Client: Sendable {
             }
         }
         if jobId < 0 {
+            #if DEBUG
+            print("[R2Bridge:R2Client] queueUpload failed: \(lastError())")
+            #endif
             throw R2BridgeError.ffiError(lastError())
         }
+        #if DEBUG
+        print("[R2Bridge:R2Client] queueUpload filePath=\(filePath) jobId=\(jobId)")
+        #endif
         return jobId
     }
 
@@ -162,6 +198,9 @@ public final class R2Client: Sendable {
     /// Inform the Rust engine about network connectivity changes.
     /// Called by NetworkMonitor when NWPathMonitor detects a transition.
     public func setNetworkAvailable(_ available: Bool) {
+        #if DEBUG
+        print("[R2Bridge:R2Client] setNetworkAvailable=\(available)")
+        #endif
         r2_set_network_available(available)
     }
 

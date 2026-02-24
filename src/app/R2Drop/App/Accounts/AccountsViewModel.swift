@@ -44,6 +44,9 @@ final class AccountsViewModel: ObservableObject {
 
     /// Reload accounts from config.toml and select the first if none selected.
     func load() {
+        #if DEBUG
+        R2Log.ui.debug("AccountsViewModel: load")
+        #endif
         let config = (try? ConfigManager.load()) ?? R2Config()
         accounts = config.accounts
 
@@ -63,6 +66,9 @@ final class AccountsViewModel: ObservableObject {
 
     /// Select an account by name and populate the detail fields.
     func selectAccount(_ name: String) {
+        #if DEBUG
+        R2Log.ui.debug("AccountsViewModel: selectAccount \(name)")
+        #endif
         guard let account = accounts.first(where: { $0.name == name }) else { return }
         selectedAccountName = name
         editName = account.name
@@ -149,6 +155,9 @@ final class AccountsViewModel: ObservableObject {
     /// Persist edits to config.toml for the selected account.
     func saveChanges() {
         guard let originalName = selectedAccountName else { return }
+        #if DEBUG
+        R2Log.ui.debug("AccountsViewModel: saveChanges for \(originalName)")
+        #endif
         guard validatePath() else { return }
 
         let updated = ConfigAccount(
@@ -188,6 +197,9 @@ final class AccountsViewModel: ObservableObject {
 
     /// Trigger the "Log Out" flow via AppDelegate with confirmation (FR-044).
     func logOut(accountName: String) {
+        #if DEBUG
+        R2Log.ui.debug("AccountsViewModel: logOut \(accountName)")
+        #endif
         guard let appDelegate = NSApp.delegate as? AppDelegate else { return }
         appDelegate.logOut(accountName: accountName)
         // Refresh after log out

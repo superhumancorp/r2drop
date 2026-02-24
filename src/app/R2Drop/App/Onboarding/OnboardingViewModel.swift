@@ -75,6 +75,9 @@ final class OnboardingViewModel: ObservableObject {
     // MARK: - Init
 
     init(mode: OnboardingMode = .initial) {
+        #if DEBUG
+        R2Log.ui.debug("OnboardingViewModel: init mode=\(String(describing: mode))")
+        #endif
         self.mode = mode
 
         // Set starting panel based on mode
@@ -117,6 +120,9 @@ final class OnboardingViewModel: ObservableObject {
 
     /// Move to the next panel.
     func goNext() {
+        #if DEBUG
+        R2Log.ui.debug("OnboardingViewModel: goNext from \(String(describing: self.currentPanel))")
+        #endif
         guard let next = OnboardingPanel(rawValue: currentPanel.rawValue + 1) else { return }
         currentPanel = next
     }
@@ -138,6 +144,9 @@ final class OnboardingViewModel: ObservableObject {
     /// Validate the pasted token against Cloudflare API, then fetch accounts.
     /// On success: stores/updates token in Keychain and advances to Panel 5.
     func validateAndStoreToken() async {
+        #if DEBUG
+        R2Log.ui.debug("OnboardingViewModel: validateAndStoreToken")
+        #endif
         let trimmed = tokenText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
             tokenError = "Please paste your API token."
@@ -190,6 +199,9 @@ final class OnboardingViewModel: ObservableObject {
             }
 
             tokenValid = true
+        #if DEBUG
+        R2Log.ui.debug("OnboardingViewModel: token valid, accountId=\(self.accountId)")
+        #endif
             isValidatingToken = false
 
             // Clear plaintext token from text field (FR-005)
@@ -199,6 +211,9 @@ final class OnboardingViewModel: ObservableObject {
             goNext()
 
         } catch {
+            #if DEBUG
+            R2Log.ui.error("OnboardingViewModel: validateToken failed: \(error)")
+            #endif
             tokenError = "This token doesn't appear to be valid. Please check that you copied the full token."
             isValidatingToken = false
         }
@@ -240,6 +255,9 @@ final class OnboardingViewModel: ObservableObject {
 
     /// Finish onboarding: persist account to config.toml and dismiss.
     func finishSetup() async {
+        #if DEBUG
+        R2Log.ui.debug("OnboardingViewModel: finishSetup account=\(self.accountName) bucket=\(self.selectedBucket)")
+        #endif
         let account = ConfigAccount(
             name: accountName,
             bucket: selectedBucket,

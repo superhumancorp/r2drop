@@ -35,12 +35,18 @@ final class TokenValidationService: ObservableObject {
 
     /// Start the service: validate immediately, then schedule periodic checks.
     func start() {
+        #if DEBUG
+        R2Log.service.debug("TokenValidationService: start")
+        #endif
         validateAllTokens()
         schedulePeriodicValidation()
     }
 
     /// Stop the service and cancel the periodic timer.
     func stop() {
+        #if DEBUG
+        R2Log.service.debug("TokenValidationService: stop")
+        #endif
         periodicTask?.cancel()
         periodicTask = nil
     }
@@ -54,6 +60,9 @@ final class TokenValidationService: ObservableObject {
     /// Validate tokens for all configured accounts.
     /// Runs asynchronously in the background.
     func validateAllTokens() {
+        #if DEBUG
+        R2Log.service.debug("TokenValidationService: validateAllTokens begin")
+        #endif
         Task { @MainActor in
             isChecking = true
             invalidAccounts = []
@@ -69,11 +78,21 @@ final class TokenValidationService: ObservableObject {
                 let isValid = await validateSingleToken(token)
                 if !isValid {
                     invalidAccounts.append(account.name)
+                    #if DEBUG
+                    R2Log.service.debug("TokenValidationService: token invalid for account \(account.name)")
+                    #endif
                     postTokenExpiredNotification(accountName: account.name)
+                } else {
+                    #if DEBUG
+                    R2Log.service.debug("TokenValidationService: token valid for account \(account.name)")
+                    #endif
                 }
             }
 
             isChecking = false
+            #if DEBUG
+            R2Log.service.debug("TokenValidationService: validateAllTokens end")
+            #endif
         }
     }
 

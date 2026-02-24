@@ -46,11 +46,18 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
     /// Request notification permission and register categories.
     /// Call once from AppDelegate on launch.
     func start() {
+        #if DEBUG
+        R2Log.service.debug("NotificationService: start")
+        #endif
         let center = UNUserNotificationCenter.current()
         center.delegate = self
 
         // Request permission (FR-061)
-        center.requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in }
+        center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
+            #if DEBUG
+            R2Log.service.debug("NotificationService: permission requested granted=\(granted)")
+            #endif
+        }
 
         // Register actionable categories (FR-062)
         registerCategories()
@@ -115,6 +122,9 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
     /// Notify that a single upload completed successfully (FR-062).
     /// Plays system sound if enabled in preferences (FR-063).
     func notifyUploadComplete(fileName: String, url: String?) {
+        #if DEBUG
+        R2Log.service.debug("NotificationService: notifyUploadComplete fileName=\(fileName)")
+        #endif
         let content = UNMutableNotificationContent()
         content.title = "Upload Complete"
         content.body = "\"\(fileName)\" has been uploaded to R2."
@@ -132,6 +142,9 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
 
     /// Notify that a batch of uploads completed (FR-062).
     func notifyBatchComplete(count: Int) {
+        #if DEBUG
+        R2Log.service.debug("NotificationService: notifyBatchComplete count=\(count)")
+        #endif
         let content = UNMutableNotificationContent()
         content.title = "Uploads Complete"
         content.body = "\(count) files have been uploaded to R2."
@@ -144,6 +157,9 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
 
     /// Notify that an upload failed (FR-062).
     func notifyUploadFailed(fileName: String, error: String, jobId: Int64) {
+        #if DEBUG
+        R2Log.service.debug("NotificationService: notifyUploadFailed fileName=\(fileName) jobId=\(jobId)")
+        #endif
         let content = UNMutableNotificationContent()
         content.title = "Upload Failed"
         content.body = "\"\(fileName)\" failed: \(error)"
@@ -156,6 +172,9 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
 
     /// Notify that uploads paused due to network loss (FR-062).
     func notifyUploadPaused(reason: String = "Network connection lost") {
+        #if DEBUG
+        R2Log.service.debug("NotificationService: notifyUploadPaused reason=\(reason)")
+        #endif
         let content = UNMutableNotificationContent()
         content.title = "Uploads Paused"
         content.body = reason
@@ -167,6 +186,9 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
 
     /// Notify that a token has expired (FR-062).
     func notifyTokenExpired(accountName: String) {
+        #if DEBUG
+        R2Log.service.debug("NotificationService: notifyTokenExpired accountName=\(accountName)")
+        #endif
         let content = UNMutableNotificationContent()
         content.title = "R2Drop Token Expired"
         content.body = "Your token for \"\(accountName)\" has expired. Click here to set up a new one."
@@ -192,6 +214,9 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
             switch actionId {
             case NotificationAction.copyURL.rawValue:
                 // Copy the R2 URL to clipboard
+                #if DEBUG
+                R2Log.service.debug("NotificationService: action copyURL")
+                #endif
                 if let url = userInfo["url"] as? String, !url.isEmpty {
                     NSPasteboard.general.clearContents()
                     NSPasteboard.general.setString(url, forType: .string)
@@ -199,12 +224,18 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
 
             case NotificationAction.retry.rawValue:
                 // Re-queue the failed job by resetting its status to pending
+                #if DEBUG
+                R2Log.service.debug("NotificationService: action retry")
+                #endif
                 if let jobId = userInfo["jobId"] as? Int64 {
                     retryJob(jobId)
                 }
 
             case NotificationAction.setupToken.rawValue:
                 // Open the add-account / token setup flow
+                #if DEBUG
+                R2Log.service.debug("NotificationService: action setupToken")
+                #endif
                 if let accountName = userInfo["accountName"] as? String {
                     (NSApp.delegate as? AppDelegate)?.showUpdateToken(accountName: accountName)
                 }

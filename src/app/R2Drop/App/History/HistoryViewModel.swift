@@ -22,6 +22,9 @@ final class HistoryViewModel: ObservableObject {
 
     /// Load all history entries (or filtered by search text).
     func load() {
+        #if DEBUG
+        R2Log.ui.debug("HistoryViewModel: load search=\(self.searchText)")
+        #endif
         guard let hm = try? HistoryManager() else {
             entries = []
             return
@@ -39,6 +42,9 @@ final class HistoryViewModel: ObservableObject {
     /// Copy the URL for an entry to the clipboard (FR-053).
     /// Uses custom domain if configured, otherwise the stored R2 URL.
     func copyURL(for entry: HistoryEntry) {
+        #if DEBUG
+        R2Log.ui.debug("HistoryViewModel: copyURL entry=\(entry.fileName)")
+        #endif
         let url = resolveURL(for: entry)
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(url, forType: .string)
@@ -46,6 +52,9 @@ final class HistoryViewModel: ObservableObject {
 
     /// Clear all history entries (FR-054).
     func clearHistory() {
+        #if DEBUG
+        R2Log.ui.debug("HistoryViewModel: clearHistory")
+        #endif
         guard let hm = try? HistoryManager() else { return }
         try? hm.clear()
         entries = []

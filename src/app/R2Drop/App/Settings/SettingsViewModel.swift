@@ -49,6 +49,9 @@ final class SettingsViewModel: ObservableObject {
 
     /// Load preferences from config.toml and detect CLI state.
     func load() {
+        #if DEBUG
+        R2Log.ui.debug("SettingsViewModel.load begin")
+        #endif
         let config = (try? ConfigManager.load()) ?? R2Config()
         let prefs = config.preferences
 
@@ -62,6 +65,9 @@ final class SettingsViewModel: ObservableObject {
         configDirPath = ConfigManager.configDir().path
 
         detectCLI()
+        #if DEBUG
+        R2Log.ui.debug("SettingsViewModel.load complete")
+        #endif
     }
 
     // MARK: - Save
@@ -69,6 +75,9 @@ final class SettingsViewModel: ObservableObject {
     /// Persist all preferences to config.toml.
     func save() {
         do {
+            #if DEBUG
+            R2Log.ui.debug("SettingsViewModel.save begin")
+            #endif
             var config = try ConfigManager.load()
             config.preferences.hideDockIcon = hideDockIcon
             config.preferences.launchAtLogin = launchAtLogin
@@ -78,8 +87,13 @@ final class SettingsViewModel: ObservableObject {
             config.preferences.exclusionPatterns = exclusionPatterns
             config.preferences.followSymlinks = followSymlinks
             try ConfigManager.save(config)
+            #if DEBUG
+            R2Log.ui.debug("SettingsViewModel.save success")
+            #endif
         } catch {
-            // Best-effort save
+            #if DEBUG
+            R2Log.ui.debug("SettingsViewModel.save failed: \(error)")
+            #endif
         }
     }
 
@@ -108,6 +122,9 @@ final class SettingsViewModel: ObservableObject {
 
     /// Toggle dock icon visibility by switching activation policy.
     func toggleHideDockIcon(_ hide: Bool) {
+        #if DEBUG
+        R2Log.ui.debug("toggleHideDockIcon=\(hide)")
+        #endif
         hideDockIcon = hide
         NSApp.setActivationPolicy(hide ? .accessory : .regular)
         save()
@@ -194,6 +211,9 @@ final class SettingsViewModel: ObservableObject {
     /// Install the CLI by running the install script.
     /// Shows status messages and refreshes detection after completion.
     func installCLI() {
+        #if DEBUG
+        R2Log.ui.debug("installCLI begin")
+        #endif
         cliInstallStatus = "Installing..."
 
         Task.detached {
@@ -211,7 +231,6 @@ final class SettingsViewModel: ObservableObject {
                 process.waitUntilExit()
                 success = process.terminationStatus == 0
             } catch {
-                // Process failed to launch
             }
 
             let statusMessage = success
@@ -219,6 +238,9 @@ final class SettingsViewModel: ObservableObject {
                 : "Installation failed. Try running scripts/install-cli.sh manually."
 
             await MainActor.run { [weak self] in
+                #if DEBUG
+                R2Log.ui.debug("installCLI result: \(statusMessage)")
+                #endif
                 self?.cliInstallStatus = statusMessage
                 self?.detectCLI()
             }

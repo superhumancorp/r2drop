@@ -23,6 +23,9 @@ final class NetworkMonitor {
 
     /// Start observing network path changes.
     func start() {
+        #if DEBUG
+        R2Log.network.debug("NetworkMonitor: start")
+        #endif
         monitor.pathUpdateHandler = { [weak self] path in
             let connected = path.status == .satisfied
             Task { @MainActor in
@@ -34,6 +37,9 @@ final class NetworkMonitor {
 
     /// Stop observing network path changes.
     func stop() {
+        #if DEBUG
+        R2Log.network.debug("NetworkMonitor: stop")
+        #endif
         monitor.cancel()
     }
 
@@ -42,7 +48,11 @@ final class NetworkMonitor {
     /// Forward the connectivity change to the Rust engine.
     private func handleChange(connected: Bool) {
         guard connected != isConnected else { return }
+        #if DEBUG
+        R2Log.network.debug("NetworkMonitor: connectivity changed from \(self.isConnected) to \(connected)")
+        #endif
         isConnected = connected
         client.setNetworkAvailable(connected)
     }
 }
+
