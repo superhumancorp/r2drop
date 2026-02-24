@@ -87,17 +87,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         #endif
 
         if shouldShowOnboarding {
+            // Bug 1 fix: Actually call showOnboarding() (was empty block)
+            showOnboarding()
         } else {
             // FR-003: Retrieve tokens from Keychain and validate on launch
             // FR-004: Start periodic 24h re-validation
             tokenValidationService.start()
+        }
 
-            // Open the Preferences window so the user sees something on launch.
-            // Dispatched async because SwiftUI's Settings scene needs
-            // one runloop iteration to be ready.
-            DispatchQueue.main.async {
-                Self.openSettingsWindow()
-            }
+        // Bug 2 fix: Always open Settings window on launch so the user sees something.
+        // Dispatched async because SwiftUI's Settings scene needs
+        // one runloop iteration to be ready.
+        DispatchQueue.main.async {
+            Self.openSettingsWindow()
         }
     }
 
@@ -181,11 +183,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             try? manager.removeAccount(named: accountName)
         }
 
-        // If no accounts remain, show onboarding
+        // Bug 6 fix: After logout, always navigate to Accounts tab so user sees the change.
+        // If no accounts remain, also show onboarding.
         if !accountsExist() {
             tokenValidationService.stop()
             showOnboarding()
         }
+        SelectedTabStore.shared.requestedTab = .accounts
+        Self.openSettingsWindow()
     }
 
     // MARK: - Private
@@ -228,10 +233,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         window.center()
         window.isReleasedWhenClosed = false
         window.level = .floating
-        window.makeKeyAndOrderFront(nil)
-
-        // Bring app to front
-        NSApp.activate(ignoringOtherApps: true)
+        // Bug 4/5 fix: Wrap activation in async so menu bar dropdown dismisses first.
+        DispatchQueue.main.async {
+            window.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+        }
 
         onboardingWindow = window
     }
@@ -252,21 +258,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// macOS 13 uses showPreferencesWindow:, macOS 14+ uses showSettingsWindow:.
     /// We try to find an existing Settings window first, then fall back to selectors.
     static func openSettingsWindow() {
-        // Try to find an existing SwiftUI Settings window
-        if let settingsWindow = NSApp.windows.first(where: {
-            $0.frameAutosaveName.contains("Settings") ||
-            $0.frameAutosaveName.contains("Preferences") ||
-            $0.identifier?.rawValue.contains("settings") == true
-        }) {
-            settingsWindow.makeKeyAndOrderFront(nil)
+        // Bug 3 fix: Always use sendAction (simpler, more reliable).
+        // The window-search heuristic was fragile — sendAction works on all versions.
+        if #available(macOS 14, *) {
+            NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
         } else {
-            // Fall back to selector — still works on all versions, just logs a warning on 14+
-            if #available(macOS 14, *) {
-                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-            } else {
-                NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
-            }
+            NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
         }
-        NSApp.activate(ignoringOtherApps: true)
+        // Activate async so the menu bar dropdown has time to dismiss first.
+        DispatchQueue.main.async {
+            NSApp.activate(ignoringOtherApps: true)
+        }
     }
 }

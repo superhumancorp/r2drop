@@ -85,6 +85,7 @@ targets:
     entitlements:
       path: FinderExtension/FinderExtension.entitlements
       properties:
+        com.apple.security.app-sandbox: true
         com.apple.security.application-groups:
           - "group.com.superhumancorp.r2drop"
         keychain-access-groups:
