@@ -13,12 +13,12 @@ struct OnboardingWelcomePanel: View {
         VStack(spacing: 20) {
             Spacer()
 
-            // App icon with bounce animation
-            Image(systemName: "arrow.up.circle.fill")
+            // App logo with bounce animation
+            Image("LogoIcon")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 80, height: 80)
-                .foregroundStyle(.blue.gradient)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
                 .offset(y: iconBounce ? -6 : 0)
                 .animation(
                     reduceMotion ? .none :

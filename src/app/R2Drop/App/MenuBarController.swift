@@ -3,7 +3,7 @@
 // Handles: persistent icon (FR-034), pulsing animation during uploads (FR-035),
 // dropdown menu with toggle/accounts/queue/prefs/quit (FR-036),
 // and drag-and-drop file uploads (FR-066).
-// Uses SF Symbols with isTemplate=true for automatic light/dark adaptation.
+// Uses a custom template image from the asset catalog for light/dark adaptation.
 
 import AppKit
 import R2Bridge
@@ -23,13 +23,15 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         didSet { updateIcon() }
     }
 
-    // MARK: - Icons (SF Symbols, template = light/dark auto)
+    // MARK: - Icons (custom asset, template = light/dark auto)
 
-    private static func makeIcon(_ name: String) -> NSImage? {
-        let img = NSImage(systemSymbolName: name, accessibilityDescription: "R2Drop")
+    /// Load the custom menu bar icon from the asset catalog.
+    /// Marked as template so macOS auto-tints for light/dark menu bar.
+    private static let menuBarIcon: NSImage? = {
+        let img = NSImage(named: "MenuBarIcon")
         img?.isTemplate = true
         return img
-    }
+    }()
 
     // MARK: - Init
 
@@ -62,18 +64,20 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     // MARK: - Icon & Animation (FR-035)
 
     /// Set the status item icon based on current state.
+    /// Uses the custom MenuBarIcon asset — alpha dimmed when disabled.
     func updateIcon() {
         guard let button = statusItem.button else { return }
+        button.image = Self.menuBarIcon
         if !isEnabled {
-            button.image = Self.makeIcon("arrow.up.circle")
+            button.alphaValue = 0.4
             stopAnimation()
             return
         }
+        button.alphaValue = 1.0
         if isUploading {
             startAnimation()
         } else {
             stopAnimation()
-            button.image = Self.makeIcon("arrow.up.circle.fill")
         }
     }
 
@@ -85,7 +89,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
         // If user has "Reduce motion" enabled, show static uploading icon only
         if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
-            statusItem.button?.image = Self.makeIcon("arrow.up.circle.fill")
+            statusItem.button?.alphaValue = 1.0
             return
         }
 
@@ -106,13 +110,13 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     private func animateIcon() {
         if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
             stopAnimation()
-            statusItem.button?.image = Self.makeIcon("arrow.up.circle.fill")
+            statusItem.button?.alphaValue = 1.0
             return
         }
         guard let button = statusItem.button else { return }
         animationFrame = (animationFrame + 1) % 2
-        let name = animationFrame == 0 ? "arrow.up.circle.fill" : "arrow.up.circle"
-        button.image = Self.makeIcon(name)
+        // Pulse between full and half opacity to indicate active upload
+        button.alphaValue = animationFrame == 0 ? 1.0 : 0.5
     }
 
     // MARK: - Upload State Polling

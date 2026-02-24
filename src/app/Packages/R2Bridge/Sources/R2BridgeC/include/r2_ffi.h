@@ -35,7 +35,6 @@ char *r2_get_last_error(void);
  */
 void r2_free_string(char *ptr);
 
-
 /**
  * Initialize the audit logging system with rolling file output (FR-067).
  * Call once at app startup. Subsequent calls are no-ops.
@@ -47,7 +46,7 @@ int32_t r2_init_logging(uint16_t max_log_files);
 /**
  * Inform the Rust engine of a network availability change.
  * Called by the Swift NWPathMonitor wrapper when connectivity changes.
- * available: true = network is up, false = network is down.
+ * `available`: true = network is up, false = network is down.
  * Returns 0 on success.
  */
 int32_t r2_set_network_available(bool available);
