@@ -2,7 +2,8 @@
 // Main onboarding carousel container.
 // Hosts panels with slide transitions, dot indicators, and keyboard navigation.
 // Supports three modes: initial (5 panels), addAccount (panels 3-5), updateToken (panels 3-5).
-// Window is centered, non-resizable, ~520x400pt (FR-015).
+// Window is centered, non-resizable, ~600x520pt.
+// Uses liquid glass (ultraThinMaterial) with Background-1.png texture.
 
 import SwiftUI
 
@@ -24,32 +25,57 @@ struct OnboardingWindow: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Panel content area with slide transition
-            ZStack {
-                panelView
-                    .id(viewModel.currentPanel)
-                    .transition(slideTransition)
-            }
-            .animation(
-                reduceMotion ? .none : .easeInOut(duration: 0.25),
-                value: viewModel.currentPanel
-            )
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        ZStack {
+            // Background-1.png texture with low opacity
+            backgroundTexture
 
-            // Bottom bar: dots + navigation buttons
-            bottomBar
-                .padding(.horizontal, 24)
-                .padding(.bottom, 16)
+            // Liquid glass material overlay
+            Rectangle()
+                .fill(.ultraThinMaterial)
+
+            // Main content
+            VStack(spacing: 0) {
+                // Panel content area with slide transition
+                ZStack {
+                    panelView
+                        .id(viewModel.currentPanel)
+                        .transition(slideTransition)
+                }
+                .animation(
+                    reduceMotion ? .none : .easeInOut(duration: 0.25),
+                    value: viewModel.currentPanel
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                // Bottom bar: dots centered, back/skip on sides
+                bottomBar
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 18)
+            }
         }
-        .frame(width: 520, height: 400)
-        .background(Color(nsColor: .windowBackgroundColor))
+        .frame(width: 600, height: 520)
         .onChange(of: viewModel.dismissed) { dismissed in
             if dismissed { onDismiss() }
         }
         // Keyboard: Escape to close with confirmation
         .onExitCommand {
             viewModel.skip()
+        }
+    }
+
+    // MARK: - Background Texture
+
+    /// Subtle background texture from Background-1.png.
+    private var backgroundTexture: some View {
+        Group {
+            if let bgImage = NSImage(named: "Background-1") {
+                Image(nsImage: bgImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .opacity(0.08)
+            } else {
+                Color(nsColor: .windowBackgroundColor)
+            }
         }
     }
 
@@ -86,38 +112,47 @@ struct OnboardingWindow: View {
 
     // MARK: - Bottom Bar
 
+    /// Bottom bar with dots perfectly centered using ZStack overlay approach.
+    /// Back and Skip buttons sit in the HStack; dots float in an overlay.
     private var bottomBar: some View {
-        HStack {
-            // Back button — only if current panel is not the first for this mode
-            if viewModel.currentPanel.rawValue > viewModel.firstPanel.rawValue {
-                Button("Back") {
-                    viewModel.goBack()
-                }
-                .buttonStyle(.plain)
-                .foregroundColor(.secondary)
-            }
-
-            Spacer()
-
-            // Dot indicators — only show panels visible in this mode
+        ZStack {
+            // Dots always centered regardless of button widths
             dotIndicators
 
-            Spacer()
-
-            // Skip link — only in initial mode on panels 1-3
-            if case .initial = viewModel.mode,
-               viewModel.currentPanel.rawValue <= 2 {
-                Button("Skip setup") {
-                    viewModel.skip()
+            // Back and Skip on the sides
+            HStack {
+                // Back button — only if current panel is not the first for this mode
+                if viewModel.currentPanel.rawValue > viewModel.firstPanel.rawValue {
+                    Button("Back") {
+                        viewModel.goBack()
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.secondary)
+                    .font(.callout)
+                } else {
+                    // Invisible spacer to balance layout
+                    Text("Back")
+                        .font(.callout)
+                        .hidden()
                 }
-                .buttonStyle(.plain)
-                .foregroundColor(.secondary)
-                .font(.caption)
-            } else {
-                // Invisible spacer to keep dots centered
-                Text("Skip setup")
-                    .font(.caption)
-                    .hidden()
+
+                Spacer()
+
+                // Skip link — only in initial mode on panels 1-3
+                if case .initial = viewModel.mode,
+                   viewModel.currentPanel.rawValue <= 2 {
+                    Button("Skip setup") {
+                        viewModel.skip()
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.secondary)
+                    .font(.callout)
+                } else {
+                    // Invisible spacer to keep dots centered
+                    Text("Skip setup")
+                        .font(.callout)
+                        .hidden()
+                }
             }
         }
     }

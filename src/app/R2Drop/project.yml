@@ -27,6 +27,9 @@ targets:
     sources:
       - path: App
       - path: Assets.xcassets
+      - path: Resources
+        excludes:
+          - ".DS_Store"
     entitlements:
       path: R2Drop.entitlements
       properties:

@@ -1,86 +1,85 @@
 // R2Drop/App/Onboarding/OnboardingChooseBucketPanel.swift
 // Panel 5: Choose Bucket — dropdown of buckets, create new bucket form,
-// default upload path, optional custom domain, and "Done" button.
-// Shows celebratory animation on completion.
+// default upload path, custom domain dropdown (fetched from API), and "Done" button.
+// Shows Hero4.png banner + confetti animation + bell sound on completion.
 
 import SwiftUI
 
 struct OnboardingChooseBucketPanel: View {
     @ObservedObject var viewModel: OnboardingViewModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var confettiOffset: CGFloat = -200
 
     var body: some View {
         ZStack {
             // Main content
-            mainContent
-
-            // Celebration overlay
             if viewModel.showCelebration {
-                celebrationOverlay
+                celebrationView
+            } else {
+                mainContent
             }
+
+            // Confetti overlay for celebration
+            ConfettiView(isActive: $viewModel.showFinalConfetti)
         }
     }
 
     // MARK: - Main Content
 
     private var mainContent: some View {
-        VStack(spacing: 16) {
-            Spacer()
+        ScrollView {
+            VStack(spacing: 16) {
+                Spacer().frame(height: 8)
 
-            Image(systemName: "externaldrive.badge.checkmark")
-                .font(.system(size: 40))
-                .foregroundColor(.accentColor)
+                Image(systemName: "externaldrive.badge.checkmark")
+                    .font(.system(size: 44))
+                    .foregroundColor(.accentColor)
 
-            Text("Choose a Bucket")
-                .font(.title)
-                .fontWeight(.bold)
+                Text("Choose a Bucket")
+                    .font(.title)
+                    .fontWeight(.bold)
 
-            Text("Select which R2 bucket to upload files to.")
-                .font(.body)
-                .foregroundColor(.secondary)
+                Text("Select which R2 bucket to upload files to.")
+                    .font(.title3)
+                    .foregroundColor(.secondary)
 
-            // Bucket picker
-            bucketPicker
+                // Bucket picker
+                bucketPicker
 
-            // Create new bucket toggle
-            createBucketSection
+                // Create new bucket toggle
+                createBucketSection
 
-            // Default path
-            HStack {
-                Text("Default path:")
-                    .font(.subheadline)
-                TextField("/", text: $viewModel.defaultPath)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(maxWidth: 200)
+                // Default path
+                HStack {
+                    Text("Default path:")
+                        .font(.body)
+                    TextField("/", text: $viewModel.defaultPath)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(maxWidth: 220)
+                }
+                .padding(.horizontal, 48)
+
+                // Custom domain dropdown (fetched from API)
+                customDomainSection
+
+                Spacer().frame(height: 4)
+
+                // Done button
+                Button(action: {
+                    Task { await viewModel.finishSetup() }
+                }) {
+                    Text("Done")
+                        .frame(maxWidth: 220)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .keyboardShortcut(.defaultAction)
+                .disabled(viewModel.selectedBucket.isEmpty)
+                .padding(.vertical, 6)
+
+                Spacer().frame(height: 16)
             }
-            .padding(.horizontal, 60)
-
-            // Custom domain (optional)
-            HStack {
-                Text("Custom domain:")
-                    .font(.subheadline)
-                TextField("cdn.example.com (optional)", text: $viewModel.customDomain)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(maxWidth: 200)
-            }
-            .padding(.horizontal, 60)
-
-            Spacer()
-
-            // Done button
-            Button(action: {
-                Task { await viewModel.finishSetup() }
-            }) {
-                Text("Done")
-                    .frame(maxWidth: 200)
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .keyboardShortcut(.defaultAction)
-            .disabled(viewModel.selectedBucket.isEmpty)
+            .padding(.horizontal, 36)
         }
-        .padding(32)
     }
 
     // MARK: - Bucket Picker
@@ -95,7 +94,13 @@ struct OnboardingChooseBucketPanel: View {
             }
         }
         .pickerStyle(.menu)
-        .frame(maxWidth: 300)
+        .frame(maxWidth: 320)
+        .onChange(of: viewModel.selectedBucket) { newBucket in
+            // Fetch custom domains when bucket changes
+            if !newBucket.isEmpty {
+                Task { await viewModel.fetchCustomDomains(bucket: newBucket) }
+            }
+        }
     }
 
     // MARK: - Create Bucket
@@ -106,7 +111,7 @@ struct OnboardingChooseBucketPanel: View {
                 HStack(spacing: 8) {
                     TextField("new-bucket-name", text: $viewModel.newBucketName)
                         .textFieldStyle(.roundedBorder)
-                        .frame(maxWidth: 180)
+                        .frame(maxWidth: 200)
 
                     Button(action: {
                         Task { await viewModel.createNewBucket() }
@@ -131,7 +136,7 @@ struct OnboardingChooseBucketPanel: View {
 
                 if let error = viewModel.bucketError {
                     Text(error)
-                        .font(.caption)
+                        .font(.callout)
                         .foregroundColor(.red)
                 }
             } else {
@@ -140,33 +145,83 @@ struct OnboardingChooseBucketPanel: View {
                 }
                 .buttonStyle(.plain)
                 .foregroundColor(.accentColor)
-                .font(.subheadline)
+                .font(.body)
             }
         }
     }
 
-    // MARK: - Celebration
+    // MARK: - Custom Domain
 
-    private var celebrationOverlay: some View {
+    /// Custom domain picker — shows domains fetched from API, or "Default" if none available.
+    private var customDomainSection: some View {
+        HStack {
+            Text("Custom domain:")
+                .font(.body)
+
+            if viewModel.isLoadingDomains {
+                ProgressView()
+                    .controlSize(.small)
+            } else if viewModel.customDomains.isEmpty {
+                // No domains available — show text field for manual entry with "Default" hint
+                TextField("Default (R2 URL)", text: $viewModel.customDomain)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(maxWidth: 220)
+            } else {
+                // Domains available — show Picker
+                Picker("", selection: $viewModel.customDomain) {
+                    Text("Default (R2 URL)").tag("")
+                    ForEach(viewModel.customDomains, id: \.self) { domain in
+                        Text(domain).tag(domain)
+                    }
+                }
+                .pickerStyle(.menu)
+                .frame(maxWidth: 220)
+            }
+        }
+        .padding(.horizontal, 48)
+    }
+
+    // MARK: - Celebration View
+
+    /// Final celebration screen with Hero4.png banner, success message, and confetti.
+    private var celebrationView: some View {
         VStack(spacing: 16) {
-            Image(systemName: "party.popper.fill")
-                .font(.system(size: 60))
-                .foregroundStyle(.yellow.gradient)
-                .scaleEffect(reduceMotion ? 1.0 : 1.2)
-                .animation(
-                    reduceMotion ? .none :
-                        .spring(response: 0.5, dampingFraction: 0.4),
-                    value: viewModel.showCelebration
-                )
+            // Hero4.png banner — cover layout, centered
+            heroBanner
+
+            Spacer().frame(height: 8)
 
             Text("You're all set!")
                 .font(.title)
                 .fontWeight(.bold)
 
             Text("R2Drop is ready to upload files.")
+                .font(.title3)
                 .foregroundColor(.secondary)
+
+            Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(.ultraThinMaterial)
+    }
+
+    /// Hero4.png as a cover banner, centered and scaled to fit the width.
+    private var heroBanner: some View {
+        Group {
+            if let heroImage = NSImage(named: "Hero4") {
+                Image(nsImage: heroImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 220)
+                    .clipped()
+            } else {
+                // Fallback if image not found
+                Image(systemName: "party.popper.fill")
+                    .font(.system(size: 60))
+                    .foregroundStyle(.yellow.gradient)
+                    .frame(height: 220)
+            }
+        }
     }
 }

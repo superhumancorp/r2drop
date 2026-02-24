@@ -244,8 +244,7 @@ enum DeepLinkHandler {
 
     /// Open the Preferences window and bring the app to front.
     private static func openPreferencesWindow() {
-        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-        NSApp.activate(ignoringOtherApps: true)
+        AppDelegate.openSettingsWindow()
     }
 
     /// Show an informational alert.

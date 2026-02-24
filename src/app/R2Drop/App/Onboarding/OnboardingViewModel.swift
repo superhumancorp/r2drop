@@ -1,9 +1,11 @@
 // R2Drop/App/Onboarding/OnboardingViewModel.swift
 // Shared state and API logic for the onboarding carousel.
 // Supports three modes: initial setup, add account, and update token.
-// Handles token validation, bucket fetching, account creation/update, and panel navigation.
+// Handles token validation, bucket fetching, custom domain fetching,
+// account creation/update, and panel navigation.
 
 import SwiftUI
+import AppKit
 import R2Core
 import R2Bridge
 
@@ -49,6 +51,7 @@ final class OnboardingViewModel: ObservableObject {
     @Published var isValidatingToken = false
     @Published var tokenValid = false
     @Published var tokenError: String?
+    @Published var showTokenConfetti = false
 
     // Populated after successful validation
     private(set) var accountId = ""
@@ -61,11 +64,14 @@ final class OnboardingViewModel: ObservableObject {
     @Published var selectedBucket = ""
     @Published var defaultPath = ""
     @Published var customDomain = ""
+    @Published var customDomains: [String] = []
+    @Published var isLoadingDomains = false
     @Published var newBucketName = ""
     @Published var isCreatingBucket = false
     @Published var showCreateBucket = false
     @Published var bucketError: String?
     @Published var showCelebration = false
+    @Published var showFinalConfetti = false
 
     // MARK: - Dependencies
 
@@ -143,6 +149,7 @@ final class OnboardingViewModel: ObservableObject {
 
     /// Validate the pasted token against Cloudflare API, then fetch accounts.
     /// On success: stores/updates token in Keychain and advances to Panel 5.
+    /// Error messages now include the actual error description for debugging.
     func validateAndStoreToken() async {
         #if DEBUG
         R2Log.ui.debug("OnboardingViewModel: validateAndStoreToken")
@@ -166,7 +173,7 @@ final class OnboardingViewModel: ObservableObject {
             guard let first = accounts.first,
                   let id = first["id"],
                   let name = first["name"] else {
-                tokenError = "No Cloudflare accounts found for this token."
+                tokenError = "No Cloudflare accounts found for this token. (ERR_NO_ACCOUNTS)"
                 isValidatingToken = false
                 return
             }
@@ -199,9 +206,10 @@ final class OnboardingViewModel: ObservableObject {
             }
 
             tokenValid = true
-        #if DEBUG
-        R2Log.ui.debug("OnboardingViewModel: token valid, accountId=\(self.accountId)")
-        #endif
+            showTokenConfetti = true
+            #if DEBUG
+            R2Log.ui.debug("OnboardingViewModel: token valid, accountId=\(self.accountId)")
+            #endif
             isValidatingToken = false
 
             // Clear plaintext token from text field (FR-005)
@@ -210,11 +218,18 @@ final class OnboardingViewModel: ObservableObject {
             // Advance to bucket selection
             goNext()
 
+            // Fetch custom domains for the selected bucket (best effort)
+            if !selectedBucket.isEmpty {
+                await fetchCustomDomains(bucket: selectedBucket)
+            }
+
         } catch {
             #if DEBUG
             R2Log.ui.error("OnboardingViewModel: validateToken failed: \(error)")
             #endif
-            tokenError = "This token doesn't appear to be valid. Please check that you copied the full token."
+            // Show the actual error message, not a generic one
+            let errorDesc = error.localizedDescription
+            tokenError = "Token validation failed: \(errorDesc) (ERR_TOKEN_INVALID)"
             isValidatingToken = false
         }
     }
@@ -224,6 +239,60 @@ final class OnboardingViewModel: ObservableObject {
         tokenText = ""
         tokenError = nil
         tokenValid = false
+        showTokenConfetti = false
+    }
+
+    // MARK: - Custom Domain Fetching
+
+    /// Fetch custom domains for a bucket from the Cloudflare API.
+    /// Uses direct URLSession since this isn't in the Rust FFI layer.
+    /// Falls back gracefully — if the API call fails, domains list stays empty.
+    func fetchCustomDomains(bucket: String) async {
+        guard !accountId.isEmpty, !token.isEmpty else { return }
+        isLoadingDomains = true
+
+        #if DEBUG
+        R2Log.ui.debug("OnboardingViewModel: fetchCustomDomains bucket=\(bucket)")
+        #endif
+
+        // Cloudflare API: list custom domains for an R2 bucket
+        let urlString = "https://api.cloudflare.com/client/v4/accounts/\(accountId)/r2/buckets/\(bucket)/custom_domains"
+        guard let url = URL(string: urlString) else {
+            isLoadingDomains = false
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            let httpStatus = (response as? HTTPURLResponse)?.statusCode ?? 0
+
+            #if DEBUG
+            R2Log.ui.debug("OnboardingViewModel: fetchCustomDomains status=\(httpStatus)")
+            #endif
+
+            // Parse Cloudflare API response: { result: [{ hostname: "..." }] }
+            if httpStatus == 200,
+               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let results = json["result"] as? [[String: Any]] {
+                let domains = results.compactMap { $0["hostname"] as? String }
+                self.customDomains = domains
+                // Auto-select first domain if custom domain field is empty
+                if customDomain.isEmpty, let first = domains.first {
+                    customDomain = first
+                }
+            }
+        } catch {
+            #if DEBUG
+            R2Log.ui.error("OnboardingViewModel: fetchCustomDomains failed: \(error)")
+            #endif
+            // Non-fatal — custom domains are optional
+        }
+
+        isLoadingDomains = false
     }
 
     // MARK: - Bucket Operations (Panel 5)
@@ -253,7 +322,7 @@ final class OnboardingViewModel: ObservableObject {
         }
     }
 
-    /// Finish onboarding: persist account to config.toml and dismiss.
+    /// Finish onboarding: persist account to config.toml, play bell sound, and dismiss.
     func finishSetup() async {
         #if DEBUG
         R2Log.ui.debug("OnboardingViewModel: finishSetup account=\(self.accountName) bucket=\(self.selectedBucket)")
@@ -283,9 +352,21 @@ final class OnboardingViewModel: ObservableObject {
         // FR-005: Wipe plaintext token from memory now that it's in Keychain
         token = ""
 
-        // Show celebration briefly, then dismiss
+        // Show celebration with confetti and play bell sound
         showCelebration = true
-        try? await Task.sleep(nanoseconds: 1_200_000_000) // 1.2 seconds
+        showFinalConfetti = true
+        playBellSound()
+
+        // Give time for celebration animation, then dismiss
+        try? await Task.sleep(nanoseconds: 2_500_000_000) // 2.5 seconds
         dismissed = true
+    }
+
+    // MARK: - Sound
+
+    /// Play a subtle bell/glass sound on completion.
+    /// Uses macOS system sound — no audio files needed.
+    private func playBellSound() {
+        NSSound(named: NSSound.Name("Glass"))?.play()
     }
 }

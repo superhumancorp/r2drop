@@ -47,7 +47,7 @@ struct SettingsView: View {
                 .tabItem { Label("About", systemImage: "info.circle") }
                 .tag(SettingsTab.about)
         }
-        .frame(width: 520, height: 400)
+        .frame(width: 600, height: 520)
         .onAppear { selectDefaultTab() }
         // When a deep link requests a specific tab, switch to it.
         .onChange(of: tabStore.requestedTab) { newTab in

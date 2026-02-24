@@ -278,8 +278,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     }
 
     @objc private func showPreferences() {
-        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-        NSApp.activate(ignoringOtherApps: true)
+        AppDelegate.openSettingsWindow()
     }
 
     @objc private func quitApp() { NSApplication.shared.terminate(nil) }

@@ -79,11 +79,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Start monitoring uploads for notification triggers (FR-062)
         uploadMonitor.start()
 
-        if !hasAccounts {
-            #if DEBUG
-            R2Log.app.debug("No accounts — showing onboarding")
-            #endif
-            showOnboarding()
+        #if DEBUG
+        // Always show onboarding in debug mode for UI development/testing
+        let shouldShowOnboarding = true
+        #else
+        let shouldShowOnboarding = !hasAccounts
+        #endif
+
+        if shouldShowOnboarding {
         } else {
             // FR-003: Retrieve tokens from Keychain and validate on launch
             // FR-004: Start periodic 24h re-validation
@@ -93,8 +96,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // Dispatched async because SwiftUI's Settings scene needs
             // one runloop iteration to be ready.
             DispatchQueue.main.async {
-                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-                NSApp.activate(ignoringOtherApps: true)
+                Self.openSettingsWindow()
             }
         }
     }
@@ -213,10 +215,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         })
 
         let hostingView = NSHostingView(rootView: onboardingView)
-        hostingView.frame = NSRect(x: 0, y: 0, width: 520, height: 400)
+        hostingView.frame = NSRect(x: 0, y: 0, width: 600, height: 520)
 
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 520, height: 400),
+            contentRect: NSRect(x: 0, y: 0, width: 600, height: 520),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
@@ -242,5 +244,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if accountsExist() {
             tokenValidationService.start()
         }
+    }
+
+    // MARK: - Settings Window Helper
+
+    /// Open the Settings/Preferences window reliably across macOS versions.
+    /// macOS 13 uses showPreferencesWindow:, macOS 14+ uses showSettingsWindow:.
+    /// We try to find an existing Settings window first, then fall back to selectors.
+    static func openSettingsWindow() {
+        // Try to find an existing SwiftUI Settings window
+        if let settingsWindow = NSApp.windows.first(where: {
+            $0.frameAutosaveName.contains("Settings") ||
+            $0.frameAutosaveName.contains("Preferences") ||
+            $0.identifier?.rawValue.contains("settings") == true
+        }) {
+            settingsWindow.makeKeyAndOrderFront(nil)
+        } else {
+            // Fall back to selector — still works on all versions, just logs a warning on 14+
+            if #available(macOS 14, *) {
+                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+            } else {
+                NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
+            }
+        }
+        NSApp.activate(ignoringOtherApps: true)
     }
 }
