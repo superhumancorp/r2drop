@@ -3,35 +3,34 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 63;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0C4EC35B7770884EB39D14C0 /* R2Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD90BD3564BED9B179739294 /* R2Log.swift */; };
 		0F2CDC8165FB3442DF5FB49B /* AccountsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1F07D637845620D21D51236 /* AccountsViewModel.swift */; };
 		1DC6605C3B322B25C9F3ABB4 /* R2Bridge in Frameworks */ = {isa = PBXBuildFile; productRef = 9A0B2592ABA6D517E479184E /* R2Bridge */; };
-		224A41AB2F4DCA6B008E7382 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 224A41AA2F4DCA6B008E7382 /* NetworkMonitor.swift */; };
-		224A41AD2F4DF20B008E7382 /* MenuBarHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 224A41AC2F4DF20B008E7382 /* MenuBarHeaderView.swift */; };
 		244CF342C83CE84F5B20254D /* AboutTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0303EC699D6329DB04D261F5 /* AboutTabView.swift */; };
 		246600BDBEF8073194AB94AD /* OnboardingHowItWorksPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61084A1955269B0E3E233C04 /* OnboardingHowItWorksPanel.swift */; };
 		2784836E9879CDDFDE35AC9E /* FinderExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = FF1ABF73310B6C8543ECFE9A /* FinderExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		36189925036A7B9CB1F4239B /* OnboardingCreateTokenPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 059ED55A4AF523EF0DC63232 /* OnboardingCreateTokenPanel.swift */; };
 		446409FFAC19A3C84349BC4C /* UploadMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C040D0288EF490C9BB3613BA /* UploadMonitor.swift */; };
 		4900B66D65E03BF6D5611C3B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9C356FFCDF3B03131017A08 /* SettingsView.swift */; };
+		4BE113099D35BE3343F8FCF0 /* MenuBarHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F2D07F320D9C23E73C72A24 /* MenuBarHeaderView.swift */; };
 		4D607E471C91E0C34CBE14D5 /* OnboardingWelcomePanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6E3F8073CD22D3BE5291A2 /* OnboardingWelcomePanel.swift */; };
 		51E14B44F7505EC41B3DE7F0 /* DeepLinkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B2C6A165C12FE42A21E70FA /* DeepLinkHandler.swift */; };
 		5D491FDE58B6688F64DDBE4F /* OnboardingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7579519F793101201BDE7A67 /* OnboardingViewModel.swift */; };
 		5D525698D7F5A279EAEE6DC8 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 895B4748BE8DA2F5A012B32C /* NotificationService.swift */; };
+		6D192802A86754D240808B51 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29F4943E249176B6155BFF14 /* NetworkMonitor.swift */; };
 		721BD11D81B5D65412985497 /* AccountDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1706FFB21E4DD0D4C688812 /* AccountDetailView.swift */; };
 		89FBD3C970E9CCD9464A0205 /* FinderSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11146A78EED30F66A1B4E9C4 /* FinderSync.swift */; };
 		92AFD08BCCF0BE6CB16D01DD /* ConflictResolution.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8786A46A12B9274C56F04EBB /* ConflictResolution.swift */; };
 		A3B3F91F46A891285001C190 /* TokenValidationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C5B8A7A0BE9FBB08B30708 /* TokenValidationService.swift */; };
-		AA1B2C3D4E5F6A7B8C9D0E1F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA2B3C4D5E6F7A8B9C0D1E2F /* Assets.xcassets */; };
 		AA6E9523D29409C640C17CA0 /* MenuBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D37053996DA6608CA79C70D /* MenuBarController.swift */; };
 		AE5B487FADE44977751FBF31 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 31041CEEDF5650FA66389A3B /* Sparkle */; };
 		B28E190AD845661318810D52 /* OnboardingPasteTokenPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFB72034415C862EE50D4187 /* OnboardingPasteTokenPanel.swift */; };
 		B392C49392BE6388F1689425 /* R2Core in Frameworks */ = {isa = PBXBuildFile; productRef = FEC26E9B8067944C2F872D0E /* R2Core */; };
 		B6B483AB04C5B4FE5ACF489F /* R2DropApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B224CAEF69D3828B9F742FC /* R2DropApp.swift */; };
-		R2L0G00200000000E6F70002 /* R2Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = R2L0G00100000000E6F70001 /* R2Log.swift */; };
 		BEA5130470E8F652BC311DDB /* FinderQueueBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 959609F94F0860F0DF282AE4 /* FinderQueueBridge.swift */; };
 		C8F20641F019908D739608AD /* OnboardingChooseBucketPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C64368FB058666531A0DB21 /* OnboardingChooseBucketPanel.swift */; };
 		DC712ED39DDCEE4C9769FDC5 /* QueueTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DF2E0FB70D7FA22051B5C4E /* QueueTabView.swift */; };
@@ -80,14 +79,13 @@
 		124CA1A97D09E4B5B83AB2BC /* AccountsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountsTabView.swift; sourceTree = "<group>"; };
 		1A6E3F8073CD22D3BE5291A2 /* OnboardingWelcomePanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingWelcomePanel.swift; sourceTree = "<group>"; };
 		1B224CAEF69D3828B9F742FC /* R2DropApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2DropApp.swift; sourceTree = "<group>"; };
-		R2L0G00100000000E6F70001 /* R2Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2Log.swift; sourceTree = "<group>"; };
 		1B2C6A165C12FE42A21E70FA /* DeepLinkHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkHandler.swift; sourceTree = "<group>"; };
 		1C64368FB058666531A0DB21 /* OnboardingChooseBucketPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingChooseBucketPanel.swift; sourceTree = "<group>"; };
-		224A41AA2F4DCA6B008E7382 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
-		224A41AC2F4DF20B008E7382 /* MenuBarHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarHeaderView.swift; sourceTree = "<group>"; };
 		299D9D5E713C277B14FF8174 /* AboutViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutViewModel.swift; sourceTree = "<group>"; };
+		29F4943E249176B6155BFF14 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		2D37053996DA6608CA79C70D /* MenuBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarController.swift; sourceTree = "<group>"; };
 		2D7D3E1104FE5EF77D9A051C /* QueueViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueViewModel.swift; sourceTree = "<group>"; };
+		2F2D07F320D9C23E73C72A24 /* MenuBarHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarHeaderView.swift; sourceTree = "<group>"; };
 		43DCFEC6696401ADDAB01C97 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
 		45C5B8A7A0BE9FBB08B30708 /* TokenValidationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenValidationService.swift; sourceTree = "<group>"; };
 		4AF5FAD50680BA166646996F /* HistoryTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryTabView.swift; sourceTree = "<group>"; };
@@ -105,11 +103,11 @@
 		9E2EB54091718754465BE53F /* StatusBarDragView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarDragView.swift; sourceTree = "<group>"; };
 		A1D3B81C8C2E55DB0D042611 /* R2Drop.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = R2Drop.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A63723F38B23FCAF195B1F07 /* QueueJobRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueJobRow.swift; sourceTree = "<group>"; };
-		AA2B3C4D5E6F7A8B9C0D1E2F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C040D0288EF490C9BB3613BA /* UploadMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadMonitor.swift; sourceTree = "<group>"; };
 		C9C356FFCDF3B03131017A08 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		CFB72034415C862EE50D4187 /* OnboardingPasteTokenPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingPasteTokenPanel.swift; sourceTree = "<group>"; };
 		D1F07D637845620D21D51236 /* AccountsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountsViewModel.swift; sourceTree = "<group>"; };
+		DD90BD3564BED9B179739294 /* R2Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2Log.swift; sourceTree = "<group>"; };
 		E1706FFB21E4DD0D4C688812 /* AccountDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountDetailView.swift; sourceTree = "<group>"; };
 		F4F557B9EA45CA9816EABF0A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		FE544A156394A0F0F04B0E9F /* OnboardingWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingWindow.swift; sourceTree = "<group>"; };
@@ -162,9 +160,9 @@
 			children = (
 				1B2C6A165C12FE42A21E70FA /* DeepLinkHandler.swift */,
 				2D37053996DA6608CA79C70D /* MenuBarController.swift */,
-				224A41AC2F4DF20B008E7382 /* MenuBarHeaderView.swift */,
+				2F2D07F320D9C23E73C72A24 /* MenuBarHeaderView.swift */,
 				1B224CAEF69D3828B9F742FC /* R2DropApp.swift */,
-				R2L0G00100000000E6F70001 /* R2Log.swift */,
+				DD90BD3564BED9B179739294 /* R2Log.swift */,
 				C9C356FFCDF3B03131017A08 /* SettingsView.swift */,
 				9E2EB54091718754465BE53F /* StatusBarDragView.swift */,
 				695A7C4D8BEDDC3E5FA2E6C8 /* About */,
@@ -225,7 +223,6 @@
 			isa = PBXGroup;
 			children = (
 				53120C126C76B71FACF45CA4 /* App */,
-				AA2B3C4D5E6F7A8B9C0D1E2F /* Assets.xcassets */,
 				9C1ED7D01597AAFF42FCB1D0 /* FinderExtension */,
 				9AB65FA76220BF3485C489C8 /* Packages */,
 				9316953E50CA97665D70C345 /* Products */,
@@ -262,8 +259,8 @@
 		E7957E96A4D7F967C50D1960 /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				224A41AA2F4DCA6B008E7382 /* NetworkMonitor.swift */,
 				959609F94F0860F0DF282AE4 /* FinderQueueBridge.swift */,
+				29F4943E249176B6155BFF14 /* NetworkMonitor.swift */,
 				895B4748BE8DA2F5A012B32C /* NotificationService.swift */,
 				45C5B8A7A0BE9FBB08B30708 /* TokenValidationService.swift */,
 				C040D0288EF490C9BB3613BA /* UploadMonitor.swift */,
@@ -309,7 +306,6 @@
 				386D86E0FC60B9545E6293BC /* Sources */,
 				6F42287CB6EA014A96850BDA /* Frameworks */,
 				187B61438E852C728D0F1434 /* Embed Foundation Extensions */,
-				AA3B4C5D6E7F8A9B0C1D2E3F /* Resources */,
 			);
 			buildRules = (
 			);
@@ -333,7 +329,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 2620;
+				LastUpgradeCheck = 1620;
 			};
 			buildConfigurationList = E37EB5DBEA8C2800304EB6F4 /* Build configuration list for PBXProject "R2Drop" */;
 			compatibilityVersion = "Xcode 14.0";
@@ -350,6 +346,7 @@
 				54A00052BDE555F13C51791B /* XCLocalSwiftPackageReference "../Packages/R2Bridge" */,
 				AEE43ABAD0762645C6D0DAAF /* XCLocalSwiftPackageReference "../Packages/R2Core" */,
 			);
+			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -359,27 +356,14 @@
 		};
 /* End PBXProject section */
 
-/* Begin PBXResourcesBuildPhase section */
-		AA3B4C5D6E7F8A9B0C1D2E3F /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				AA1B2C3D4E5F6A7B8C9D0E1F /* Assets.xcassets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXResourcesBuildPhase section */
-
 /* Begin PBXSourcesBuildPhase section */
 		386D86E0FC60B9545E6293BC /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				224A41AD2F4DF20B008E7382 /* MenuBarHeaderView.swift in Sources */,
 				244CF342C83CE84F5B20254D /* AboutTabView.swift in Sources */,
 				EDF92286C18C14953AEAC958 /* AboutViewModel.swift in Sources */,
 				721BD11D81B5D65412985497 /* AccountDetailView.swift in Sources */,
-				224A41AB2F4DCA6B008E7382 /* NetworkMonitor.swift in Sources */,
 				EA02C3E3AAD8D5FC353FE46D /* AccountsTabView.swift in Sources */,
 				0F2CDC8165FB3442DF5FB49B /* AccountsViewModel.swift in Sources */,
 				E32124B7C40A7C6332AB24A8 /* ConflictDialog.swift in Sources */,
@@ -389,6 +373,8 @@
 				EFFDA890F678B796EFF8BC96 /* HistoryTabView.swift in Sources */,
 				DD540FEA0F6C9D9B2A221A9B /* HistoryViewModel.swift in Sources */,
 				AA6E9523D29409C640C17CA0 /* MenuBarController.swift in Sources */,
+				4BE113099D35BE3343F8FCF0 /* MenuBarHeaderView.swift in Sources */,
+				6D192802A86754D240808B51 /* NetworkMonitor.swift in Sources */,
 				5D525698D7F5A279EAEE6DC8 /* NotificationService.swift in Sources */,
 				C8F20641F019908D739608AD /* OnboardingChooseBucketPanel.swift in Sources */,
 				36189925036A7B9CB1F4239B /* OnboardingCreateTokenPanel.swift in Sources */,
@@ -401,7 +387,7 @@
 				DC712ED39DDCEE4C9769FDC5 /* QueueTabView.swift in Sources */,
 				E8A30AECF68CDB36EB5129ED /* QueueViewModel.swift in Sources */,
 				B6B483AB04C5B4FE5ACF489F /* R2DropApp.swift in Sources */,
-				R2L0G00200000000E6F70002 /* R2Log.swift in Sources */,
+				0C4EC35B7770884EB39D14C0 /* R2Log.swift in Sources */,
 				F41C1471697D68536F188F4B /* SettingsTabView.swift in Sources */,
 				4900B66D65E03BF6D5611C3B /* SettingsView.swift in Sources */,
 				E1FF5846E7E10C58D50D3A0C /* SettingsViewModel.swift in Sources */,
@@ -434,12 +420,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = FinderExtension/FinderExtension.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEAD_CODE_STRIPPING = YES;
-				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = FinderExtension/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -449,9 +431,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.superhumancorp.r2drop;
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				REGISTER_APP_GROUPS = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.superhumancorp.r2drop.finder-extension";
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.9;
 			};
@@ -462,14 +442,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = R2Drop.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEAD_CODE_STRIPPING = YES;
-				ENABLE_APP_SANDBOX = YES;
-				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -493,8 +467,6 @@
 					CoreFoundation,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.superhumancorp.r2drop;
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.9;
 			};
@@ -505,14 +477,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = R2Drop.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEAD_CODE_STRIPPING = YES;
-				ENABLE_APP_SANDBOX = YES;
-				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -520,13 +486,13 @@
 					"@executable_path/../Frameworks",
 				);
 				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/../engine/target/debug",
+					"$(SRCROOT)/../engine/target/release",
 					"$(inherited)",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 0.1.0;
 				OTHER_LDFLAGS = (
-					"-L$(SRCROOT)/../engine/target/debug",
+					"-L$(SRCROOT)/../engine/target/release",
 					"-lr2_ffi",
 					"-framework",
 					Security,
@@ -536,8 +502,6 @@
 					CoreFoundation,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.superhumancorp.r2drop;
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.9;
 			};
@@ -577,12 +541,9 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = A89MU37ZLB;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -603,7 +564,6 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -614,12 +574,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = FinderExtension/FinderExtension.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEAD_CODE_STRIPPING = YES;
-				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = FinderExtension/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -629,9 +585,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.superhumancorp.r2drop;
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				REGISTER_APP_GROUPS = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.superhumancorp.r2drop.finder-extension";
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.9;
 			};
@@ -671,12 +625,9 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = A89MU37ZLB;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -690,7 +641,6 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;

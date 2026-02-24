@@ -53,13 +53,24 @@ done
 
 # --- Preflight checks --------------------------------------------------------
 
-if ! command -v cargo &>/dev/null; then
-    echo "Error: cargo not found. Install Rust via https://rustup.rs"
+if ! command -v rustup &>/dev/null; then
+    echo "Error: rustup not found. Install via https://rustup.rs"
     exit 1
 fi
 
-if ! command -v rustup &>/dev/null; then
-    echo "Error: rustup not found. Install via https://rustup.rs"
+# Prefer rustup's cargo/rustc over Homebrew's (which may be outdated).
+# rustup proxies live in ~/.cargo/bin and respect rust-toolchain.toml.
+RUSTUP_CARGO="$(rustup which cargo 2>/dev/null || true)"
+if [[ -n "$RUSTUP_CARGO" ]]; then
+    RUSTUP_BIN_DIR="$(dirname "$RUSTUP_CARGO")"
+    export PATH="$HOME/.cargo/bin:$RUSTUP_BIN_DIR:$PATH"
+    echo "Using rustup cargo: $(which cargo) ($(cargo --version))"
+else
+    echo "Warning: Could not locate rustup cargo, falling back to PATH"
+fi
+
+if ! command -v cargo &>/dev/null; then
+    echo "Error: cargo not found. Install Rust via https://rustup.rs"
     exit 1
 fi
 

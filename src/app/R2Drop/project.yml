@@ -102,3 +102,36 @@ targets:
           NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).FinderSync"
     dependencies:
       - package: R2Core
+
+schemes:
+  R2Drop Debug:
+    build:
+      targets:
+        R2Drop: all
+        FinderExtension: all
+    run:
+      config: Debug
+      commandLineArguments:
+        "-com.apple.CoreData.ConcurrencyDebug 1": true
+      environmentVariables:
+        - variable: OS_ACTIVITY_MODE
+          value: ""
+          isEnabled: true
+      debugEnabled: true
+    profile:
+      config: Debug
+    analyze:
+      config: Debug
+
+  R2Drop Production:
+    build:
+      targets:
+        R2Drop: all
+        FinderExtension: all
+    run:
+      config: Release
+      debugEnabled: false
+    profile:
+      config: Release
+    analyze:
+      config: Release
