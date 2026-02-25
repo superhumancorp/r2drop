@@ -1001,8 +1001,8 @@ if (container) {
   }
 
   icons.forEach((icon) => {
-    // Load texture once per icon
-    const texture = loadIconTexture('filetypes/' + icon);
+    // Load texture once per icon via absolute remote URL
+    const texture = loadIconTexture('https://r2drop.com/filetypes/' + icon);
     
     // 4 instances of each icon for a scattered FTL field
     for(let j=0; j<4; j++) {
