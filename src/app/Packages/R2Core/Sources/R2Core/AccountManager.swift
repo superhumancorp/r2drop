@@ -72,6 +72,32 @@ public final class AccountManager {
         try save()
     }
 
+    /// Update an existing account matched by its original name.
+    /// Supports account renames while preserving the active account selection.
+    @discardableResult
+    public func updateAccount(named originalName: String, to account: ConfigAccount) throws -> Bool {
+        guard let idx = config.accounts.firstIndex(where: { $0.name == originalName }) else {
+            return false
+        }
+
+        // Prevent accidentally clobbering another account when renaming.
+        if originalName != account.name,
+           config.accounts.contains(where: { $0.name == account.name }) {
+            throw NSError(
+                domain: "R2Core.AccountManager",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "An account named '\(account.name)' already exists."]
+            )
+        }
+
+        config.accounts[idx] = account
+        if config.activeAccount == originalName {
+            config.activeAccount = account.name
+        }
+        try save()
+        return true
+    }
+
     /// Remove an account by name.
     /// If the removed account was active, switches to the first remaining account.
     public func removeAccount(named name: String) throws {

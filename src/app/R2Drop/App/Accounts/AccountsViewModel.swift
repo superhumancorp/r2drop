@@ -254,22 +254,31 @@ final class AccountsViewModel: ObservableObject {
 
         let updated = ConfigAccount(
             name: editName.trimmingCharacters(in: .whitespacesAndNewlines),
-            bucket: editBucket,
+            bucket: editBucket.trimmingCharacters(in: .whitespacesAndNewlines),
             path: editPath.trimmingCharacters(in: .whitespacesAndNewlines),
             customDomain: editCustomDomain.isEmpty ? nil : editCustomDomain.trimmingCharacters(in: .whitespacesAndNewlines),
-            accountId: selectedAccount?.accountId ?? ""
+            accountId: selectedAccount?.accountId ?? "",
+            tokenId: selectedAccount?.tokenId ?? ""
         )
 
         do {
             let manager = try AccountManager()
-            try manager.updateAccount(updated)
+            let didUpdate = try manager.updateAccount(named: originalName, to: updated)
+            guard didUpdate else {
+                #if DEBUG
+                R2Log.ui.error("AccountsViewModel: saveChanges failed — original account '\(originalName)' not found")
+                #endif
+                return
+            }
             hasUnsavedChanges = false
             // Refresh list from disk
             load()
             // Re-select to update detail view
             selectAccount(updated.name)
         } catch {
-            // Best-effort save
+            #if DEBUG
+            R2Log.ui.error("AccountsViewModel: saveChanges error: \(error)")
+            #endif
         }
     }
 

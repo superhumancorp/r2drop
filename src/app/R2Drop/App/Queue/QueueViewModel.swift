@@ -22,6 +22,10 @@ final class QueueViewModel: ObservableObject {
 
     private var timer: Timer?
     private var previousBytes: [Int64: UInt64] = [:]
+    /// Jobs the user asked to cancel while they were actively uploading.
+    /// We first pause them, then delete once they are no longer uploading to
+    /// avoid deleting rows that the Rust runner is still updating.
+    private var pendingCancelDeletes: Set<Int64> = []
     private let pollInterval: TimeInterval = 0.5
 
     // MARK: - Lifecycle
@@ -49,7 +53,25 @@ final class QueueViewModel: ObservableObject {
     /// Read queue.db and update published state.
     private func poll() {
         guard let qm = try? QueueManager() else { return }
-        let allJobs = (try? qm.listAllJobs()) ?? []
+        var allJobs = (try? qm.listAllJobs()) ?? []
+
+        // Finalize deferred cancels only after the job leaves `uploading`.
+        if !pendingCancelDeletes.isEmpty {
+            var remaining = Set<Int64>()
+            var deletedAny = false
+            for id in pendingCancelDeletes {
+                if let job = allJobs.first(where: { $0.id == id }), job.status == .uploading {
+                    remaining.insert(id)
+                    continue
+                }
+                _ = try? qm.deleteJob(id: id)
+                deletedAny = true
+            }
+            pendingCancelDeletes = remaining
+            if deletedAny {
+                allJobs = (try? qm.listAllJobs()) ?? allJobs
+            }
+        }
 
         // Keep non-completed jobs (pending, uploading, paused, failed)
         // plus recently completed jobs (last 30 seconds) for visual feedback
@@ -150,6 +172,15 @@ final class QueueViewModel: ObservableObject {
         R2Log.ui.debug("QueueViewModel: cancelJob id=\(job.id)")
         #endif
         guard let qm = try? QueueManager() else { return }
+        if job.status == .uploading {
+            // Request a pause first so the runner stops after the current chunk.
+            // Deleting immediately can race with runner status/progress updates.
+            try? qm.updateStatus(id: job.id, status: .paused)
+            pendingCancelDeletes.insert(job.id)
+            poll()
+            return
+        }
+        pendingCancelDeletes.remove(job.id)
         try? qm.deleteJob(id: job.id)
         poll()
     }

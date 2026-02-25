@@ -64,7 +64,7 @@ impl JobStatus {
     /// Valid transitions:
     ///   pending   → uploading
     ///   uploading → completed | failed | paused
-    ///   paused    → uploading
+    ///   paused    → uploading | pending | completed | failed
     ///   failed    → pending  (retry)
     pub fn can_transition_to(&self, target: Self) -> bool {
         matches!(
@@ -75,6 +75,8 @@ impl JobStatus {
                 | (Self::Uploading, Self::Paused)
                 | (Self::Paused, Self::Uploading)
                 | (Self::Paused, Self::Pending)
+                | (Self::Paused, Self::Completed)
+                | (Self::Paused, Self::Failed)
                 | (Self::Failed, Self::Pending)
         )
     }

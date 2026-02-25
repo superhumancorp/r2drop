@@ -21,12 +21,15 @@ final class UploadProcessor {
 
     /// Guard against re-entrant processing if a previous cycle is still running.
     private var isProcessing = false
+    /// Currently running detached processing task, if any.
+    private var processingTask: Task<Void, Never>?
 
     /// Timestamp when processing started — used for safety timeout.
     private var processingStartTime: Date?
 
-    /// Safety timeout: if a processing cycle takes longer than this, reset isProcessing.
-    /// Prevents the processor from getting permanently stuck.
+    /// Safety timeout: if a processing cycle takes longer than this, log a warning.
+    /// We intentionally do not force-reset state because the Rust runner may still
+    /// be legitimately working (multipart upload, backoff sleep, slow network).
     private let processingTimeout: TimeInterval = 60.0
 
     // MARK: - Lifecycle
@@ -71,6 +74,10 @@ final class UploadProcessor {
             NotificationCenter.default.removeObserver(obs)
             queueObserver = nil
         }
+        processingTask?.cancel()
+        processingTask = nil
+        isProcessing = false
+        processingStartTime = nil
         timer?.invalidate()
         timer = nil
     }
@@ -80,19 +87,17 @@ final class UploadProcessor {
     /// Invoke the Rust engine to process all pending jobs for the active account.
     /// Credentials come from config.toml (account metadata) + Keychain (token).
     private func processQueue() {
-        // Safety timeout: if previous cycle exceeded timeout, force-reset
+        // Safety timeout: log if a cycle is taking unusually long, but do not
+        // clear the guard. Force-resetting can start overlapping Rust runners.
         if isProcessing, let start = processingStartTime {
             let elapsed = Date().timeIntervalSince(start)
             if elapsed > processingTimeout {
-                NSLog("R2Drop UploadProcessor: safety timeout after %.0fs — resetting isProcessing", elapsed)
-                isProcessing = false
-                processingStartTime = nil
-            } else {
-                return // Still within timeout, skip this cycle
+                NSLog("R2Drop UploadProcessor: processing still running after %.0fs (skipping re-entry)", elapsed)
             }
+            return
         }
 
-        guard !isProcessing else { return }
+        guard !isProcessing, processingTask == nil else { return }
         isProcessing = true
         processingStartTime = Date()
 
@@ -145,7 +150,7 @@ final class UploadProcessor {
         let secretAccessKey = sha256Hex(token)
         let client = self.r2Client
         NSLog("R2Drop UploadProcessor: invoking Rust processQueue (account=%@, accountId=%@)", activeName, accountId)
-        Task.detached { [weak self] in
+        let task = Task.detached { [weak self] in
             do {
                 let completed = try client.processQueue(
                     accountId: accountId,
@@ -170,10 +175,12 @@ final class UploadProcessor {
                 #endif
             }
             await MainActor.run {
+                self?.processingTask = nil
                 self?.isProcessing = false
                 self?.processingStartTime = nil
             }
         }
+        processingTask = task
     }
 
     // MARK: - Helpers

@@ -75,17 +75,17 @@ final class TokenValidationService: ObservableObject {
                     continue
                 }
 
-                let isValid = await validateSingleToken(token)
-                if !isValid {
+                if let tokenId = await validateSingleToken(token) {
+                    backfillTokenIdIfNeeded(accountName: account.name, tokenId: tokenId)
+                    #if DEBUG
+                    R2Log.service.debug("TokenValidationService: token valid for account \(account.name)")
+                    #endif
+                } else {
                     invalidAccounts.append(account.name)
                     #if DEBUG
                     R2Log.service.debug("TokenValidationService: token invalid for account \(account.name)")
                     #endif
                     postTokenExpiredNotification(accountName: account.name)
-                } else {
-                    #if DEBUG
-                    R2Log.service.debug("TokenValidationService: token valid for account \(account.name)")
-                    #endif
                 }
             }
 
@@ -99,13 +99,12 @@ final class TokenValidationService: ObservableObject {
     // MARK: - Private
 
     /// Validate a single token against the Cloudflare API.
-    /// Returns true if the token is still valid.
-    private func validateSingleToken(_ token: String) async -> Bool {
+    /// Returns the token UUID (S3 access key ID) if valid.
+    private func validateSingleToken(_ token: String) async -> String? {
         do {
-            try await r2Client.validateToken(token)
-            return true
+            return try await r2Client.validateToken(token)
         } catch {
-            return false
+            return nil
         }
     }
 
@@ -127,6 +126,26 @@ final class TokenValidationService: ObservableObject {
             }
         } catch {
             return []
+        }
+    }
+
+    /// Backfill legacy accounts missing tokenId so uploads continue to work.
+    /// Best-effort; validation should not fail just because config persistence fails.
+    private func backfillTokenIdIfNeeded(accountName: String, tokenId: String) {
+        guard !tokenId.isEmpty else { return }
+        do {
+            var config = try ConfigManager.load()
+            guard let idx = config.accounts.firstIndex(where: { $0.name == accountName }) else { return }
+            guard config.accounts[idx].tokenId != tokenId else { return }
+            config.accounts[idx].tokenId = tokenId
+            try ConfigManager.save(config)
+            #if DEBUG
+            R2Log.service.debug("TokenValidationService: backfilled tokenId for account \(accountName)")
+            #endif
+        } catch {
+            #if DEBUG
+            R2Log.service.error("TokenValidationService: failed to backfill tokenId for \(accountName): \(error)")
+            #endif
         }
     }
 
