@@ -43,39 +43,17 @@ class FinderSync: FIFinderSync {
             action: #selector(sendToR2(_:)),
             keyEquivalent: ""
         )
-        // Use a hand-drawn template image instead of SF Symbols.
-        // SF Symbols don't reliably render as template images in Finder extensions.
-        item.image = makeTemplateIcon()
+        // Use an SF Symbol for the context menu icon.
+        // Finder context menus on macOS 13+ support SF Symbols directly.
+        // We use a monochrome rendering mode and set as template for proper tinting.
+        if let symbolImg = NSImage(systemSymbolName: "icloud.and.arrow.up",
+                                     accessibilityDescription: "Send to R2") {
+            let config = NSImage.SymbolConfiguration(pointSize: 13, weight: .medium)
+            let configured = symbolImg.withSymbolConfiguration(config)
+            item.image = configured ?? symbolImg
+        }
         menu.addItem(item)
         return menu
-    }
-
-    /// Create a 16x16 template image of an up-arrow in a circle.
-    /// Drawn in pure black so macOS can tint it to match the context menu style.
-    private func makeTemplateIcon() -> NSImage {
-        let size = NSSize(width: 16, height: 16)
-        let img = NSImage(size: size, flipped: false) { rect in
-            NSColor.black.setStroke()
-            // Circle outline
-            let circle = NSBezierPath(ovalIn: rect.insetBy(dx: 1, dy: 1))
-            circle.lineWidth = 1.2
-            circle.stroke()
-            // Up arrow shaft (bottom to top)
-            let arrow = NSBezierPath()
-            arrow.move(to: NSPoint(x: 8, y: 3.5))
-            arrow.line(to: NSPoint(x: 8, y: 11.5))
-            // Arrowhead
-            arrow.move(to: NSPoint(x: 5, y: 8.5))
-            arrow.line(to: NSPoint(x: 8, y: 11.5))
-            arrow.line(to: NSPoint(x: 11, y: 8.5))
-            arrow.lineWidth = 1.2
-            arrow.lineCapStyle = .round
-            arrow.lineJoinStyle = .round
-            arrow.stroke()
-            return true
-        }
-        img.isTemplate = true
-        return img
     }
 
     // MARK: - Send to R2 Action

@@ -47,10 +47,16 @@ final class FinderQueueBridge {
         // Open the shared (Finder extension) queue
         guard let sharedQM = try? QueueManager(
             appGroup: R2CoreConstants.appGroup
-        ) else { return }
+        ) else {
+            NSLog("R2Drop FinderQueueBridge: failed to open shared App Groups queue.db")
+            return
+        }
 
         // Open the main app queue
-        guard let mainQM = try? QueueManager() else { return }
+        guard let mainQM = try? QueueManager() else {
+            NSLog("R2Drop FinderQueueBridge: failed to open main queue.db")
+            return
+        }
 
         // Get all pending jobs from the shared queue
         guard let sharedJobs = try? sharedQM.listJobs(status: .pending),

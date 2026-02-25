@@ -23,6 +23,15 @@ final class UploadProcessor {
 
     /// Start polling the queue for pending upload jobs.
     func start() {
+        // Always log credentials status on start so we can diagnose upload issues.
+        // This runs even in release builds because upload failures are user-facing.
+        let config = (try? ConfigManager.load()) ?? R2Config()
+        let hasToken: Bool = {
+            guard let name = config.activeAccount else { return false }
+            return (try? KeychainManager().getToken(account: name)) != nil
+        }()
+        NSLog("R2Drop UploadProcessor: start (activeAccount=%@, hasToken=%d, accounts=%d)",
+              config.activeAccount ?? "nil", hasToken ? 1 : 0, config.accounts.count)
         #if DEBUG
         R2Log.upload.debug("UploadProcessor: start")
         #endif
@@ -54,13 +63,27 @@ final class UploadProcessor {
         isProcessing = true
         defer { isProcessing = false }
 
-        // Get active account credentials
-        guard let config = try? ConfigManager.load(),
-              let activeName = config.activeAccount,
-              let account = config.accounts.first(where: { $0.name == activeName }),
-              !account.accountId.isEmpty,
-              let token = try? KeychainManager().getToken(account: activeName)
-        else { return }
+        // Get active account credentials — log each failure path so we can diagnose
+        guard let config = try? ConfigManager.load() else {
+            NSLog("R2Drop UploadProcessor: failed to load config")
+            return
+        }
+        guard let activeName = config.activeAccount else {
+            NSLog("R2Drop UploadProcessor: no activeAccount set in config (accounts=%d)", config.accounts.count)
+            return
+        }
+        guard let account = config.accounts.first(where: { $0.name == activeName }) else {
+            NSLog("R2Drop UploadProcessor: activeAccount '%@' not found in config", activeName)
+            return
+        }
+        guard !account.accountId.isEmpty else {
+            NSLog("R2Drop UploadProcessor: account '%@' has empty accountId", activeName)
+            return
+        }
+        guard let token = try? KeychainManager().getToken(account: activeName) else {
+            NSLog("R2Drop UploadProcessor: no Keychain token for account '%@'", activeName)
+            return
+        }
 
         do {
             let completed = try r2Client.processQueue(

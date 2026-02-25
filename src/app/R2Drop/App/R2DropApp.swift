@@ -33,7 +33,10 @@ struct R2DropApp: App {
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var onboardingWindow: NSWindow?
-
+    /// Manually managed preferences window — replaces broken SwiftUI Settings scene.
+    /// sendAction(showSettingsWindow:) doesn't work on recent macOS versions,
+    /// so we create and manage the NSWindow ourselves, same pattern as onboarding.
+    private static var settingsWindow: NSWindow?
     /// Menu bar icon controller — owns the NSStatusItem (FR-034).
     private(set) var menuBarController: MenuBarController!
 
@@ -271,20 +274,40 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: - Settings Window Helper
 
-    /// Open the Settings/Preferences window reliably across macOS versions.
-    /// macOS 13 uses showPreferencesWindow:, macOS 14+ uses showSettingsWindow:.
-    /// We try to find an existing Settings window first, then fall back to selectors.
+    /// Open the Settings/Preferences window as a manually managed NSWindow.
+    /// The SwiftUI `Settings` scene + `sendAction(showSettingsWindow:)` approach
+    /// is broken on macOS 14+ (logs "Please use SettingsLink" and does nothing).
+    /// This creates a real NSWindow wrapping SettingsView, same pattern as onboarding.
     static func openSettingsWindow() {
-        // Bug 3 fix: Always use sendAction (simpler, more reliable).
-        // The window-search heuristic was fragile — sendAction works on all versions.
-        if #available(macOS 14, *) {
-            NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-        } else {
-            NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
+        // If the window already exists and is visible, just bring it to front
+        if let existing = settingsWindow, existing.isVisible {
+            existing.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            return
         }
-        // Activate async so the menu bar dropdown has time to dismiss first.
+
+        let settingsView = SettingsView()
+        let hostingView = NSHostingView(rootView: settingsView)
+        hostingView.frame = NSRect(x: 0, y: 0, width: 600, height: 520)
+
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 600, height: 520),
+            styleMask: [.titled, .closable, .miniaturizable],
+            backing: .buffered,
+            defer: false
+        )
+        window.titlebarAppearsTransparent = true
+        window.contentView = hostingView
+        window.title = "R2Drop Preferences"
+        window.center()
+        window.isReleasedWhenClosed = false
+
+        // Wrap activation in async so menu bar dropdown dismisses first.
         DispatchQueue.main.async {
+            window.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
         }
+
+        settingsWindow = window
     }
 }
