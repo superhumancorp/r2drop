@@ -33,8 +33,7 @@ src/app/.env
 *.mobileprovision
 *.provisionprofile
 
-# --- Website (deferred) ---
-src/www/
+
 
 # --- IDE ---
 .idea/
