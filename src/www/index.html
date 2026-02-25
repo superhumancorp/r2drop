@@ -1016,8 +1016,8 @@ if (container) {
       const sprite = new THREE.Sprite(material);
       
       // Give each particle a random direction starting mostly from behind and around
-      const dx = (Math.random() - 0.5) * 2;
-      const dy = (Math.random() - 0.5) * 2;
+      const dx = (Math.random() - 0.5) * 4.0; // Wider horizontal spread
+      const dy = (Math.random() - 0.5) * 0.8; // Narrower vertical spread to prevent clipping
       const dz = -0.5 - Math.random() * 1.5; // Weight towards the background (negative z)
       
       // Normalize direction
@@ -1067,9 +1067,9 @@ if (container) {
       if (p.distance < 0.5) {
         p.distance = 30 + Math.random() * 20;
         
-        // Pick a new random direction
-        const dx = (Math.random() - 0.5) * 2;
-        const dy = (Math.random() - 0.5) * 2;
+        // Pick a new random direction, favoring lateral spread
+        const dx = (Math.random() - 0.5) * 4.0;
+        const dy = (Math.random() - 0.5) * 0.8;
         const dz = -0.5 - Math.random() * 1.5;
         const len = Math.sqrt(dx*dx + dy*dy + dz*dz);
         
