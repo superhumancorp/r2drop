@@ -97,6 +97,46 @@ Use 2 IDs:
 
 Do not identify users by email or Cloudflare account ID unless explicit product/legal approval exists.
 
+### Stable User Identifier (Recommended Implementation)
+
+Yes: PostHog needs a stable identifier for the local user/install. In this app, the safest default is an **anonymous install-scoped ID** used as PostHog `distinct_id`.
+
+Recommended behavior:
+
+- Generate once on first launch: `UUID().uuidString.lowercased()`
+- Persist as `distinct_id` and reuse forever (until explicit analytics reset)
+- Keep separate from `session_id` (new every launch)
+- Do not derive from Cloudflare token, account name, or account ID
+
+Recommended storage order:
+
+1. **Keychain (preferred)**: survives app updates and is less user-editable than config files
+2. Fallback file in R2Drop config dir (for rare Keychain failures), e.g. `~/.r2drop/analytics.json`
+
+Suggested Keychain entry:
+
+- `service = "com.superhumancorp.r2drop.analytics"`
+- `account = "distinct_id"`
+- value = random UUID string
+
+Reset / rotation rules:
+
+- Regenerate only if missing/corrupt
+- Rotate only when user explicitly chooses "Reset Analytics Identity" (future settings option)
+- `log out` should **not** reset `distinct_id` (same local user, same install)
+
+Optional (future, only if approved):
+
+- Add a separate **hashed Cloudflare account group identifier** for cross-install/workspace analysis, e.g. `cf_account_group_hash = SHA256(product_salt + ":" + accountId)`
+- Keep this separate from `distinct_id` and never send raw `accountId`
+
+Implementation placement (AI-agent-friendly):
+
+- Add `loadOrCreateDistinctId()` in `TelemetryService`
+- Initialize during telemetry service startup in app launch path (`R2Drop/App/R2DropApp.swift:80`)
+- Call `identify(distinctId: ...)` once per launch after telemetry initialization
+- Add `session_id = UUID()` in the same startup path (new per launch)
+
 Recommended people properties (low-risk):
 
 - `app_version`
