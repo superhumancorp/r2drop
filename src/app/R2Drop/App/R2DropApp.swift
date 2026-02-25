@@ -15,11 +15,14 @@ struct R2DropApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {
-        // Settings window opened via "Preferences..." in the menu bar dropdown.
-        // The menu bar icon itself is managed by MenuBarController (not MenuBarExtra)
-        // because we need icon animation (FR-035) and drag-and-drop (FR-066).
+        // All UI is managed via custom NSWindow (AppDelegate.openSettingsWindow).
+        // SwiftUI wraps Settings{} in macOS-native tab chrome (icons at top),
+        // but our custom NSWindow uses the glass-styled pill tab bar.
+        // We keep an empty Settings scene so SwiftUI's body requirement compiles.
+        // The app menu "Settings..." action is overridden in AppDelegate
+        // to open our custom window instead of the native one.
         Settings {
-            SettingsView()
+            EmptyView()
         }
     }
 }
@@ -32,6 +35,9 @@ struct R2DropApp: App {
 /// so we use NSApplicationDelegate for onboarding and account setup sheets.
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    /// Global accessor so ViewModels can reach AppDelegate without fragile NSApp.delegate cast.
+    /// The @NSApplicationDelegateAdaptor wrapper can cause `NSApp.delegate as? AppDelegate` to fail.
+    static weak var shared: AppDelegate?
     private var onboardingWindow: NSWindow?
     /// Manually managed preferences window — replaces broken SwiftUI Settings scene.
     /// sendAction(showSettingsWindow:) doesn't work on recent macOS versions,
@@ -54,6 +60,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let uploadProcessor = UploadProcessor()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        AppDelegate.shared = self
         #if DEBUG
         R2Log.app.debug("applicationDidFinishLaunching")
         #endif
@@ -111,6 +118,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // 0.5s gives the scene graph time to register the Settings window.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             Self.openSettingsWindow()
+        }
+
+        // Override the system "Settings..." menu item (Cmd+,) to open our custom
+        // NSWindow instead of the SwiftUI Settings scene (which shows a duplicate window).
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            self?.overrideSettingsMenuItem()
         }
     }
 
@@ -309,5 +322,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         settingsWindow = window
+    }
+
+    /// Override the system "Settings..." / "Preferences..." menu item to open
+    /// our custom glass-styled NSWindow instead of SwiftUI's native Settings scene.
+    private func overrideSettingsMenuItem() {
+        guard let appMenu = NSApp.mainMenu?.item(at: 0)?.submenu else { return }
+        for item in appMenu.items {
+            guard let action = item.action else { continue }
+            let actionStr = NSStringFromSelector(action)
+            // Match "showSettingsWindow:" (macOS 14+) and "showPreferencesWindow:" (legacy)
+            if actionStr.contains("Settings") || actionStr.contains("Preferences") {
+                item.target = self
+                item.action = #selector(openPreferencesFromMenu)
+            }
+        }
+    }
+
+    @objc private func openPreferencesFromMenu() {
+        Self.openSettingsWindow()
     }
 }

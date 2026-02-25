@@ -15,8 +15,14 @@ struct AboutTabView: View {
                 heroBanner
 
                 VStack(spacing: 16) {
+                    // Website link at top
+                    websiteCard
+
                     // App icon + title + version (FR-055)
                     appInfoCard
+
+                    // Developer info
+                    developerCard
 
                     // Links: Privacy, Terms, Report Issue (FR-056)
                     linksCard
@@ -53,6 +59,48 @@ struct AboutTabView: View {
                     endPoint: .bottomTrailing
                 )
                 .frame(height: 160)
+            }
+        }
+    }
+
+    // MARK: - Website Link
+
+    private var websiteCard: some View {
+        GlassCard(spacing: 0) {
+            linkRow(title: "r2drop.com", icon: "globe") {
+                viewModel.openWebsite()
+            }
+        }
+    }
+
+    // MARK: - Developer Info
+
+    private var developerCard: some View {
+        GlassCard {
+            HStack(spacing: 12) {
+                Text("Developed by Paul Pierre")
+                    .font(.callout)
+                    .foregroundColor(.secondary)
+
+                Spacer()
+
+                // X (Twitter) link
+                Button(action: { viewModel.openDeveloperX() }) {
+                    Image(systemName: "link")
+                        .font(.body)
+                        .foregroundColor(.accentColor)
+                }
+                .buttonStyle(.borderless)
+                .help("@paulpierre on X")
+
+                // GitHub link
+                Button(action: { viewModel.openDeveloperGitHub() }) {
+                    Image(systemName: "chevron.left.forwardslash.chevron.right")
+                        .font(.body)
+                        .foregroundColor(.accentColor)
+                }
+                .buttonStyle(.borderless)
+                .help("paulpierre on GitHub")
             }
         }
     }

@@ -61,45 +61,62 @@ final class UploadProcessor {
     private func processQueue() {
         guard !isProcessing else { return }
         isProcessing = true
-        defer { isProcessing = false }
 
         // Get active account credentials — log each failure path so we can diagnose
         guard let config = try? ConfigManager.load() else {
             NSLog("R2Drop UploadProcessor: failed to load config")
+            isProcessing = false
             return
         }
         guard let activeName = config.activeAccount else {
             NSLog("R2Drop UploadProcessor: no activeAccount set in config (accounts=%d)", config.accounts.count)
+            isProcessing = false
             return
         }
         guard let account = config.accounts.first(where: { $0.name == activeName }) else {
             NSLog("R2Drop UploadProcessor: activeAccount '%@' not found in config", activeName)
+            isProcessing = false
             return
         }
         guard !account.accountId.isEmpty else {
             NSLog("R2Drop UploadProcessor: account '%@' has empty accountId", activeName)
+            isProcessing = false
             return
         }
         guard let token = try? KeychainManager().getToken(account: activeName) else {
             NSLog("R2Drop UploadProcessor: no Keychain token for account '%@'", activeName)
+            isProcessing = false
             return
         }
 
-        do {
-            let completed = try r2Client.processQueue(
-                accountId: account.accountId,
-                token: token,
-                accountName: activeName
-            )
-            #if DEBUG
-            if completed > 0 {
-                R2Log.upload.debug("UploadProcessor: processed \(completed) jobs")
+        // Run the Rust FFI call on a background thread to avoid blocking the main actor.
+        // The Rust engine internally uses block_on() which blocks the calling thread.
+        let accountId = account.accountId
+        let client = self.r2Client
+        Task.detached { [weak self] in
+            do {
+                let completed = try client.processQueue(
+                    accountId: accountId,
+                    token: token,
+                    accountName: activeName
+                )
+                #if DEBUG
+                if completed > 0 {
+                    await MainActor.run {
+                        R2Log.upload.debug("UploadProcessor: processed \(completed) jobs")
+                    }
+                }
+                #endif
+            } catch {
+                #if DEBUG
+                await MainActor.run {
+                    R2Log.upload.error("UploadProcessor: processQueue failed: \(error)")
+                }
+                #endif
             }
-            #endif
-        } catch {
-            #if DEBUG
-            R2Log.upload.error("UploadProcessor: processQueue failed: \(error)")
-            #endif
+            await MainActor.run {
+                self?.isProcessing = false
+            }
         }
     }
 }

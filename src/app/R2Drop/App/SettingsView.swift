@@ -32,7 +32,7 @@ struct SettingsView: View {
 
             TabView(selection: $selectedTab) {
                 QueueTabView()
-                    .tabItem { Label("Queue", systemImage: "list.bullet") }
+                    .tabItem { Label("Uploads", systemImage: "arrow.up.circle") }
                     .tag(SettingsTab.queue)
 
                 AccountsTabView()

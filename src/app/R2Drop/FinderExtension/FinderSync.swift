@@ -49,8 +49,9 @@ class FinderSync: FIFinderSync {
         if let symbolImg = NSImage(systemSymbolName: "icloud.and.arrow.up",
                                      accessibilityDescription: "Send to R2") {
             let config = NSImage.SymbolConfiguration(pointSize: 13, weight: .medium)
-            let configured = symbolImg.withSymbolConfiguration(config)
-            item.image = configured ?? symbolImg
+            let configured = symbolImg.withSymbolConfiguration(config) ?? symbolImg
+            configured.isTemplate = true
+            item.image = configured
         }
         menu.addItem(item)
         return menu

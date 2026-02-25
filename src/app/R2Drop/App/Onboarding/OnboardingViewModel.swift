@@ -251,6 +251,7 @@ final class OnboardingViewModel: ObservableObject {
     func fetchCustomDomains(bucket: String) async {
         guard !accountId.isEmpty, !token.isEmpty else { return }
         isLoadingDomains = true
+        customDomains = []  // Clear stale data before re-fetching
 
         #if DEBUG
         R2Log.ui.debug("OnboardingViewModel: fetchCustomDomains bucket=\(bucket) accountId=\(self.accountId)")
@@ -377,9 +378,13 @@ final class OnboardingViewModel: ObservableObject {
                 try manager.addAccount(account)
             }
         } catch {
-            // Best-effort — account may already exist from re-onboarding
+            #if DEBUG
+            R2Log.ui.error("OnboardingViewModel: finishSetup save failed: \(error)")
+            #endif
+            // Show error instead of silently swallowing — account may not be saved
+            bucketError = "Failed to save account: \(error.localizedDescription)"
+            return
         }
-
         // FR-005: Wipe plaintext token from memory now that it's in Keychain
         token = ""
 

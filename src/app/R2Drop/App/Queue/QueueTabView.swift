@@ -1,9 +1,9 @@
 // R2Drop/App/Queue/QueueTabView.swift
-// Queue tab with liquid glass styling (FR-037, FR-038).
+// Uploads tab with liquid glass styling (FR-037, FR-038).
 // Aggregate status bar in a frosted glass header. Scrollable job list below.
 // Each job shows progress, speed, and controls (FR-039).
-// Empty state uses GlassEmptyState component.
-
+// Supports drag-and-drop file uploads directly into the tab.
+// Empty state uses GlassEmptyState component with drag-drop target.
 import SwiftUI
 import R2Core
 
@@ -80,14 +80,51 @@ struct QueueTabView: View {
     // MARK: - Empty State
 
     private var emptyState: some View {
-        GlassEmptyState(
-            icon: "tray",
-            title: "No uploads in queue",
-            subtitle: "Right-click files in Finder or drag them onto the menu bar icon to upload."
-        )
+        VStack(spacing: 16) {
+            GlassEmptyState(
+                icon: "arrow.up.circle",
+                title: "No uploads in queue",
+                subtitle: "Drag files here, right-click in Finder, or drop them on the menu bar icon."
+            )
+
+            // Drag-and-drop target area
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [8]))
+                .foregroundColor(.secondary.opacity(0.4))
+                .frame(height: 100)
+                .overlay {
+                    VStack(spacing: 8) {
+                        Image(systemName: "arrow.down.doc")
+                            .font(.title2)
+                            .foregroundColor(.secondary)
+                        Text("Drop files to upload")
+                            .font(.callout)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .onDrop(of: [.fileURL], isTargeted: nil) { providers in
+                    handleDrop(providers)
+                    return true
+                }
+                .padding(.horizontal, 20)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     // MARK: - Helpers
+
+    /// Handle files dropped onto the uploads tab.
+    private func handleDrop(_ providers: [NSItemProvider]) {
+        for provider in providers {
+            provider.loadItem(forTypeIdentifier: "public.file-url", options: nil) { item, _ in
+                guard let data = item as? Data,
+                      let url = URL(dataRepresentation: data, relativeTo: nil) else { return }
+                Task { @MainActor in
+                    self.viewModel.queueDroppedFile(url)
+                }
+            }
+        }
+    }
 
     /// Open the Cloudflare R2 dashboard for a job's bucket (FR-040).
     private func openBrowse(for job: UploadJob) {

@@ -148,6 +148,44 @@ final class QueueViewModel: ObservableObject {
         poll()
     }
 
+    // MARK: - Drag-and-Drop Upload
+
+    /// Queue a file dropped onto the Uploads tab for upload.
+    /// Uses the active account's config for bucket, path, and credentials.
+    func queueDroppedFile(_ url: URL) {
+        let config = (try? ConfigManager.load()) ?? R2Config()
+        guard let activeName = config.activeAccount,
+              let account = config.accounts.first(where: { $0.name == activeName }) else {
+            #if DEBUG
+            R2Log.ui.debug("QueueViewModel: queueDroppedFile — no active account")
+            #endif
+            return
+        }
+
+        guard let qm = try? QueueManager() else { return }
+        let name = url.lastPathComponent
+        let r2Key = account.path.isEmpty ? name : "\(account.path)/\(name)"
+        let size = fileSize(url)
+
+        _ = try? qm.insertJob(
+            filePath: url.path,
+            r2Key: r2Key,
+            bucket: account.bucket,
+            accountName: account.name,
+            totalBytes: size
+        )
+        #if DEBUG
+        R2Log.ui.debug("QueueViewModel: queued dropped file \(name) (\(size) bytes)")
+        #endif
+        poll() // Refresh immediately
+    }
+
+    /// Get the file size in bytes.
+    private func fileSize(_ url: URL) -> UInt64 {
+        let attrs = try? FileManager.default.attributesOfItem(atPath: url.path)
+        return attrs?[.size] as? UInt64 ?? 0
+    }
+
     // MARK: - Browse URL (FR-040)
 
     /// Construct the Cloudflare R2 dashboard URL for a job's bucket.

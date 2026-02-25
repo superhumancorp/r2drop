@@ -58,11 +58,21 @@ struct AccountDetailView: View {
 
             if !account.accountId.isEmpty {
                 Divider().opacity(0.3)
-                GlassInfoRow(
-                    label: "Account ID",
-                    value: account.accountId,
-                    monospaced: true
-                )
+                HStack {
+                    GlassInfoRow(
+                        label: "Account ID",
+                        value: account.accountId,
+                        monospaced: true
+                    )
+                    // Copy Account ID button
+                    Button(action: { copyToClipboard(account.accountId) }) {
+                        Image(systemName: viewModel.copiedAccountId ? "checkmark" : "doc.on.doc")
+                            .font(.caption)
+                            .foregroundColor(viewModel.copiedAccountId ? .green : .accentColor)
+                    }
+                    .buttonStyle(.borderless)
+                    .help("Copy Account ID")
+                }
             }
         }
     }
@@ -124,10 +134,40 @@ struct AccountDetailView: View {
 
     private var customDomainCard: some View {
         GlassCard {
-            GlassSectionHeader(title: "Custom Domain", systemImage: "globe")
+            HStack {
+                GlassSectionHeader(title: "Custom Domain", systemImage: "globe")
+                Spacer()
+                if viewModel.isLoadingDomains {
+                    ProgressView()
+                        .scaleEffect(0.6)
+                } else {
+                    Button(action: { viewModel.refreshDomains() }) {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.caption)
+                    }
+                    .buttonStyle(.borderless)
+                    .help("Refresh domains")
+                }
+            }
 
-            TextField("e.g. cdn.example.com", text: $viewModel.editCustomDomain)
+            // Default option + custom domains dropdown
+            Picker("Domain", selection: $viewModel.editCustomDomain) {
+                Text("Default R2 URL").tag("")
+                if !viewModel.customDomains.isEmpty {
+                    Divider()
+                    ForEach(viewModel.customDomains, id: \.self) { domain in
+                        Text(domain).tag(domain)
+                    }
+                }
+            }
+            .onChange(of: viewModel.editCustomDomain) { _ in
+                viewModel.markEdited()
+            }
+
+            // Manual entry fallback
+            TextField("Or type a domain: cdn.example.com", text: $viewModel.editCustomDomain)
                 .textFieldStyle(.roundedBorder)
+                .font(.callout)
                 .onChange(of: viewModel.editCustomDomain) { _ in
                     viewModel.markEdited()
                 }
@@ -158,6 +198,18 @@ struct AccountDetailView: View {
 
                 Spacer()
             }
+        }
+    }
+
+    // MARK: - Clipboard
+
+    private func copyToClipboard(_ text: String) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+        viewModel.copiedAccountId = true
+        // Reset after 2 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            viewModel.copiedAccountId = false
         }
     }
 

@@ -61,6 +61,13 @@ struct OnboardingCreateTokenPanel: View {
             .foregroundColor(.accentColor)
             .font(.callout)
 
+            // Skip option — user can set up later from Accounts tab
+            Button("Skip for now") {
+                viewModel.skip()
+            }
+            .buttonStyle(.plain)
+            .foregroundColor(.secondary)
+            .font(.callout)
             Spacer()
         }
         .padding(36)

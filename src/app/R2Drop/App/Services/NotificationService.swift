@@ -149,7 +149,7 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
         content.title = "Uploads Complete"
         content.body = "\(count) files have been uploaded to R2."
         content.sound = .default
-        content.categoryIdentifier = NotificationCategory.uploadComplete.rawValue
+        // No "Copy URL" action for batch — can't copy multiple URLs to clipboard
 
         post(content, id: "batch-complete-\(Date().timeIntervalSince1970)")
         playSoundIfEnabled()
@@ -271,10 +271,13 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
     }
 
     /// Play the macOS system sound if the user has "Play sound on upload complete" enabled (FR-063).
+    /// Does NOT call beep — the notification itself already has .default sound.
+    /// This plays a separate Glass sound only if the user's preference is on.
     private func playSoundIfEnabled() {
         let config = (try? ConfigManager.load()) ?? R2Config()
         guard config.preferences.playSound else { return }
-        NSSound.beep()
+        // Use Glass sound instead of beep for a nicer feel
+        NSSound(named: NSSound.Name("Glass"))?.play()
     }
 
     /// Reset a failed job back to pending for retry.

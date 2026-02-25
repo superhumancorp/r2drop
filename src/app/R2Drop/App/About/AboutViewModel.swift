@@ -99,6 +99,18 @@ final class AboutViewModel: ObservableObject {
         openURL("https://github.com/superhumancorp/r2drop/issues")
     }
 
+    func openWebsite() {
+        openURL("https://r2drop.com")
+    }
+
+    func openDeveloperX() {
+        openURL("https://x.com/paulpierre")
+    }
+
+    func openDeveloperGitHub() {
+        openURL("https://github.com/paulpierre")
+    }
+
     // MARK: - Private
 
     /// Format the last update check date from Sparkle.

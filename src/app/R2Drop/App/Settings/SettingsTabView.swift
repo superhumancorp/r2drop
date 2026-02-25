@@ -19,7 +19,7 @@ struct SettingsTabView: View {
                 generalCard
                 performanceCard
                 exclusionCard
-                hotkeyCard
+                cliCard
                 cliCard
                 configCard
             }
@@ -177,48 +177,6 @@ struct SettingsTabView: View {
             }
         }
     }
-
-    // MARK: - Global Upload Hotkey (FR-047)
-
-    private var hotkeyCard: some View {
-        GlassCard {
-            GlassSectionHeader(
-                title: "Global Upload Hotkey",
-                systemImage: "command"
-            )
-
-            HStack {
-                // Hotkey display field
-                Text(viewModel.hotkeyDisplay.isEmpty ? "None" : viewModel.hotkeyDisplay)
-                    .frame(minWidth: 120, alignment: .leading)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 6)
-                    .background(.ultraThinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 6, style: .continuous)
-                            .stroke(viewModel.isRecordingHotkey
-                                    ? Color.accentColor
-                                    : Color.primary.opacity(0.1),
-                                    lineWidth: 1)
-                    )
-
-                if viewModel.isRecordingHotkey {
-                    Button("Cancel") { viewModel.clearHotkey() }
-                } else {
-                    Button("Record") { viewModel.startRecordingHotkey() }
-                    if !viewModel.hotkeyDisplay.isEmpty {
-                        Button("Clear") { viewModel.clearHotkey() }
-                    }
-                }
-            }
-
-            Text("Press a key combination while recording to set a global upload shortcut.")
-                .font(.caption)
-                .foregroundColor(.secondary)
-        }
-    }
-
     // MARK: - CLI Install (FR-046)
 
     private var cliCard: some View {

@@ -128,6 +128,13 @@ final class SettingsViewModel: ObservableObject {
         hideDockIcon = hide
         NSApp.setActivationPolicy(hide ? .accessory : .regular)
         save()
+        // Re-activate our settings window after policy change.
+        // Switching to .accessory hides all windows — we need to bring ours back.
+        if hide {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                AppDelegate.openSettingsWindow()
+            }
+        }
     }
 
     // MARK: - Simple Toggle Saves

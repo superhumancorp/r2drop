@@ -35,6 +35,13 @@ final class AccountsViewModel: ObservableObject {
     /// True when there are unsaved edits on the detail panel.
     @Published var hasUnsavedChanges = false
 
+    /// Custom domains fetched from Cloudflare API for the selected account.
+    @Published var customDomains: [String] = []
+    @Published var isLoadingDomains = false
+
+    /// Visual feedback for account ID copy button.
+    @Published var copiedAccountId = false
+
     // MARK: - Dependencies
 
     private let r2Client = R2Client()
@@ -79,6 +86,8 @@ final class AccountsViewModel: ObservableObject {
         hasUnsavedChanges = false
         bucketError = nil
 
+        // Fetch custom domains for the dropdown
+        fetchCustomDomains(for: account)
         // Fetch buckets for the dropdown
         fetchBuckets(for: account)
     }
@@ -120,6 +129,66 @@ final class AccountsViewModel: ObservableObject {
                 isLoadingBuckets = false
             }
         }
+    }
+
+    // MARK: - Fetch Custom Domains
+
+    /// Fetch custom domains from Cloudflare API for the selected account.
+    /// Cached locally; refreshed on explicit user action.
+    private func fetchCustomDomains(for account: ConfigAccount) {
+        guard !account.accountId.isEmpty, !account.bucket.isEmpty else { return }
+        isLoadingDomains = true
+        customDomains = []  // Clear stale data
+
+        Task {
+            guard let token = try? keychainManager.getToken(account: account.name) else {
+                isLoadingDomains = false
+                return
+            }
+            guard let encodedBucket = account.bucket.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
+                isLoadingDomains = false
+                return
+            }
+            let urlString = "https://api.cloudflare.com/client/v4/accounts/\(account.accountId)/r2/buckets/\(encodedBucket)/domains/custom"
+            guard let url = URL(string: urlString) else {
+                isLoadingDomains = false
+                return
+            }
+
+            var request = URLRequest(url: url)
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+            do {
+                let (data, response) = try await URLSession.shared.data(for: request)
+                let httpStatus = (response as? HTTPURLResponse)?.statusCode ?? 0
+                if httpStatus == 200,
+                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let result = json["result"] as? [String: Any],
+                   let domainEntries = result["domains"] as? [[String: Any]] {
+                    let activeDomains = domainEntries.compactMap { entry -> String? in
+                        guard let domain = entry["domain"] as? String,
+                              let enabled = entry["enabled"] as? Bool, enabled else {
+                            return nil
+                        }
+                        if let status = entry["status"] as? [String: Any],
+                           let ownership = status["ownership"] as? String,
+                           ownership == "deactivated" { return nil }
+                        return domain
+                    }
+                    self.customDomains = activeDomains
+                }
+            } catch {
+                // Non-fatal — custom domains are optional
+            }
+            isLoadingDomains = false
+        }
+    }
+
+    /// Refresh custom domains for the currently selected account.
+    func refreshDomains() {
+        guard let account = selectedAccount else { return }
+        fetchCustomDomains(for: account)
     }
 
     // MARK: - Validation
@@ -185,13 +254,13 @@ final class AccountsViewModel: ObservableObject {
 
     /// Trigger the "Add Account" flow via AppDelegate (FR-042).
     func addAccount() {
-        guard let appDelegate = NSApp.delegate as? AppDelegate else { return }
+        guard let appDelegate = AppDelegate.shared else { return }
         appDelegate.showAddAccount()
     }
 
     /// Trigger the "Update Token" flow via AppDelegate (FR-044).
     func updateToken(accountName: String) {
-        guard let appDelegate = NSApp.delegate as? AppDelegate else { return }
+        guard let appDelegate = AppDelegate.shared else { return }
         appDelegate.showUpdateToken(accountName: accountName)
     }
 
@@ -200,9 +269,22 @@ final class AccountsViewModel: ObservableObject {
         #if DEBUG
         R2Log.ui.debug("AccountsViewModel: logOut \(accountName)")
         #endif
-        guard let appDelegate = NSApp.delegate as? AppDelegate else { return }
+        guard let appDelegate = AppDelegate.shared else { return }
         appDelegate.logOut(accountName: accountName)
         // Refresh after log out
         load()
+    }
+
+    // MARK: - Deduplication
+
+    /// Remove duplicate accounts by name, keeping the first occurrence.
+    /// Handles legacy config files that accumulated duplicates.
+    private func deduplicateAccounts(_ accounts: [ConfigAccount]) -> [ConfigAccount] {
+        var seen = Set<String>()
+        return accounts.filter { account in
+            guard !seen.contains(account.name) else { return false }
+            seen.insert(account.name)
+            return true
+        }
     }
 }
