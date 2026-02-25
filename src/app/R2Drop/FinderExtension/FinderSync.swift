@@ -294,9 +294,15 @@ class FinderSync: FIFinderSync {
     private func configureMonitoredDirectories() {
         var monitored = Set<URL>()
 
+        let sandboxHome = NSHomeDirectory()
+        let userHome = FileManager.default.homeDirectoryForCurrentUser
+            .standardizedFileURL
+
+        NSLog("R2Drop FinderExtension: sandboxHome=%@ userHome=%@",
+              sandboxHome, userHome.path)
+
         monitored.insert(
-            URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
-                .standardizedFileURL
+            userHome
         )
 
         // Include mounted external/network volumes where users often drag assets.

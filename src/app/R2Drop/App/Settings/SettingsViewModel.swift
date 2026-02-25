@@ -208,7 +208,8 @@ final class SettingsViewModel: ObservableObject {
     /// Check if r2drop CLI is installed at /usr/local/bin or ~/.local/bin.
     func detectCLI() {
         let systemPath = "/usr/local/bin/r2drop"
-        let localPath = NSHomeDirectory() + "/.local/bin/r2drop"
+        let localPath = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent(".local/bin/r2drop").path
         if FileManager.default.fileExists(atPath: systemPath) {
             cliInstalled = true
             cliVersion = getCLIVersion(at: systemPath)
@@ -251,45 +252,7 @@ final class SettingsViewModel: ObservableObject {
         cliInstallStatus = "Installing..."
 
         Task.detached {
-            // Try to find the install script in the app bundle first
-            var scriptPath: String?
-            
-            // Check if script exists in bundle Resources
-            if let bundledScript = Bundle.main.path(forResource: "install-cli", ofType: "sh") {
-                scriptPath = bundledScript
-            } else {
-                // Fallback to dev path (relative to bundle)
-                let devPath = Bundle.main.bundlePath + "/../../../scripts/install-cli.sh"
-                if FileManager.default.fileExists(atPath: devPath) {
-                    scriptPath = devPath
-                }
-            }
-            
-            guard let scriptPath = scriptPath else {
-                await MainActor.run { [weak self] in
-                    self?.cliInstallStatus = "Error: install-cli.sh not found in app bundle"
-                }
-                return
-            }
-            
-            let process = Process()
-            process.executableURL = URL(fileURLWithPath: "/bin/bash")
-            process.arguments = [scriptPath, "--prefix", NSHomeDirectory() + "/.local"]
-            let pipe = Pipe()
-            process.standardOutput = pipe
-            process.standardError = pipe
-
-            var success = false
-            do {
-                try process.run()
-                process.waitUntilExit()
-                success = process.terminationStatus == 0
-            } catch {
-            }
-
-            let statusMessage = success
-                ? "CLI installed successfully."
-                : "Installation failed. Try running scripts/install-cli.sh manually."
+            let (_, statusMessage) = Self.installCLIInBackground()
 
             await MainActor.run { [weak self] in
                 #if DEBUG
@@ -299,6 +262,153 @@ final class SettingsViewModel: ObservableObject {
                 self?.detectCLI()
             }
         }
+    }
+
+    // MARK: - CLI Install Helpers
+
+    private nonisolated static func installCLIInBackground() -> (Bool, String) {
+        let installPrefix = userLocalPrefixPath()
+        let installDir = URL(fileURLWithPath: installPrefix, isDirectory: true)
+            .appendingPathComponent("bin", isDirectory: true)
+        let destination = installDir.appendingPathComponent("r2drop")
+
+        // 1) Prefer a prebuilt binary bundled with the app (future-proof packaging path).
+        if let bundledBinary = bundledCLIBinaryURL() {
+            do {
+                try installBinary(from: bundledBinary, to: destination)
+                return (true, "CLI installed successfully.")
+            } catch {
+                return (false, "CLI install failed while copying bundled binary.")
+            }
+        }
+
+        // 2) Development checkout fallback: run the repo script if available.
+        if let repoRoot = findLocalRepoRoot(),
+           let scriptURL = repoInstallScriptURL(repoRoot: repoRoot) {
+            let success = runInstallScript(at: scriptURL, prefix: installPrefix)
+            if success {
+                return (true, "CLI installed successfully.")
+            }
+            return (
+                false,
+                "CLI installation failed. Try running `scripts/install-cli.sh --prefix ~/.local` from the repo."
+            )
+        }
+
+        return (
+            false,
+            "CLI installer unavailable in this build (no bundled CLI and no local repo checkout found)."
+        )
+    }
+
+    private nonisolated static func userLocalPrefixPath() -> String {
+        FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent(".local", isDirectory: true)
+            .path
+    }
+
+    private nonisolated static func bundledCLIBinaryURL() -> URL? {
+        let bundle = Bundle.main
+        let candidates: [URL?] = [
+            bundle.url(forResource: "r2drop", withExtension: nil),
+            bundle.resourceURL?.appendingPathComponent("r2drop"),
+            bundle.resourceURL?.appendingPathComponent("cli/r2drop")
+        ]
+        return candidates.compactMap { $0 }.first {
+            FileManager.default.isExecutableFile(atPath: $0.path)
+        }
+    }
+
+    private nonisolated static func repoInstallScriptURL(repoRoot: URL) -> URL? {
+        let scriptURL = repoRoot.appendingPathComponent("scripts/install-cli.sh")
+        return FileManager.default.fileExists(atPath: scriptURL.path) ? scriptURL : nil
+    }
+
+    private nonisolated static func findLocalRepoRoot() -> URL? {
+        let fm = FileManager.default
+        var seedURLs: [URL] = []
+
+        let cwd = URL(fileURLWithPath: fm.currentDirectoryPath, isDirectory: true)
+        seedURLs.append(cwd)
+
+        if let pwd = ProcessInfo.processInfo.environment["PWD"] {
+            seedURLs.append(URL(fileURLWithPath: pwd, isDirectory: true))
+        }
+
+        seedURLs.append(Bundle.main.bundleURL)
+        seedURLs.append(Bundle.main.bundleURL.deletingLastPathComponent())
+
+        for seed in seedURLs {
+            var current = seed.standardizedFileURL
+            while true {
+                let script = current.appendingPathComponent("scripts/install-cli.sh")
+                let engine = current.appendingPathComponent("engine/Cargo.toml")
+                if fm.fileExists(atPath: script.path), fm.fileExists(atPath: engine.path) {
+                    return current
+                }
+                let parent = current.deletingLastPathComponent()
+                if parent.path == current.path { break }
+                current = parent
+            }
+        }
+        return nil
+    }
+
+    private nonisolated static func runInstallScript(at scriptURL: URL, prefix: String) -> Bool {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/bash")
+        // Use --prefix=<value> because the shell script's --prefix parser expects this form reliably.
+        process.arguments = [scriptURL.path, "--prefix=\(prefix)"]
+        process.environment = installerEnvironment()
+
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = pipe
+
+        do {
+            try process.run()
+            process.waitUntilExit()
+            return process.terminationStatus == 0
+        } catch {
+            return false
+        }
+    }
+
+    private nonisolated static func installBinary(from source: URL, to destination: URL) throws {
+        let fm = FileManager.default
+        let destinationDir = destination.deletingLastPathComponent()
+        try fm.createDirectory(at: destinationDir, withIntermediateDirectories: true)
+
+        if fm.fileExists(atPath: destination.path) {
+            try fm.removeItem(at: destination)
+        }
+        try fm.copyItem(at: source, to: destination)
+
+        // rwxr-xr-x
+        try fm.setAttributes([.posixPermissions: 0o755], ofItemAtPath: destination.path)
+    }
+
+    private nonisolated static func installerEnvironment() -> [String: String] {
+        let fm = FileManager.default
+        let home = fm.homeDirectoryForCurrentUser.path
+        let existing = ProcessInfo.processInfo.environment
+        let existingPath = existing["PATH"] ?? ""
+        let extraPaths = [
+            home + "/.cargo/bin",
+            "/opt/homebrew/bin",
+            "/usr/local/bin",
+            "/usr/bin",
+            "/bin"
+        ]
+
+        let mergedPath = (extraPaths + [existingPath])
+            .filter { !$0.isEmpty }
+            .joined(separator: ":")
+
+        var env = existing
+        env["HOME"] = home
+        env["PATH"] = mergedPath
+        return env
     }
 
 }

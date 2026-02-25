@@ -22,8 +22,8 @@ INSTALL_PREFIX="/usr/local"
 
 # --- Parse arguments ----------------------------------------------------------
 
-for arg in "$@"; do
-    case "$arg" in
+while [[ $# -gt 0 ]]; do
+    case "$1" in
         --prefix)
             shift
             INSTALL_PREFIX="${1:-}"
@@ -31,9 +31,11 @@ for arg in "$@"; do
                 echo "Error: --prefix requires a path argument"
                 exit 1
             fi
+            shift
             ;;
         --prefix=*)
-            INSTALL_PREFIX="${arg#--prefix=}"
+            INSTALL_PREFIX="${1#--prefix=}"
+            shift
             ;;
         --help|-h)
             echo "Usage: $0 [--prefix <path>]"
@@ -43,7 +45,7 @@ for arg in "$@"; do
             exit 0
             ;;
         *)
-            echo "Error: Unknown argument '$arg'"
+            echo "Error: Unknown argument '$1'"
             echo "Run '$0 --help' for usage."
             exit 1
             ;;
