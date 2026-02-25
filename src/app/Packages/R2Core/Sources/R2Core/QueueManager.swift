@@ -180,4 +180,18 @@ public final class QueueManager {
             updatedAt: row[11] as? String ?? ""
         )
     }
+
+    // MARK: - Retry Support
+
+    /// Reset retry_count to 0 for a job so the Rust engine will process it again.
+    /// Called when user manually retries a failed upload (FR-039).
+    public func resetRetryCount(id: Int64) throws {
+        try db.run(
+            """
+            UPDATE jobs SET retry_count = 0, updated_at = datetime('now')
+            WHERE id = ?1
+            """,
+            params: [id]
+        )
+    }
 }

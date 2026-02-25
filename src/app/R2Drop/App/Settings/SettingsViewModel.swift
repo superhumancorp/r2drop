@@ -33,7 +33,6 @@ final class SettingsViewModel: ObservableObject {
     // MARK: - Hotkey (FR-047)
 
     @Published var hotkeyDisplay: String = ""
-    @Published var isRecordingHotkey: Bool = false
 
     // MARK: - CLI Install (FR-046)
 
@@ -224,7 +223,27 @@ final class SettingsViewModel: ObservableObject {
         cliInstallStatus = "Installing..."
 
         Task.detached {
-            let scriptPath = Bundle.main.bundlePath + "/../../../scripts/install-cli.sh"
+            // Try to find the install script in the app bundle first
+            var scriptPath: String?
+            
+            // Check if script exists in bundle Resources
+            if let bundledScript = Bundle.main.path(forResource: "install-cli", ofType: "sh") {
+                scriptPath = bundledScript
+            } else {
+                // Fallback to dev path (relative to bundle)
+                let devPath = Bundle.main.bundlePath + "/../../../scripts/install-cli.sh"
+                if FileManager.default.fileExists(atPath: devPath) {
+                    scriptPath = devPath
+                }
+            }
+            
+            guard let scriptPath = scriptPath else {
+                await MainActor.run { [weak self] in
+                    self?.cliInstallStatus = "Error: install-cli.sh not found in app bundle"
+                }
+                return
+            }
+            
             let process = Process()
             process.executableURL = URL(fileURLWithPath: "/bin/bash")
             process.arguments = [scriptPath]
@@ -254,32 +273,8 @@ final class SettingsViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Hotkey Recording (FR-047)
-
-    /// Start recording a keyboard shortcut.
-    func startRecordingHotkey() {
-        isRecordingHotkey = true
-        hotkeyDisplay = "Press a key combination..."
-    }
-
-    /// Stop recording and save the captured shortcut.
-    func stopRecordingHotkey(with event: NSEvent?) {
-        isRecordingHotkey = false
-        guard let event = event else {
-            hotkeyDisplay = ""
-            return
-        }
-        hotkeyDisplay = formatHotkey(event)
-        // Hotkey persistence is out of scope for P0 MVP config.
-        // The key combo is displayed but actual global hotkey registration
-        // requires CGEvent taps or Carbon APIs — deferred to later.
-    }
-
-    /// Clear the recorded hotkey.
-    func clearHotkey() {
-        isRecordingHotkey = false
-        hotkeyDisplay = ""
-    }
+    // MARK: - Hotkey Recording (FR-047) - DISABLED
+    // Hotkey recording UI is disabled pending implementation of global hotkey registration
 
     /// Format an NSEvent into a human-readable hotkey string.
     private func formatHotkey(_ event: NSEvent) -> String {

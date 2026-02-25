@@ -83,7 +83,7 @@ enum DeepLinkHandler {
         let compress = components?.queryItems?.first(where: { $0.name == "compress" })?.value == "true"
 
         // Confirmation dialog (skipped if "Never ask again")
-        let neverAsk = UserDefaults.standard.bool(forKey: "R2Drop.NeverAskConfirmation")
+        let neverAsk = UserDefaults(suiteName: "group.com.superhumancorp.r2drop")?.bool(forKey: "R2Drop.NeverAskConfirmation") ?? false
         if !neverAsk {
             let fileName = fileURL.lastPathComponent
             let attrs = try? FileManager.default.attributesOfItem(atPath: fileURL.path)

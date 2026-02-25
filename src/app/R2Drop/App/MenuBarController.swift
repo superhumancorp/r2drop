@@ -334,7 +334,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         }
 
         // Confirmation dialog (skipped if "Never ask again" was checked)
-        let neverAsk = UserDefaults.standard.bool(forKey: "R2Drop.NeverAskConfirmation")
+        let neverAsk = UserDefaults(suiteName: "group.com.superhumancorp.r2drop")?.bool(forKey: "R2Drop.NeverAskConfirmation") ?? false
         if !neverAsk {
             guard showDropConfirmation(urls: urls) else { return }
         }
@@ -363,7 +363,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         alert.accessoryView = checkbox
         let response = alert.runModal()
         if checkbox.state == .on {
-            UserDefaults.standard.set(true, forKey: "R2Drop.NeverAskConfirmation")
+            UserDefaults(suiteName: "group.com.superhumancorp.r2drop")?.set(true, forKey: "R2Drop.NeverAskConfirmation")
         }
         return response == .alertFirstButtonReturn
     }

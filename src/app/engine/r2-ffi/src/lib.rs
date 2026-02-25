@@ -347,7 +347,12 @@ pub unsafe extern "C" fn r2_process_queue(
     }
 
     let client = s3::R2Client::new(account_id, token);
-    let config = upload::UploadConfig::default();
+    // Load user preferences from config.toml (FR-006: respect chunk_size_mb, concurrent_uploads)
+    let user_config = config::Config::load().unwrap_or_default();
+    let config = upload::UploadConfig {
+        chunk_size_bytes: (user_config.preferences.chunk_size_mb as usize) * 1024 * 1024,
+        concurrency: user_config.preferences.concurrent_uploads as usize,
+    };
     let shutdown = std::sync::atomic::AtomicBool::new(false);
 
     match runtime().block_on(runner::process_pending(
@@ -384,6 +389,18 @@ pub extern "C" fn r2_resume_upload(job_id: i64) -> i32 {
 #[no_mangle]
 pub extern "C" fn r2_cancel_upload(job_id: i64) -> i32 {
     with_queue_db(|db| db.delete_job(job_id).map(|_| ()))
+}
+
+/// Reset retry count and re-queue a failed job for manual retry.
+/// Transitions status from Failed → Pending and resets retry_count to 0.
+/// Returns 0 on success, -1 on error.
+#[no_mangle]
+pub extern "C" fn r2_retry_job(job_id: i64) -> i32 {
+    with_queue_db(|db| {
+        db.reset_retry_count(job_id)?;
+        db.update_status(job_id, queue::JobStatus::Pending, None, None)?;
+        Ok(())
+    })
 }
 
 /// Get the current queue status as a JSON array of job objects.

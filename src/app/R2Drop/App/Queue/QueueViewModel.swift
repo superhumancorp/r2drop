@@ -135,8 +135,13 @@ final class QueueViewModel: ObservableObject {
         R2Log.ui.debug("QueueViewModel: resumeJob id=\(job.id)")
         #endif
         guard let qm = try? QueueManager() else { return }
+        // Reset retry_count so the Rust engine gives this job a fresh set of attempts.
+        // Without this, jobs that already hit MAX_RETRIES would immediately re-fail.
+        try? qm.resetRetryCount(id: job.id)
         try? qm.updateStatus(id: job.id, status: .pending)
         poll()
+        // Trigger immediate processing instead of waiting for the 3s timer.
+        NotificationCenter.default.post(name: .r2dropQueueDidChange, object: nil)
     }
 
     func cancelJob(_ job: UploadJob) {
@@ -150,7 +155,8 @@ final class QueueViewModel: ObservableObject {
 
     // MARK: - Drag-and-Drop Upload
 
-    /// Queue a file dropped onto the Uploads tab for upload.
+    /// Queue a file or folder dropped onto the Uploads tab for upload.
+    /// If a folder is dropped, recursively enumerates all files and queues them individually.
     /// Uses the active account's config for bucket, path, and credentials.
     func queueDroppedFile(_ url: URL) {
         let config = (try? ConfigManager.load()) ?? R2Config()
@@ -163,27 +169,79 @@ final class QueueViewModel: ObservableObject {
         }
 
         guard let qm = try? QueueManager() else { return }
-        let name = url.lastPathComponent
-        let r2Key = account.path.isEmpty ? name : "\(account.path)/\(name)"
-        let size = fileSize(url)
 
-        _ = try? qm.insertJob(
-            filePath: url.path,
-            r2Key: r2Key,
-            bucket: account.bucket,
-            accountName: account.name,
-            totalBytes: size
-        )
+        // Get exclusion patterns from config
+        let exclusions = config.preferences.exclusionPatterns
+
+        guard let qm = try? QueueManager() else { return }
+
+        // Check if the URL is a directory
+        let isDirectory = (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
+
+        if isDirectory {
+            // Enumerate all files in the folder recursively
+            let enumerator = FileManager.default.enumerator(
+                at: url,
+                includingPropertiesForKeys: [.isRegularFileKey, .fileSizeKey],
+                options: [.skipsHiddenFiles]
+            )
+            let baseName = url.lastPathComponent
+            while let fileURL = enumerator?.nextObject() as? URL {
+                let isFile = (try? fileURL.resourceValues(forKeys: [.isRegularFileKey]))?.isRegularFile ?? false
+                guard isFile else { continue }
+                // Skip files matching exclusion patterns
+                let fileName = fileURL.lastPathComponent
+                guard !matchesExclusionPattern(fileName, patterns: exclusions) else { continue }
+                // Build r2Key preserving folder structure
+                let relativePath = fileURL.path.replacingOccurrences(of: url.path + "/", with: "")
+                let name = "\(baseName)/\(relativePath)"
+                let r2Key = account.path.isEmpty ? name : "\(account.path)/\(name)"
+                let size = fileSize(fileURL)
+                _ = try? qm.insertJob(filePath: fileURL.path, r2Key: r2Key, bucket: account.bucket, accountName: account.name, totalBytes: size)
+            }
+        } else {
+            // Single file logic
+            let fileName = url.lastPathComponent
+            guard !matchesExclusionPattern(fileName, patterns: exclusions) else {
+                #if DEBUG
+                R2Log.ui.debug("QueueViewModel: skipped excluded file \(fileName)")
+                #endif
+                return
+            }
+            let name = url.lastPathComponent
+            let r2Key = account.path.isEmpty ? name : "\(account.path)/\(name)"
+            let size = fileSize(url)
+            _ = try? qm.insertJob(filePath: url.path, r2Key: r2Key, bucket: account.bucket, accountName: account.name, totalBytes: size)
+        }
+
         #if DEBUG
-        R2Log.ui.debug("QueueViewModel: queued dropped file \(name) (\(size) bytes)")
+        R2Log.ui.debug("QueueViewModel: queued dropped file(s) from \(url.lastPathComponent)")
         #endif
         poll() // Refresh immediately
+        // Trigger immediate processing instead of waiting for the 3s timer.
+        NotificationCenter.default.post(name: .r2dropQueueDidChange, object: nil)
     }
 
     /// Get the file size in bytes.
     private func fileSize(_ url: URL) -> UInt64 {
         let attrs = try? FileManager.default.attributesOfItem(atPath: url.path)
         return attrs?[.size] as? UInt64 ?? 0
+    }
+
+    /// Check if a filename matches any of the exclusion patterns.
+    /// Supports exact matches and simple wildcard patterns (e.g. "._*").
+    private func matchesExclusionPattern(_ filename: String, patterns: [String]) -> Bool {
+        for pattern in patterns {
+            if pattern.contains("*") {
+                // Simple wildcard: "._*" matches any file starting with "._"
+                let prefix = pattern.replacingOccurrences(of: "*", with: "")
+                if filename.hasPrefix(prefix) { return true }
+            } else {
+                // Exact match
+                if filename == pattern { return true }
+            }
+        }
+        return false
     }
 
     // MARK: - Browse URL (FR-040)

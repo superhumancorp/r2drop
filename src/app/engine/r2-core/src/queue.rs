@@ -262,6 +262,15 @@ impl QueueDb {
         let changed = self.conn.execute("DELETE FROM jobs WHERE id = ?1", params![id])?;
         Ok(changed > 0)
     }
+
+    /// Reset retry_count to 0 for a job (used when user manually retries).
+    pub fn reset_retry_count(&self, id: i64) -> Result<(), QueueError> {
+        self.conn.execute(
+            "UPDATE jobs SET retry_count = 0, updated_at = datetime('now') WHERE id = ?1",
+            params![id],
+        )?;
+        Ok(())
+    }
 }
 
 // ---------------------------------------------------------------------------

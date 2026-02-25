@@ -128,7 +128,6 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
         let content = UNMutableNotificationContent()
         content.title = "Upload Complete"
         content.body = "\"\(fileName)\" has been uploaded to R2."
-        content.sound = .default
         content.categoryIdentifier = NotificationCategory.uploadComplete.rawValue
 
         // Store URL in userInfo so "Copy URL" action can retrieve it
@@ -148,7 +147,6 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
         let content = UNMutableNotificationContent()
         content.title = "Uploads Complete"
         content.body = "\(count) files have been uploaded to R2."
-        content.sound = .default
         // No "Copy URL" action for batch — can't copy multiple URLs to clipboard
 
         post(content, id: "batch-complete-\(Date().timeIntervalSince1970)")
@@ -163,7 +161,6 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
         let content = UNMutableNotificationContent()
         content.title = "Upload Failed"
         content.body = "\"\(fileName)\" failed: \(error)"
-        content.sound = .default
         content.categoryIdentifier = NotificationCategory.uploadFailed.rawValue
         content.userInfo = ["jobId": jobId, "fileName": fileName]
 
@@ -178,7 +175,6 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
         let content = UNMutableNotificationContent()
         content.title = "Uploads Paused"
         content.body = reason
-        content.sound = .default
         content.categoryIdentifier = NotificationCategory.uploadPaused.rawValue
 
         post(content, id: "upload-paused-\(Date().timeIntervalSince1970)")
@@ -192,7 +188,6 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
         let content = UNMutableNotificationContent()
         content.title = "R2Drop Token Expired"
         content.body = "Your token for \"\(accountName)\" has expired. Click here to set up a new one."
-        content.sound = .default
         content.categoryIdentifier = NotificationCategory.tokenExpired.rawValue
         content.userInfo = ["accountName": accountName]
 
@@ -281,8 +276,12 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
     }
 
     /// Reset a failed job back to pending for retry.
+    /// Also resets retry_count so the Rust engine gives it fresh attempts.
     private func retryJob(_ jobId: Int64) {
         guard let qm = try? QueueManager() else { return }
+        try? qm.resetRetryCount(id: jobId)
         try? qm.updateStatus(id: jobId, status: .pending)
+        // Trigger immediate processing instead of waiting for the 3s timer.
+        NotificationCenter.default.post(name: .r2dropQueueDidChange, object: nil)
     }
 }

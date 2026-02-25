@@ -15,72 +15,80 @@ public final class R2Client: Sendable {
 
     /// Validate an API token against the Cloudflare API.
     public func validateToken(_ token: String) async throws {
-        #if DEBUG
-        print("[R2Bridge:R2Client] validateToken begin")
-        #endif
-        let result = token.withCString { r2_validate_token($0) }
-        if result != 0 {
+        try await Task.detached { [self] in
             #if DEBUG
-            print("[R2Bridge:R2Client] validateToken failed: \(lastError())")
+            print("[R2Bridge:R2Client] validateToken begin")
             #endif
-            throw R2BridgeError.ffiError(lastError())
-        }
-        #if DEBUG
-        print("[R2Bridge:R2Client] validateToken success")
-        #endif
+            let result = token.withCString { r2_validate_token($0) }
+            if result != 0 {
+                #if DEBUG
+                print("[R2Bridge:R2Client] validateToken failed: \(lastError())")
+                #endif
+                throw R2BridgeError.ffiError(lastError())
+            }
+            #if DEBUG
+            print("[R2Bridge:R2Client] validateToken success")
+            #endif
+        }.value
     }
 
     /// List Cloudflare accounts accessible with the given token.
     /// Returns array of dictionaries with "id" and "name" keys.
     public func listAccounts(token: String) async throws -> [[String: String]] {
-        guard let ptr = token.withCString({ r2_list_accounts($0) }) else {
+        try await Task.detached { [self] in
+            guard let ptr = token.withCString({ r2_list_accounts($0) }) else {
+                #if DEBUG
+                print("[R2Bridge:R2Client] listAccounts failed: \(lastError())")
+                #endif
+                throw R2BridgeError.ffiError(lastError())
+            }
+            defer { r2_free_string(ptr) }
+            let json = String(cString: ptr)
+            let accounts: [[String: String]] = try decodeJSON(json)
             #if DEBUG
-            print("[R2Bridge:R2Client] listAccounts failed: \(lastError())")
+            print("[R2Bridge:R2Client] listAccounts returned \(accounts.count) accounts")
             #endif
-            throw R2BridgeError.ffiError(lastError())
-        }
-        defer { r2_free_string(ptr) }
-        let json = String(cString: ptr)
-        let accounts: [[String: String]] = try decodeJSON(json)
-        #if DEBUG
-        print("[R2Bridge:R2Client] listAccounts returned \(accounts.count) accounts")
-        #endif
-        return accounts
+            return accounts
+        }.value
     }
 
     /// List R2 bucket names for an account.
     public func listBuckets(accountId: String, token: String) async throws -> [String] {
-        guard let ptr = accountId.withCString({ aid in
-            token.withCString({ tok in
-                r2_list_buckets(aid, tok)
-            })
-        }) else {
+        try await Task.detached { [self] in
+            guard let ptr = accountId.withCString({ aid in
+                token.withCString({ tok in
+                    r2_list_buckets(aid, tok)
+                })
+            }) else {
+                #if DEBUG
+                print("[R2Bridge:R2Client] listBuckets failed: \(lastError())")
+                #endif
+                throw R2BridgeError.ffiError(lastError())
+            }
+            defer { r2_free_string(ptr) }
+            let json = String(cString: ptr)
+            let buckets: [String] = try decodeJSON(json)
             #if DEBUG
-            print("[R2Bridge:R2Client] listBuckets failed: \(lastError())")
+            print("[R2Bridge:R2Client] listBuckets returned \(buckets.count) buckets")
             #endif
-            throw R2BridgeError.ffiError(lastError())
-        }
-        defer { r2_free_string(ptr) }
-        let json = String(cString: ptr)
-        let buckets: [String] = try decodeJSON(json)
-        #if DEBUG
-        print("[R2Bridge:R2Client] listBuckets returned \(buckets.count) buckets")
-        #endif
-        return buckets
+            return buckets
+        }.value
     }
 
     /// Create a new R2 bucket.
     public func createBucket(accountId: String, name: String, token: String) async throws {
-        let result = accountId.withCString { aid in
-            name.withCString { bname in
-                token.withCString { tok in
-                    r2_create_bucket(aid, bname, tok)
+        try await Task.detached { [self] in
+            let result = accountId.withCString { aid in
+                name.withCString { bname in
+                    token.withCString { tok in
+                        r2_create_bucket(aid, bname, tok)
+                    }
                 }
             }
-        }
-        if result != 0 {
-            throw R2BridgeError.ffiError(lastError())
-        }
+            if result != 0 {
+                throw R2BridgeError.ffiError(lastError())
+            }
+        }.value
     }
 
     // MARK: - Object Operations
@@ -90,14 +98,16 @@ public final class R2Client: Sendable {
     public func headObject(
         accountId: String, token: String, bucket: String, key: String
     ) async throws -> R2ObjectInfo? {
-        #if DEBUG
-        print("[R2Bridge:R2Client] headObject key=\(key)")
-        #endif
-        let result = try headObjectSync(accountId: accountId, token: token, bucket: bucket, key: key)
-        #if DEBUG
-        print("[R2Bridge:R2Client] headObject exists=\(result != nil)")
-        #endif
-        return result
+        try await Task.detached { [self] in
+            #if DEBUG
+            print("[R2Bridge:R2Client] headObject key=\(key)")
+            #endif
+            let result = try headObjectSync(accountId: accountId, token: token, bucket: bucket, key: key)
+            #if DEBUG
+            print("[R2Bridge:R2Client] headObject exists=\(result != nil)")
+            #endif
+            return result
+        }.value
     }
 
     /// Synchronous head_object check — safe to call from any thread.

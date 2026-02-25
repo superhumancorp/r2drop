@@ -86,12 +86,13 @@ class FinderSync: FIFinderSync {
         let neverAsk = Self.sharedDefaults?.bool(forKey: Self.neverAskKey) ?? false
         var shouldCompress = false
         var shouldCopyURL = true
+        // DISABLED: Compress and Copy URL features not yet implemented
 
         if !neverAsk {
             let result = showConfirmationDialog(urls: filteredURLs)
             guard result.confirmed else { return }
-            shouldCompress = result.compress
-            shouldCopyURL = result.copyURL
+            // shouldCompress = result.compress  // DISABLED
+            // shouldCopyURL = result.copyURL    // DISABLED
         } else {
             shouldCopyURL = Self.sharedDefaults?.bool(forKey: Self.copyURLKey) ?? true
         }
@@ -137,23 +138,23 @@ class FinderSync: FIFinderSync {
         // Accessory view with toggles
         let accessoryView = NSView(frame: NSRect(x: 0, y: 0, width: 300, height: 76))
 
-        // "Compress as ZIP" toggle (default off)
-        let compressCheck = NSButton(
-            checkboxWithTitle: "Compress as ZIP",
-            target: nil, action: nil
-        )
-        compressCheck.frame = NSRect(x: 0, y: 52, width: 300, height: 20)
-        compressCheck.state = .off
-        accessoryView.addSubview(compressCheck)
+        // DISABLED: "Compress as ZIP" feature not yet implemented
+        // let compressCheck = NSButton(
+        //     checkboxWithTitle: "Compress as ZIP",
+        //     target: nil, action: nil
+        // )
+        // compressCheck.frame = NSRect(x: 0, y: 52, width: 300, height: 20)
+        // compressCheck.state = .off
+        // accessoryView.addSubview(compressCheck)
 
-        // "Copy URL to clipboard" toggle (default on)
-        let copyURLCheck = NSButton(
-            checkboxWithTitle: "Copy URL to clipboard",
-            target: nil, action: nil
-        )
-        copyURLCheck.frame = NSRect(x: 0, y: 30, width: 300, height: 20)
-        copyURLCheck.state = .on
-        accessoryView.addSubview(copyURLCheck)
+        // DISABLED: "Copy URL to clipboard" feature not yet implemented
+        // let copyURLCheck = NSButton(
+        //     checkboxWithTitle: "Copy URL to clipboard",
+        //     target: nil, action: nil
+        // )
+        // copyURLCheck.frame = NSRect(x: 0, y: 30, width: 300, height: 20)
+        // copyURLCheck.state = .on
+        // accessoryView.addSubview(copyURLCheck)
 
         // "Never ask again" checkbox (default off)
         let neverAskCheck = NSButton(
@@ -170,17 +171,14 @@ class FinderSync: FIFinderSync {
         // Save "Never ask again" preference if checked (FR-020)
         if neverAskCheck.state == .on {
             Self.sharedDefaults?.set(true, forKey: Self.neverAskKey)
-            // Also save the copy URL preference for future silent uploads
-            Self.sharedDefaults?.set(
-                copyURLCheck.state == .on,
-                forKey: Self.copyURLKey
-            )
+            // DISABLED: Copy URL feature not yet implemented
+            // Self.sharedDefaults?.set(false, forKey: Self.copyURLKey)
         }
 
         return ConfirmResult(
             confirmed: response == .alertFirstButtonReturn,
-            compress: compressCheck.state == .on,
-            copyURL: copyURLCheck.state == .on
+            compress: false,  // DISABLED: Compress feature not yet implemented
+            copyURL: true     // DISABLED: Copy URL feature not yet implemented
         )
     }
 

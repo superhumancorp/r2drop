@@ -171,7 +171,7 @@ final class UploadMonitor {
         guard let hm = try? HistoryManager() else { return nil }
         let entries = (try? hm.listEntries()) ?? []
         // Find the most recent history entry matching this job's key and bucket
-        let match = entries.first { $0.r2Key == job.r2Key && $0.bucket == job.bucket }
+        let match = entries.first { $0.r2Key == job.r2Key && $0.bucket == job.bucket && $0.accountName == job.accountName }
         return match?.url
     }
 }

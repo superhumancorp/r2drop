@@ -13,6 +13,8 @@ import R2Bridge
 final class UploadProcessor {
 
     private var timer: Timer?
+    /// Observer for immediate queue processing when jobs are added/resumed.
+    private var queueObserver: Any?
     private let r2Client = R2Client()
     private let pollInterval: TimeInterval = 3.0
 
@@ -49,6 +51,14 @@ final class UploadProcessor {
         }
         // Run immediately on start too
         processQueue()
+
+        // Listen for queue changes (new job queued, resume, retry) to process immediately
+        // instead of waiting for the next 3-second timer tick.
+        queueObserver = NotificationCenter.default.addObserver(
+            forName: .r2dropQueueDidChange, object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in self?.processQueue() }
+        }
     }
 
     /// Stop polling.
@@ -56,6 +66,10 @@ final class UploadProcessor {
         #if DEBUG
         R2Log.upload.debug("UploadProcessor: stop")
         #endif
+        if let obs = queueObserver {
+            NotificationCenter.default.removeObserver(obs)
+            queueObserver = nil
+        }
         timer?.invalidate()
         timer = nil
     }

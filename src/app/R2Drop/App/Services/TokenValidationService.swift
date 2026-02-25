@@ -113,11 +113,16 @@ final class TokenValidationService: ObservableObject {
     private func loadAccounts() -> [ConfigAccount] {
         do {
             let config = try ConfigManager.load()
-            // Deduplicate by name to avoid validating the same account multiple times
-            var seen = Set<String>()
+            // Deduplicate by name and accountId to avoid validating the same account multiple times
+            var seenNames = Set<String>()
+            var seenAccountIds = Set<String>()
             return config.accounts.filter { account in
-                guard !seen.contains(account.name) else { return false }
-                seen.insert(account.name)
+                guard !seenNames.contains(account.name) else { return false }
+                if !account.accountId.isEmpty {
+                    guard !seenAccountIds.contains(account.accountId) else { return false }
+                    seenAccountIds.insert(account.accountId)
+                }
+                seenNames.insert(account.name)
                 return true
             }
         } catch {

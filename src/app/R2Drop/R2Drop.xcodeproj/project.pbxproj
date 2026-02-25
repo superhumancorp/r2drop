@@ -27,6 +27,7 @@
 		51E14B44F7505EC41B3DE7F0 /* DeepLinkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B2C6A165C12FE42A21E70FA /* DeepLinkHandler.swift */; };
 		5D491FDE58B6688F64DDBE4F /* OnboardingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7579519F793101201BDE7A67 /* OnboardingViewModel.swift */; };
 		5D525698D7F5A279EAEE6DC8 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 895B4748BE8DA2F5A012B32C /* NotificationService.swift */; };
+		B2C3D4E5F6A7B8C9D0E1F2A3 /* PermissionChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2 /* PermissionChecker.swift */; };
 		6D192802A86754D240808B51 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29F4943E249176B6155BFF14 /* NetworkMonitor.swift */; };
 		721BD11D81B5D65412985497 /* AccountDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1706FFB21E4DD0D4C688812 /* AccountDetailView.swift */; };
 		80C6A5F627CC3567514E2A6D /* Background-1.png in Resources */ = {isa = PBXBuildFile; fileRef = 2F7747EEE426AC86E245F67C /* Background-1.png */; };
@@ -118,6 +119,7 @@
 		8787DED0FC77F0AD054CA323 /* Hero4.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Hero4.png; sourceTree = "<group>"; };
 		88961B41D4106631A1D5E7E2 /* Hero1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Hero1.png; sourceTree = "<group>"; };
 		895B4748BE8DA2F5A012B32C /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6A7B8C9D0E1F2 /* PermissionChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionChecker.swift; sourceTree = "<group>"; };
 		8CF3A0ED4891B0AC8074417A /* HistoryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryViewModel.swift; sourceTree = "<group>"; };
 		8DF2E0FB70D7FA22051B5C4E /* QueueTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueTabView.swift; sourceTree = "<group>"; };
 		9027CF9993303E331BE21BDD /* UploadProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadProcessor.swift; sourceTree = "<group>"; };
@@ -313,6 +315,7 @@
 			isa = PBXGroup;
 			children = (
 				959609F94F0860F0DF282AE4 /* FinderQueueBridge.swift */,
+				A1B2C3D4E5F6A7B8C9D0E1F2 /* PermissionChecker.swift */,
 				29F4943E249176B6155BFF14 /* NetworkMonitor.swift */,
 				895B4748BE8DA2F5A012B32C /* NotificationService.swift */,
 				45C5B8A7A0BE9FBB08B30708 /* TokenValidationService.swift */,
@@ -453,6 +456,7 @@
 				4BE113099D35BE3343F8FCF0 /* MenuBarHeaderView.swift in Sources */,
 				6D192802A86754D240808B51 /* NetworkMonitor.swift in Sources */,
 				5D525698D7F5A279EAEE6DC8 /* NotificationService.swift in Sources */,
+				B2C3D4E5F6A7B8C9D0E1F2A3 /* PermissionChecker.swift in Sources */,
 				C8F20641F019908D739608AD /* OnboardingChooseBucketPanel.swift in Sources */,
 				36189925036A7B9CB1F4239B /* OnboardingCreateTokenPanel.swift in Sources */,
 				246600BDBEF8073194AB94AD /* OnboardingHowItWorksPanel.swift in Sources */,

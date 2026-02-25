@@ -150,6 +150,13 @@ int32_t r2_resume_upload(int64_t job_id);
 int32_t r2_cancel_upload(int64_t job_id);
 
 /**
+ * Reset retry count and re-queue a failed job for manual retry.
+ * Transitions status from Failed → Pending and resets retry_count to 0.
+ * Returns 0 on success, -1 on error.
+ */
+int32_t r2_retry_job(int64_t job_id);
+
+/**
  * Get the current queue status as a JSON array of job objects.
  * Each object: id, file_path, r2_key, bucket, account_name, status,
  * bytes_uploaded, total_bytes, error_message.

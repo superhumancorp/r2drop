@@ -316,8 +316,17 @@ final class OnboardingViewModel: ObservableObject {
                 #if DEBUG
                 R2Log.ui.debug("OnboardingViewModel: no domains in response or non-200 status")
                 #endif
+                self.customDomains = []  // Clear on non-200 response
+                #if DEBUG
+                R2Log.ui.debug("OnboardingViewModel: no domains in response or non-200 status")
+                #endif
             }
         } catch {
+            #if DEBUG
+            R2Log.ui.error("OnboardingViewModel: fetchCustomDomains failed: \(error)")
+            #endif
+            // Non-fatal — custom domains are optional
+            self.customDomains = []  // Clear on error
             #if DEBUG
             R2Log.ui.error("OnboardingViewModel: fetchCustomDomains failed: \(error)")
             #endif

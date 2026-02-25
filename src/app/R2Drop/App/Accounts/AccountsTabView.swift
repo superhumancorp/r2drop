@@ -3,19 +3,29 @@
 // Left sidebar lists configured accounts with frosted background.
 // Right panel shows editable account details via GlassCard sections.
 // Empty state uses GlassEmptyState. "Add Account" at bottom of sidebar (FR-042).
+// Permission banner shown at top when Finder Extension or Notifications are missing.
 
 import SwiftUI
 import R2Core
 
 struct AccountsTabView: View {
     @StateObject private var viewModel = AccountsViewModel()
+    @ObservedObject private var permissions = PermissionChecker.shared
 
     var body: some View {
-        Group {
-            if viewModel.accounts.isEmpty {
-                emptyState
-            } else {
-                sidebarDetailLayout
+        VStack(spacing: 0) {
+            // Permission banner at top
+            if permissions.hasIssues {
+                PermissionBannerView(permissions: permissions)
+                    .padding(.bottom, 8)
+            }
+            
+            Group {
+                if viewModel.accounts.isEmpty {
+                    emptyState
+                } else {
+                    sidebarDetailLayout
+                }
             }
         }
         .onAppear { viewModel.load() }
@@ -110,5 +120,71 @@ struct AccountsTabView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(20)
+    }
+}
+
+// MARK: - Permission Banner
+
+/// Warning banner shown when Finder Extension or Notifications are not enabled.
+struct PermissionBannerView: View {
+    @ObservedObject var permissions: PermissionChecker
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if !permissions.finderExtensionEnabled {
+                HStack(spacing: 12) {
+                    Image(systemName: "exclamationmark.circle.fill")
+                        .foregroundColor(.orange)
+                        .font(.title3)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Finder Extension not enabled")
+                            .font(.body)
+                            .fontWeight(.medium)
+                        Text("Enable it to use 'Send to R2' in Finder")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    Button("Enable") {
+                        permissions.openFinderExtensionSettings()
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                }
+            }
+            
+            if !permissions.notificationsAuthorized {
+                HStack(spacing: 12) {
+                    Image(systemName: "bell.slash.fill")
+                        .foregroundColor(.orange)
+                        .font(.title3)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Notifications not enabled")
+                            .font(.body)
+                            .fontWeight(.medium)
+                        Text("Get alerts when uploads complete")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    Button("Enable") {
+                        permissions.openNotificationSettings()
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                }
+            }
+        }
+        .padding(12)
+        .background(Color.orange.opacity(0.12))
+        .cornerRadius(8)
+        .padding(.horizontal, 12)
+        .padding(.top, 8)
     }
 }

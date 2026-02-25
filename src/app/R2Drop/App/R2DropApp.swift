@@ -16,6 +16,10 @@ extension Notification.Name {
     /// Fired when accounts are added, updated, or removed.
     /// AccountsViewModel observes this to refresh its data.
     static let r2dropAccountsDidChange = Notification.Name("r2dropAccountsDidChange")
+
+    /// Fired when the upload queue changes (new job, resume, retry).
+    /// UploadProcessor observes this to immediately process instead of waiting for its 3s timer.
+    static let r2dropQueueDidChange = Notification.Name("r2dropQueueDidChange")
 }
 @main
 struct R2DropApp: App {
@@ -23,13 +27,19 @@ struct R2DropApp: App {
 
     var body: some Scene {
         // All UI is managed via custom NSWindow (AppDelegate.openSettingsWindow).
-        // SwiftUI wraps Settings{} in macOS-native tab chrome (icons at top),
-        // but our custom NSWindow uses the glass-styled pill tab bar.
         // We keep an empty Settings scene so SwiftUI's body requirement compiles.
-        // The app menu "Settings..." action is overridden in AppDelegate
-        // to open our custom window instead of the native one.
         Settings {
             EmptyView()
+        }
+        // Override Cmd+, to open our custom glass-styled NSWindow
+        // instead of the SwiftUI Settings scene (which shows a blank window).
+        .commands {
+            CommandGroup(replacing: .appSettings) {
+                Button("Settings...") {
+                    AppDelegate.openSettingsWindow()
+                }
+                .keyboardShortcut(",", modifiers: .command)
+            }
         }
     }
 }
@@ -127,11 +137,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             Self.openSettingsWindow()
         }
 
-        // Override the system "Settings..." menu item (Cmd+,) to open our custom
-        // NSWindow instead of the SwiftUI Settings scene (which shows a duplicate window).
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-            self?.overrideSettingsMenuItem()
-        }
+        // Cmd+, is handled by CommandGroup(replacing: .appSettings) in the body scene.
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -322,7 +328,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         window.titlebarAppearsTransparent = true
         window.contentView = hostingView
-        window.title = "R2Drop Preferences"
+        window.title = "R2Drop Settings"
         window.center()
         window.isReleasedWhenClosed = false
 
@@ -335,22 +341,5 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         settingsWindow = window
     }
 
-    /// Override the system "Settings..." / "Preferences..." menu item to open
-    /// our custom glass-styled NSWindow instead of SwiftUI's native Settings scene.
-    private func overrideSettingsMenuItem() {
-        guard let appMenu = NSApp.mainMenu?.item(at: 0)?.submenu else { return }
-        for item in appMenu.items {
-            guard let action = item.action else { continue }
-            let actionStr = NSStringFromSelector(action)
-            // Match "showSettingsWindow:" (macOS 14+) and "showPreferencesWindow:" (legacy)
-            if actionStr.contains("Settings") || actionStr.contains("Preferences") {
-                item.target = self
-                item.action = #selector(openPreferencesFromMenu)
-            }
-        }
-    }
 
-    @objc private func openPreferencesFromMenu() {
-        Self.openSettingsWindow()
-    }
 }
