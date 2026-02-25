@@ -44,6 +44,12 @@ final class SettingsViewModel: ObservableObject {
 
     @Published var configDirPath: String = ""
 
+    // MARK: - Logging (FR-067)
+
+    @Published var maxLogFiles: Int = 5
+    @Published var maxLogFileSizeMb: Int = 10
+    @Published var logDirPath: String = ""
+
     // MARK: - Lifecycle
 
     /// Load preferences from config.toml and detect CLI state.
@@ -61,7 +67,10 @@ final class SettingsViewModel: ObservableObject {
         chunkSizeMb = prefs.chunkSizeMb
         exclusionPatterns = prefs.exclusionPatterns
         followSymlinks = prefs.followSymlinks
+        maxLogFiles = prefs.maxLogFiles
+        maxLogFileSizeMb = prefs.maxLogFileSizeMb
         configDirPath = ConfigManager.configDir().path
+        logDirPath = ConfigManager.configDir().appendingPathComponent("logs").path
 
         detectCLI()
         #if DEBUG
@@ -85,6 +94,8 @@ final class SettingsViewModel: ObservableObject {
             config.preferences.chunkSizeMb = chunkSizeMb
             config.preferences.exclusionPatterns = exclusionPatterns
             config.preferences.followSymlinks = followSymlinks
+            config.preferences.maxLogFiles = maxLogFiles
+            config.preferences.maxLogFileSizeMb = maxLogFileSizeMb
             try ConfigManager.save(config)
             #if DEBUG
             R2Log.ui.debug("SettingsViewModel.save success")
@@ -157,6 +168,18 @@ final class SettingsViewModel: ObservableObject {
 
     func updateChunkSize(_ value: Int) {
         chunkSizeMb = max(5, min(100, value))
+        save()
+    }
+
+    // MARK: - Logging (FR-067)
+
+    func updateMaxLogFiles(_ value: Int) {
+        maxLogFiles = max(1, min(50, value))
+        save()
+    }
+
+    func updateMaxLogFileSizeMb(_ value: Int) {
+        maxLogFileSizeMb = max(1, min(100, value))
         save()
     }
 

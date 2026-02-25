@@ -64,6 +64,10 @@ public struct R2Preferences: Equatable {
     public var playSound: Bool
     /// When false (default), symlinks are skipped during upload (FR-051).
     public var followSymlinks: Bool
+    /// Maximum number of rotated log files to retain (FR-067).
+    public var maxLogFiles: Int
+    /// Maximum log file size in MB before rotation cleanup (FR-067).
+    public var maxLogFileSizeMb: Int
 
     public static let defaultExclusions = [
         ".DS_Store", "._*", ".Thumbs.db", ".Spotlight-V100",
@@ -77,7 +81,9 @@ public struct R2Preferences: Equatable {
         launchAtLogin: Bool = false,
         hideDockIcon: Bool = false,
         playSound: Bool = true,
-        followSymlinks: Bool = false
+        followSymlinks: Bool = false,
+        maxLogFiles: Int = 5,
+        maxLogFileSizeMb: Int = 10
     ) {
         self.concurrentUploads = concurrentUploads
         self.chunkSizeMb = chunkSizeMb
@@ -86,6 +92,8 @@ public struct R2Preferences: Equatable {
         self.hideDockIcon = hideDockIcon
         self.playSound = playSound
         self.followSymlinks = followSymlinks
+        self.maxLogFiles = maxLogFiles
+        self.maxLogFileSizeMb = maxLogFileSizeMb
     }
 }
 
@@ -234,6 +242,8 @@ enum TOMLParser {
                 case "hide_dock_icon": config.preferences.hideDockIcon = str == "true"
                 case "play_sound": config.preferences.playSound = str == "true"
                 case "follow_symlinks": config.preferences.followSymlinks = str == "true"
+                case "max_log_files": config.preferences.maxLogFiles = Int(str) ?? 5
+                case "max_log_file_size_mb": config.preferences.maxLogFileSizeMb = Int(str) ?? 10
                 default: break
                 }
             }
@@ -294,6 +304,8 @@ enum TOMLWriter {
         lines.append("hide_dock_icon = \(p.hideDockIcon)")
         lines.append("play_sound = \(p.playSound)")
         lines.append("follow_symlinks = \(p.followSymlinks)")
+        lines.append("max_log_files = \(p.maxLogFiles)")
+        lines.append("max_log_file_size_mb = \(p.maxLogFileSizeMb)")
         lines.append("")
 
         return lines.joined(separator: "\n")

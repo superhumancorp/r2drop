@@ -116,6 +116,8 @@ pub fn check_file_readable(path: &str) -> Result<(), RunnerError> {
 /// Uses the account's custom_domain if configured, otherwise falls back to
 /// the standard R2 public URL format.
 pub fn build_public_url(r2_key: &str, bucket: &str, account_name: &str, config: &Config) -> String {
+    // Defensively strip leading slashes from r2_key to avoid double-slash URLs
+    let r2_key = r2_key.trim_start_matches('/');
     // Look up the account to check for a custom domain
     if let Some(acct) = config.accounts.iter().find(|a| a.name == account_name) {
         if let Some(ref domain) = acct.custom_domain {

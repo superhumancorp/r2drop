@@ -71,10 +71,13 @@ final class HistoryViewModel: ObservableObject {
             // Build URL from custom domain + r2Key
             let base = domain.hasSuffix("/") ? String(domain.dropLast()) : domain
             let scheme = base.hasPrefix("http") ? "" : "https://"
-            return "\(scheme)\(base)/\(entry.r2Key)"
+            let r2KeyClean = entry.r2Key.hasPrefix("/") ? String(entry.r2Key.dropFirst()) : entry.r2Key
+            return "\(scheme)\(base)/\(r2KeyClean)"
         }
         // Fall back to stored URL
-        return entry.url
+        // Fall back to stored URL (also strip any leading double slash)
+        let cleaned = entry.url.replacingOccurrences(of: "://", with: "SCHEME_SEP").replacingOccurrences(of: "//", with: "/").replacingOccurrences(of: "SCHEME_SEP", with: "://")
+        return cleaned
     }
 
     /// Format file size as human-readable string (e.g. "4.2 MB").

@@ -59,10 +59,11 @@ pub unsafe extern "C" fn r2_free_string(ptr: *mut c_char) {
 /// Initialize the audit logging system with rolling file output (FR-067).
 /// Call once at app startup. Subsequent calls are no-ops.
 /// `max_log_files` controls how many rotated log files to retain.
+/// `max_log_file_size_mb` controls the max size (MB) before startup cleanup.
 /// Returns 0 on success, -1 on error.
 #[no_mangle]
-pub extern "C" fn r2_init_logging(max_log_files: u16) -> i32 {
-    match logging::init_logging(max_log_files as usize, false) {
+pub extern "C" fn r2_init_logging(max_log_files: u16, max_log_file_size_mb: u16) -> i32 {
+    match logging::init_logging(max_log_files as usize, max_log_file_size_mb as usize, false) {
         Ok(()) => {
             tracing::info!("r2drop audit logging initialized");
             0

@@ -36,14 +36,20 @@ pub fn logs_dir() -> Result<PathBuf, config::ConfigError> {
 ///
 /// - Logs to `~/.r2drop/logs/r2drop.log` with daily rotation (FR-067).
 /// - Keeps up to `max_log_files` rotated files (configurable retention).
+/// - `max_log_file_size_mb` triggers startup cleanup of oversized log files.
 /// - Log format: timestamp + level + target + structured fields.
 /// - Also logs to stderr when `also_stderr` is true (useful for CLI).
 /// - Safe to call once per process. Subsequent calls are no-ops.
 ///
 /// Returns Ok(()) if the subscriber was installed, or Err if it failed.
 /// If a subscriber is already installed (e.g. in tests), returns Ok(()) silently.
-pub fn init_logging(max_log_files: usize, also_stderr: bool) -> Result<(), config::ConfigError> {
+pub fn init_logging(max_log_files: usize, max_log_file_size_mb: usize, also_stderr: bool) -> Result<(), config::ConfigError> {
     let log_dir = logs_dir()?;
+
+    // Startup cleanup: remove log files that exceed the size limit
+    if max_log_file_size_mb > 0 {
+        prune_oversized_logs(&log_dir, max_log_file_size_mb);
+    }
 
     // Daily rolling file appender: r2drop.YYYY-MM-DD.log
     let file_appender = rolling::Builder::new()
@@ -91,6 +97,30 @@ pub fn init_logging(max_log_files: usize, also_stderr: bool) -> Result<(), confi
     Ok(())
 }
 
+/// Remove log files in the given directory that exceed the size limit.
+/// Called at startup before setting up the rolling appender.
+fn prune_oversized_logs(log_dir: &std::path::Path, max_size_mb: usize) {
+    let max_bytes = (max_size_mb as u64) * 1024 * 1024;
+    let entries = match fs::read_dir(log_dir) {
+        Ok(e) => e,
+        Err(_) => return,
+    };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        // Only prune r2drop log files
+        let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
+        if !name.starts_with("r2drop") || !name.ends_with(".log") {
+            continue;
+        }
+        if let Ok(meta) = fs::metadata(&path) {
+            if meta.len() > max_bytes {
+                // Truncate instead of deleting to avoid losing current session's file
+                let _ = fs::write(&path, b"");
+            }
+        }
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -115,7 +145,7 @@ mod tests {
         // init_logging should handle this gracefully (no-op).
         let tmp = tempfile::tempdir().unwrap();
         std::env::set_var("R2DROP_HOME", tmp.path());
-        let result = init_logging(3, false);
+        let result = init_logging(3, 10, false);
         assert!(result.is_ok());
         std::env::remove_var("R2DROP_HOME");
     }

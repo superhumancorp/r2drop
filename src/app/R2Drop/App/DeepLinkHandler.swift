@@ -232,7 +232,8 @@ enum DeepLinkHandler {
     private static func queueFile(fileURL: URL, account: ConfigAccount) {
         guard let qm = try? QueueManager() else { return }
         let name = fileURL.lastPathComponent
-        let r2Key = account.path.isEmpty ? name : "\(account.path)/\(name)"
+        let pathPrefix = account.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        let r2Key = pathPrefix.isEmpty ? name : "\(pathPrefix)/\(name)"
         let attrs = try? FileManager.default.attributesOfItem(atPath: fileURL.path)
         let size = attrs?[.size] as? UInt64 ?? 0
         _ = try? qm.insertJob(

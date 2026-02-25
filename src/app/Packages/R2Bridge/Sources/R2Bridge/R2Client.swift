@@ -249,6 +249,16 @@ public final class R2Client: Sendable {
         r2_set_network_available(available)
     }
 
+    // MARK: - Logging (FR-067)
+
+    /// Initialize the Rust audit logging system.
+    /// Call once at app startup. Subsequent calls are no-ops.
+    /// Returns 0 on success, -1 on error.
+    @discardableResult
+    public static func initLogging(maxLogFiles: UInt16, maxLogFileSizeMb: UInt16) -> Int32 {
+        r2_init_logging(maxLogFiles, maxLogFileSizeMb)
+    }
+
     // MARK: - Helpers
 
     /// Read the last error message from the FFI layer.

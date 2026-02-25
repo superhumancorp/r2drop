@@ -74,10 +74,10 @@ struct QueueArgs {
 
 #[tokio::main]
 async fn main() {
-    let max_log_files = Config::load()
-        .map(|c| c.preferences.max_log_files as usize)
-        .unwrap_or(5);
-    if let Err(e) = r2_core::logging::init_logging(max_log_files, true) {
+    let user_config = Config::load().unwrap_or_default();
+    let max_log_files = user_config.preferences.max_log_files as usize;
+    let max_log_file_size_mb = user_config.preferences.max_log_file_size_mb as usize;
+    if let Err(e) = r2_core::logging::init_logging(max_log_files, max_log_file_size_mb, true) {
         eprintln!("Warning: failed to init logging: {e}");
     }
 

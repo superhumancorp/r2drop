@@ -195,7 +195,8 @@ final class QueueViewModel: ObservableObject {
                 // Build r2Key preserving folder structure
                 let relativePath = fileURL.path.replacingOccurrences(of: url.path + "/", with: "")
                 let name = "\(baseName)/\(relativePath)"
-                let r2Key = account.path.isEmpty ? name : "\(account.path)/\(name)"
+                let pathPrefix = account.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+                let r2Key = pathPrefix.isEmpty ? name : "\(pathPrefix)/\(name)"
                 let size = fileSize(fileURL)
                 _ = try? qm.insertJob(filePath: fileURL.path, r2Key: r2Key, bucket: account.bucket, accountName: account.name, totalBytes: size)
             }
@@ -209,7 +210,8 @@ final class QueueViewModel: ObservableObject {
                 return
             }
             let name = url.lastPathComponent
-            let r2Key = account.path.isEmpty ? name : "\(account.path)/\(name)"
+            let pathPrefix = account.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+            let r2Key = pathPrefix.isEmpty ? name : "\(pathPrefix)/\(name)"
             let size = fileSize(url)
             _ = try? qm.insertJob(filePath: url.path, r2Key: r2Key, bucket: account.bucket, accountName: account.name, totalBytes: size)
         }

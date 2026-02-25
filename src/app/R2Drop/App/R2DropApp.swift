@@ -9,6 +9,7 @@
 
 import SwiftUI
 import R2Core
+import R2Bridge
 
 // MARK: - Notification Names
 
@@ -96,6 +97,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Default is .regular (dock icon visible). If user set hide_dock_icon = true,
         // switch to .accessory (menu bar only).
         let config = (try? ConfigManager.load()) ?? R2Config()
+        // Initialize Rust audit logging (FR-067) — rolling file to ~/.r2drop/logs/
+        let logResult = R2Client.initLogging(
+            maxLogFiles: UInt16(config.preferences.maxLogFiles),
+            maxLogFileSizeMb: UInt16(config.preferences.maxLogFileSizeMb)
+        )
+        #if DEBUG
+        R2Log.app.debug("r2_init_logging result: \(logResult)")
+        #endif
         NSApp.setActivationPolicy(config.preferences.hideDockIcon ? .accessory : .regular)
         #if DEBUG
         R2Log.app.debug("Activation policy: \(config.preferences.hideDockIcon ? ".accessory" : ".regular")")

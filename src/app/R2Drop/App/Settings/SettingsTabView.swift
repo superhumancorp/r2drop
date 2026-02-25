@@ -252,7 +252,64 @@ struct SettingsTabView: View {
                 .help("Open in Finder")
             }
 
-            Text("Override with the R2DROP_HOME environment variable.")
+            Divider().opacity(0.3)
+
+            HStack {
+                Text("Log directory:")
+                    .font(.body)
+                Text(viewModel.logDirPath)
+                    .font(.system(.body, design: .monospaced))
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+
+                Spacer()
+
+                // Open logs in Finder
+                Button(action: { openLogDir() }) {
+                    Image(systemName: "folder")
+                }
+                .buttonStyle(.borderless)
+                .help("Open logs in Finder")
+            }
+
+            Divider().opacity(0.3)
+
+            // Max log file size stepper
+            HStack {
+                Text("Max log file size:")
+                    .font(.body)
+                Spacer()
+                Stepper(
+                    "\(viewModel.maxLogFileSizeMb) MB",
+                    value: Binding(
+                        get: { viewModel.maxLogFileSizeMb },
+                        set: { viewModel.updateMaxLogFileSizeMb($0) }
+                    ),
+                    in: 1...100
+                )
+                .frame(width: 140)
+            }
+
+            Divider().opacity(0.3)
+
+            // Max rotated log files stepper
+            HStack {
+                Text("Max rotated log files:")
+                    .font(.body)
+                Spacer()
+                Stepper(
+                    "\(viewModel.maxLogFiles)",
+                    value: Binding(
+                        get: { viewModel.maxLogFiles },
+                        set: { viewModel.updateMaxLogFiles($0) }
+                    ),
+                    in: 1...50
+                )
+                .frame(width: 120)
+            }
+
+            Text("Override config with the R2DROP_HOME environment variable.")
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
@@ -267,6 +324,13 @@ struct SettingsTabView: View {
 
     private func openConfigDir() {
         let url = URL(fileURLWithPath: viewModel.configDirPath)
+        NSWorkspace.shared.open(url)
+    }
+
+    private func openLogDir() {
+        let url = URL(fileURLWithPath: viewModel.logDirPath)
+        // Create logs dir if it doesn't exist yet
+        try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         NSWorkspace.shared.open(url)
     }
 }

@@ -39,9 +39,10 @@ void r2_free_string(char *ptr);
  * Initialize the audit logging system with rolling file output (FR-067).
  * Call once at app startup. Subsequent calls are no-ops.
  * `max_log_files` controls how many rotated log files to retain.
+ * `max_log_file_size_mb` controls the max size (MB) before startup cleanup.
  * Returns 0 on success, -1 on error.
  */
-int32_t r2_init_logging(uint16_t max_log_files);
+int32_t r2_init_logging(uint16_t max_log_files, uint16_t max_log_file_size_mb);
 
 /**
  * Inform the Rust engine of a network availability change.
@@ -135,9 +136,9 @@ int64_t r2_queue_upload(const char *file_path,
  * `secret_access_key` is the SHA-256 hash of the API token.
  */
 int32_t r2_process_queue(const char *account_id,
-                        const char *access_key_id,
-                        const char *secret_access_key,
-                        const char *account_name);
+                         const char *access_key_id,
+                         const char *secret_access_key,
+                         const char *account_name);
 
 /**
  * Pause an upload job. Returns 0 on success, -1 on error.

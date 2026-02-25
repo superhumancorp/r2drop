@@ -200,7 +200,8 @@ class FinderSync: FIFinderSync {
         for url in urls {
             let name = url.lastPathComponent
             // Build the R2 key: account.path prefix + filename
-            let r2Key = account.path.isEmpty ? name : "\(account.path)/\(name)"
+            let pathPrefix = account.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+            let r2Key = pathPrefix.isEmpty ? name : "\(pathPrefix)/\(name)"
             let size = fileSize(url)
 
             _ = try? qm.insertJob(

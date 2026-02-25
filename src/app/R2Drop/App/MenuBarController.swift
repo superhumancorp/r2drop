@@ -384,7 +384,8 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
         for url in urls {
             let name = url.lastPathComponent
-            var r2Key = account.path.isEmpty ? name : "\(account.path)/\(name)"
+            let pathPrefix = account.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+            var r2Key = pathPrefix.isEmpty ? name : "\(pathPrefix)/\(name)"
 
             // Check for conflict if we have credentials (FR-065)
             if let token = token, !account.accountId.isEmpty {
