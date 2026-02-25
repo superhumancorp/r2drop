@@ -862,7 +862,7 @@
    <script src="https://cdn.jsdelivr.net/npm/three@0.137.0/build/three.min.js"></script>
    <script src="https://cdn.jsdelivr.net/npm/three@0.137.0/examples/js/loaders/SVGLoader.js"></script>
    <script>
-   window.addEventListener('load', function() {
+   setTimeout(function() {
       var container = document.getElementById('r2drop-3d-container');
       if (!container) return;
 
@@ -961,7 +961,7 @@
          camera.aspect = nw / nh;
          camera.updateProjectionMatrix();
       });
-   });
+   }, 100);
    </script>
    </body>
 </html>
