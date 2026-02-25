@@ -973,11 +973,9 @@ if (container) {
   pivot.scale.set(sc, sc, sc);
   scene.add(pivot);
 
-  // Accelerating Black Hole Orbiting Icons Effect
+  // Linear Black Hole Suction Effect (No Rotation)
   const particles = new THREE.Group();
-  // Move the particle group backward to sit behind the logo and tilt it to look like an accretion disk
-  particles.position.z = -5;
-  particles.rotation.x = Math.PI * 0.15;
+  // Center particles on the origin so they suck directly into the logo
   scene.add(particles);
 
   const icons = ['image.svg', 'mail.svg', 'music.svg', 'ppt.svg', 'psd.svg', 'record.svg', 'sql.svg', 'ttf.svg', 'vector.svg', 'video.svg', 'word.svg', 'xls.svg', 'zip.svg', 'pdf.png'];
@@ -1012,28 +1010,27 @@ if (container) {
     // Load texture once per icon via absolute remote URL
     const texture = loadIconTexture('https://r2drop.com/filetypes/' + icon);
     
-    // 4 instances of each icon to create a dense, swirling cloud
+    // 4 instances of each icon
     for(let j=0; j<4; j++) {
-      // Give them some transparency so they are a subtle background element
       const material = new THREE.SpriteMaterial({ map: texture, transparent: true, opacity: 0.0, depthWrite: false });
       const sprite = new THREE.Sprite(material);
       
-      const radius = 6 + Math.random() * 8; // Spread out from radius 6 to 14
-      const theta = Math.random() * Math.PI * 2;
-      const yOffset = (Math.random() - 0.5) * 1.5;
+      // Give each particle a random direction starting mostly from behind and around
+      const dx = (Math.random() - 0.5) * 2;
+      const dy = (Math.random() - 0.5) * 2;
+      const dz = -0.5 - Math.random() * 1.5; // Weight towards the background (negative z)
       
-      // Make them much larger
-      const scale = 0.8 + Math.random() * 0.8; 
-      sprite.scale.set(scale, scale, scale);
+      // Normalize direction
+      const len = Math.sqrt(dx*dx + dy*dy + dz*dz);
       
       particles.add(sprite);
       particleData.push({
         sprite,
-        radius,
-        theta,
-        baseSpeed: 0.1 + Math.random() * 0.15, // Faster base orbit speed
-        yOffset,
-        baseSinkSpeed: 0.15 + Math.random() * 0.25 // Much faster speed falling toward the center
+        dx: dx / len,
+        dy: dy / len,
+        dz: dz / len,
+        distance: 20 + Math.random() * 20, // Start far away (20 to 40 units)
+        baseSpeed: 1.0 + Math.random() * 2.0 // Base speed moving inwards
       });
     }
   });
@@ -1058,42 +1055,49 @@ if (container) {
     const dt = Math.min(t - lastT, 0.1); // Cap dt to prevent huge jumps
     lastT = t;
 
-    // Update Particles (Accelerating Black Hole Effect)
+    // Update Particles (Linear Suction Effect)
     particleData.forEach(p => {
-      // Acceleration factor: gets exponentially larger as radius gets smaller
-      // Adding 1 prevents division by zero. Max acceleration at radius 0.
-      const accel = 1 + (15 / Math.max(p.radius, 0.5)); 
+      // Accelerate exponentially as they get closer to 0
+      const accel = 1 + (50 / Math.max(p.distance, 1.0)); 
 
-      // Orbit around the center faster as they get closer
-      p.theta += dt * p.baseSpeed * accel;
+      // Move directly toward the origin
+      p.distance -= dt * p.baseSpeed * accel;
       
-      // Fall towards the center faster as they get closer
-      p.radius -= dt * p.baseSinkSpeed * accel;
-      
-      // If it falls past the event horizon, reset to the outer edge
-      if (p.radius < 0.5) {
-        p.radius = 14;
-        p.theta = Math.random() * Math.PI * 2;
+      // If it reaches the center, respawn far away
+      if (p.distance < 0.5) {
+        p.distance = 30 + Math.random() * 20;
+        
+        // Pick a new random direction
+        const dx = (Math.random() - 0.5) * 2;
+        const dy = (Math.random() - 0.5) * 2;
+        const dz = -0.5 - Math.random() * 1.5;
+        const len = Math.sqrt(dx*dx + dy*dy + dz*dz);
+        
+        p.dx = dx / len;
+        p.dy = dy / len;
+        p.dz = dz / len;
       }
       
-      // Calculate 3D position in the disk
-      p.sprite.position.x = Math.cos(p.theta) * p.radius;
-      p.sprite.position.z = Math.sin(p.theta) * p.radius;
-      p.sprite.position.y = p.yOffset * (p.radius / 14); 
+      // Calculate position based on direction and distance
+      p.sprite.position.set(p.dx * p.distance, p.dy * p.distance, p.dz * p.distance);
       
-      // Fade out as it gets sucked in or when it spawns at the very edge
-      if (p.radius < 2.0) {
-        p.sprite.material.opacity = 0.5 * Math.max(0, (p.radius - 0.5) / 1.5);
-      } else if (p.radius > 11.0) {
-        p.sprite.material.opacity = 0.5 * Math.max(0, (14.0 - p.radius) / 3.0);
+      // Scale based on distance: appear small when far, large when close
+      const scale = 1.8 * Math.max(0.2, 1.0 - (p.distance / 40));
+      p.sprite.scale.set(scale, scale, scale);
+
+      // Fade out as it gets sucked in (distance < 3) or when it spawns far away (distance > 25)
+      if (p.distance < 3.0) {
+        p.sprite.material.opacity = 0.6 * Math.max(0, (p.distance - 0.5) / 2.5);
+      } else if (p.distance > 25.0) {
+        p.sprite.material.opacity = 0.6 * Math.max(0, (50.0 - p.distance) / 25.0);
       } else {
-        p.sprite.material.opacity = 0.5;
+        p.sprite.material.opacity = 0.6;
       }
     });
 
     // Slight parallax for the particle background based on mouse
-    particles.rotation.y = mx * -0.15;
-    particles.rotation.x = Math.PI * 0.15 + my * 0.15;
+    particles.position.x = mx * -0.5;
+    particles.position.y = my * 0.5;
 
     // Dynamic speed based on current angle for a one-sided snapping/dwelling effect
     // We want it to slow down only once per full rotation (every 2*PI).
