@@ -149,119 +149,110 @@
                         </div>
                         <div class="_3d-spline" data-w-id="006eaeb9-40d7-0d9a-a28b-aacc845f2e31" style="width:100%;height:100%;position:relative;">
                            <canvas id="r2drop-3d" style="width:100%;height:100%;display:block;"></canvas>
-                           <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/"}}</script>
-                           <script type="module">
-                           import * as THREE from 'three';
-                           import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
+                           <script src="https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.min.js"></script>
+                           <script src="https://cdn.jsdelivr.net/npm/three@0.162.0/examples/js/loaders/SVGLoader.js"></script>
+                           <script>
+                           (function() {
+                              try {
+                              var canvas = document.getElementById('r2drop-3d');
+                              var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+                              renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                              renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+                              renderer.toneMapping = THREE.ACESFilmicToneMapping;
+                              renderer.toneMappingExposure = 1.2;
 
-                           const canvas = document.getElementById('r2drop-3d');
-                           const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-                           renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-                           renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-                           renderer.toneMapping = THREE.ACESFilmicToneMapping;
-                           renderer.toneMappingExposure = 1.2;
+                              var scene = new THREE.Scene();
+                              var camera = new THREE.PerspectiveCamera(40, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+                              camera.position.set(0, 0, 5);
 
-                           const scene = new THREE.Scene();
-                           const camera = new THREE.PerspectiveCamera(40, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
-                           camera.position.set(0, 0, 5);
+                              // Lighting
+                              scene.add(new THREE.AmbientLight(0x8888ff, 0.4));
+                              var keyLight = new THREE.DirectionalLight(0xffffff, 1.8);
+                              keyLight.position.set(3, 4, 5);
+                              scene.add(keyLight);
+                              var fillLight = new THREE.DirectionalLight(0x8b5cf6, 0.6);
+                              fillLight.position.set(-3, 1, 3);
+                              scene.add(fillLight);
+                              var rimLight = new THREE.DirectionalLight(0xc084fc, 0.8);
+                              rimLight.position.set(0, -2, -3);
+                              scene.add(rimLight);
 
-                           // Lighting — mimic Spline's soft studio setup
-                           const ambientLight = new THREE.AmbientLight(0x8888ff, 0.4);
-                           scene.add(ambientLight);
-                           const keyLight = new THREE.DirectionalLight(0xffffff, 1.8);
-                           keyLight.position.set(3, 4, 5);
-                           scene.add(keyLight);
-                           const fillLight = new THREE.DirectionalLight(0x8b5cf6, 0.6);
-                           fillLight.position.set(-3, 1, 3);
-                           scene.add(fillLight);
-                           const rimLight = new THREE.DirectionalLight(0xc084fc, 0.8);
-                           rimLight.position.set(0, -2, -3);
-                           scene.add(rimLight);
+                              // R2Drop cloud SVG
+                              var svgMarkup = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 595.28 841.89"><path d="M376.05,561.02l-226.9.69c-115.03-20.03-91.21-181.59,24.78-171.08.47-6.62-.65-13.98,0-20.49,5.5-54.76,55.53-91.29,109.43-76.96,42.34,11.26,67.58,54.74,61.54,97.42,33.28-1.48,64.23,7.4,84.75,34.69,38.61,51.35,8.13,124.03-53.59,135.73Z"/></svg>';
 
-                           // R2Drop SVG path — the cloud logo
-                           const svgMarkup = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 595.28 841.89"><path d="M376.05,561.02l-226.9.69c-115.03-20.03-91.21-181.59,24.78-171.08.47-6.62-.65-13.98,0-20.49,5.5-54.76,55.53-91.29,109.43-76.96,42.34,11.26,67.58,54.74,61.54,97.42,33.28-1.48,64.23,7.4,84.75,34.69,38.61,51.35,8.13,124.03-53.59,135.73Z"/></svg>`;
+                              var loader = new THREE.SVGLoader();
+                              var svgData = loader.parse(svgMarkup);
+                              var group = new THREE.Group();
 
-                           const loader = new SVGLoader();
-                           const svgData = loader.parse(svgMarkup);
-                           const group = new THREE.Group();
-
-                           // Material — glossy metallic purple like Spline default
-                           const material = new THREE.MeshPhysicalMaterial({
-                              color: 0x7c3aed,
-                              metalness: 0.3,
-                              roughness: 0.25,
-                              clearcoat: 0.8,
-                              clearcoatRoughness: 0.15,
-                              reflectivity: 0.6,
-                              envMapIntensity: 1.0,
-                              side: THREE.DoubleSide,
-                           });
-
-                           svgData.paths.forEach(path => {
-                              const shapes = SVGLoader.createShapes(path);
-                              shapes.forEach(shape => {
-                                 const extrudeSettings = { depth: 28, bevelEnabled: true, bevelThickness: 4, bevelSize: 3, bevelSegments: 8, curveSegments: 24 };
-                                 const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-                                 const mesh = new THREE.Mesh(geometry, material);
-                                 group.add(mesh);
+                              var material = new THREE.MeshPhysicalMaterial({
+                                 color: 0x7c3aed,
+                                 metalness: 0.3,
+                                 roughness: 0.25,
+                                 clearcoat: 0.8,
+                                 clearcoatRoughness: 0.15,
+                                 reflectivity: 0.6,
+                                 side: THREE.DoubleSide
                               });
-                           });
 
-                           // Center and scale
-                           const box = new THREE.Box3().setFromObject(group);
-                           const center = box.getCenter(new THREE.Vector3());
-                           const size = box.getSize(new THREE.Vector3());
-                           const maxDim = Math.max(size.x, size.y, size.z);
-                           const scale = 3.0 / maxDim;
-                           group.scale.set(scale, -scale, scale); // flip Y for SVG
-                           group.position.sub(center.multiplyScalar(scale));
-                           group.position.y *= -1;
+                              svgData.paths.forEach(function(path) {
+                                 var shapes = THREE.SVGLoader.createShapes(path);
+                                 shapes.forEach(function(shape) {
+                                    var geometry = new THREE.ExtrudeGeometry(shape, {
+                                       depth: 28, bevelEnabled: true, bevelThickness: 4,
+                                       bevelSize: 3, bevelSegments: 8, curveSegments: 24
+                                    });
+                                    group.add(new THREE.Mesh(geometry, material));
+                                 });
+                              });
 
-                           scene.add(group);
+                              // Center and scale
+                              var box = new THREE.Box3().setFromObject(group);
+                              var center = box.getCenter(new THREE.Vector3());
+                              var size = box.getSize(new THREE.Vector3());
+                              var maxDim = Math.max(size.x, size.y, size.z);
+                              var s = 3.0 / maxDim;
+                              group.scale.set(s, -s, s);
+                              group.position.sub(center.multiplyScalar(s));
+                              group.position.y *= -1;
+                              scene.add(group);
 
-                           // Environment reflection (simple)
-                           const pmremGenerator = new THREE.PMREMGenerator(renderer);
-                           const envScene = new THREE.Scene();
-                           envScene.background = new THREE.Color(0x1a1a2e);
-                           const envLight1 = new THREE.DirectionalLight(0x818cf8, 2);
-                           envLight1.position.set(1, 1, 1);
-                           envScene.add(envLight1);
-                           const envLight2 = new THREE.DirectionalLight(0xc084fc, 1);
-                           envLight2.position.set(-1, -1, 0.5);
-                           envScene.add(envLight2);
-                           const envMap = pmremGenerator.fromScene(envScene, 0.04).texture;
-                           material.envMap = envMap;
+                              // Environment map
+                              var pmrem = new THREE.PMREMGenerator(renderer);
+                              var envScene = new THREE.Scene();
+                              envScene.background = new THREE.Color(0x1a1a2e);
+                              var el1 = new THREE.DirectionalLight(0x818cf8, 2);
+                              el1.position.set(1, 1, 1); envScene.add(el1);
+                              var el2 = new THREE.DirectionalLight(0xc084fc, 1);
+                              el2.position.set(-1, -1, 0.5); envScene.add(el2);
+                              material.envMap = pmrem.fromScene(envScene, 0.04).texture;
 
-                           // Mouse tracking for subtle tilt
-                           let mouseX = 0, mouseY = 0;
-                           window.addEventListener('mousemove', e => {
-                              mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
-                              mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
-                           });
+                              // Mouse tracking
+                              var mouseX = 0, mouseY = 0;
+                              window.addEventListener('mousemove', function(e) {
+                                 mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+                                 mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+                              });
 
-                           // Animation loop — float + slow rotate like Spline
-                           const clock = new THREE.Clock();
-                           function animate() {
-                              requestAnimationFrame(animate);
-                              const t = clock.getElapsedTime();
+                              // Animate
+                              var clock = new THREE.Clock();
+                              function animate() {
+                                 requestAnimationFrame(animate);
+                                 var t = clock.getElapsedTime();
+                                 group.position.y = Math.sin(t * 0.8) * 0.15;
+                                 group.rotation.y = t * 0.15 + mouseX * 0.3;
+                                 group.rotation.x = Math.sin(t * 0.5) * 0.06 + mouseY * 0.15;
+                                 renderer.render(scene, camera);
+                              }
+                              animate();
 
-                              // Floating motion
-                              group.position.y = Math.sin(t * 0.8) * 0.15;
-                              // Slow auto-rotation
-                              group.rotation.y = t * 0.15 + mouseX * 0.3;
-                              group.rotation.x = Math.sin(t * 0.5) * 0.06 + mouseY * 0.15;
+                              window.addEventListener('resize', function() {
+                                 renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+                                 camera.aspect = canvas.clientWidth / canvas.clientHeight;
+                                 camera.updateProjectionMatrix();
+                              });
 
-                              renderer.render(scene, camera);
-                           }
-                           animate();
-
-                           // Responsive
-                           window.addEventListener('resize', () => {
-                              const w = canvas.clientWidth, h = canvas.clientHeight;
-                              renderer.setSize(w, h);
-                              camera.aspect = w / h;
-                              camera.updateProjectionMatrix();
-                           });
+                              } catch(e) { console.error('R2Drop 3D error:', e); }
+                           })();
                            </script>
                         </div>
                      </div>
