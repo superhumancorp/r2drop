@@ -894,16 +894,16 @@
       var svgData = loader.parse(svgStr);
 
       var mat = new THREE.MeshPhongMaterial({
-         color: 0x9333ea, specular: 0xaaaaff, shininess: 80, side: THREE.DoubleSide,
-         emissive: 0x1a0533, emissiveIntensity: 0.3
+         color: 0x8b5cf6, specular: 0xc4b5fd, shininess: 60, side: THREE.DoubleSide,
+         emissive: 0x4c1d95, emissiveIntensity: 0.4
       });
 
       var meshGroup = new THREE.Group();
       svgData.paths.forEach(function(path) {
          THREE.SVGLoader.createShapes(path).forEach(function(shape) {
             var geo = new THREE.ExtrudeGeometry(shape, {
-               depth: 30, bevelEnabled: true, bevelThickness: 4,
-               bevelSize: 3, bevelSegments: 6, curveSegments: 24
+               depth: 18, bevelEnabled: true, bevelThickness: 3,
+               bevelSize: 2, bevelSegments: 6, curveSegments: 24
             });
             meshGroup.add(new THREE.Mesh(geo, mat));
          });
@@ -941,7 +941,7 @@
          requestAnimationFrame(animate);
          var t = clock.getElapsedTime();
          pivot.position.y = Math.sin(t * 0.8) * 0.12;
-         pivot.rotation.y = t * 0.2 + mx * 0.3;
+         pivot.rotation.y = t * 0.15 + mx * 0.3;
          pivot.rotation.x = Math.sin(t * 0.5) * 0.05 + my * 0.15;
          renderer.render(scene, camera);
       })();
