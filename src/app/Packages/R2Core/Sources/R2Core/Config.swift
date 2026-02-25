@@ -108,29 +108,17 @@ public final class ConfigManager {
     /// Load config from disk. Returns defaults if file doesn't exist.
     public static func load(from path: URL? = nil) throws -> R2Config {
         let filePath = path ?? configPath()
-        #if DEBUG
-        print("[R2Core:ConfigManager] load: \(filePath.path)")
-        #endif
         guard FileManager.default.fileExists(atPath: filePath.path) else {
-            #if DEBUG
-            print("[R2Core:ConfigManager] load: file not found, returning defaults")
-            #endif
             return R2Config()
         }
         let content = try String(contentsOf: filePath, encoding: .utf8)
         let config = TOMLParser.parse(content)
-        #if DEBUG
-        print("[R2Core:ConfigManager] load: success, \(config.accounts.count) accounts")
-        #endif
         return config
     }
 
     /// Save config to disk as TOML.
     public static func save(_ config: R2Config, to path: URL? = nil) throws {
         let filePath = path ?? configPath()
-        #if DEBUG
-        print("[R2Core:ConfigManager] save: \(filePath.path)")
-        #endif
         if let parent = filePath.deletingLastPathComponent() as URL? {
             try FileManager.default.createDirectory(
                 at: parent, withIntermediateDirectories: true
@@ -245,9 +233,6 @@ enum TOMLParser {
             }
         }
         if let a = account { config.accounts.append(a) }
-        #if DEBUG
-        print("[R2Core:TOMLParser] parse: \(config.accounts.count) accounts")
-        #endif
         return config
     }
 

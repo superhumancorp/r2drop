@@ -15,9 +15,6 @@ public final class HistoryManager {
     /// Open (or create) the history database at the given path.
     public init(path: String) throws {
         db = try SQLiteConnection(path: path)
-        #if DEBUG
-        print("[R2Core:HistoryManager] init: db path \(path)")
-        #endif
         try createTable()
     }
 
@@ -42,9 +39,6 @@ public final class HistoryManager {
         accountName: String,
         url: String
     ) throws -> Int64 {
-        #if DEBUG
-        print("[R2Core:HistoryManager] insertEntry: \(fileName)")
-        #endif
         try db.run(
             """
             INSERT INTO entries (file_name, file_size, r2_key, bucket, account_name, url)
@@ -94,9 +88,6 @@ public final class HistoryManager {
     /// Delete a single entry by ID. Returns true if a row was deleted.
     @discardableResult
     public func deleteEntry(id: Int64) throws -> Bool {
-        #if DEBUG
-        print("[R2Core:HistoryManager] deleteEntry: id=\(id)")
-        #endif
         let changed = try db.run(
             "DELETE FROM entries WHERE id = ?1",
             params: [id]
@@ -107,9 +98,6 @@ public final class HistoryManager {
     /// Clear all history entries. Returns the number of entries removed.
     @discardableResult
     public func clear() throws -> Int {
-        #if DEBUG
-        print("[R2Core:HistoryManager] clear: deleting all entries")
-        #endif
         return try db.run("DELETE FROM entries")
     }
 

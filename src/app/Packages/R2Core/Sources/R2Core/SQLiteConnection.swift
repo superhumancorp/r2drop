@@ -42,9 +42,6 @@ final class SQLiteConnection {
         var handle: OpaquePointer?
         let flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX
         let rc = sqlite3_open_v2(path, &handle, flags, nil)
-        #if DEBUG
-        print("[R2Core:SQLiteConnection] init: \(path)")
-        #endif
         guard rc == SQLITE_OK else {
             let msg = handle.flatMap { String(cString: sqlite3_errmsg($0)) } ?? "unknown"
             #if DEBUG

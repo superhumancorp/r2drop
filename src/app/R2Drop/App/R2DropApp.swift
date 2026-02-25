@@ -95,10 +95,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             tokenValidationService.start()
         }
 
-        // Bug 2 fix: Always open Settings window on launch so the user sees something.
-        // Dispatched async because SwiftUI's Settings scene needs
-        // one runloop iteration to be ready.
-        DispatchQueue.main.async {
+        // Always open Settings window on launch so the user sees something.
+        // Need a longer delay — SwiftUI's Settings scene isn't ready immediately.
+        // 0.5s gives the scene graph time to register the Settings window.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             Self.openSettingsWindow()
         }
     }
@@ -228,12 +228,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             backing: .buffered,
             defer: false
         )
+        // Transparent background so SwiftUI's .ultraThinMaterial shows as glass
+        window.backgroundColor = .clear
+        window.isOpaque = false
+        window.titlebarAppearsTransparent = true
         window.contentView = hostingView
         window.title = title
         window.center()
         window.isReleasedWhenClosed = false
         window.level = .floating
-        // Bug 4/5 fix: Wrap activation in async so menu bar dropdown dismisses first.
+        // Wrap activation in async so menu bar dropdown dismisses first.
         DispatchQueue.main.async {
             window.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)

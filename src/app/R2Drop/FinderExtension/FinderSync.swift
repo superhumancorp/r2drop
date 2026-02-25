@@ -47,6 +47,8 @@ class FinderSync: FIFinderSync {
             systemSymbolName: "arrow.up.circle",
             accessibilityDescription: "Upload to R2"
         )
+        // Template mode makes the icon adapt to dark/light context menus
+        item.image?.isTemplate = true
         menu.addItem(item)
         return menu
     }
