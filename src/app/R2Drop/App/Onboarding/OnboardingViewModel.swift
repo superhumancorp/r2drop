@@ -253,12 +253,21 @@ final class OnboardingViewModel: ObservableObject {
         isLoadingDomains = true
 
         #if DEBUG
-        R2Log.ui.debug("OnboardingViewModel: fetchCustomDomains bucket=\(bucket)")
+        R2Log.ui.debug("OnboardingViewModel: fetchCustomDomains bucket=\(bucket) accountId=\(self.accountId)")
         #endif
 
+        // Percent-encode the bucket name for URL safety (bucket names may contain dots)
+        guard let encodedBucket = bucket.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
+            isLoadingDomains = false
+            return
+        }
+
         // Correct Cloudflare API path: /domains/custom (not /custom_domains)
-        let urlString = "https://api.cloudflare.com/client/v4/accounts/\(accountId)/r2/buckets/\(bucket)/domains/custom"
+        let urlString = "https://api.cloudflare.com/client/v4/accounts/\(accountId)/r2/buckets/\(encodedBucket)/domains/custom"
         guard let url = URL(string: urlString) else {
+            #if DEBUG
+            R2Log.ui.error("OnboardingViewModel: invalid URL: \(urlString)")
+            #endif
             isLoadingDomains = false
             return
         }
@@ -273,6 +282,9 @@ final class OnboardingViewModel: ObservableObject {
 
             #if DEBUG
             R2Log.ui.debug("OnboardingViewModel: fetchCustomDomains status=\(httpStatus)")
+            if let body = String(data: data, encoding: .utf8) {
+                R2Log.ui.debug("OnboardingViewModel: fetchCustomDomains body=\(body.prefix(500))")
+            }
             #endif
 
             // Parse Cloudflare API response:
@@ -284,16 +296,25 @@ final class OnboardingViewModel: ObservableObject {
                 // Only show domains that are enabled and have active ownership
                 let activeDomains = domainEntries.compactMap { entry -> String? in
                     guard let domain = entry["domain"] as? String,
-                          let enabled = entry["enabled"] as? Bool, enabled,
-                          let status = entry["status"] as? [String: Any],
-                          let ownership = status["ownership"] as? String,
-                          ownership == "active" else {
+                          let enabled = entry["enabled"] as? Bool, enabled else {
+                        return nil
+                    }
+                    // Check ownership status if present, but don't require it
+                    if let status = entry["status"] as? [String: Any],
+                       let ownership = status["ownership"] as? String,
+                       ownership == "deactivated" {
                         return nil
                     }
                     return domain
                 }
                 self.customDomains = activeDomains
-                // Don't auto-select — Default (R2 URL) stays selected unless user picks one
+                #if DEBUG
+                R2Log.ui.debug("OnboardingViewModel: found \(activeDomains.count) custom domains: \(activeDomains)")
+                #endif
+            } else {
+                #if DEBUG
+                R2Log.ui.debug("OnboardingViewModel: no domains in response or non-200 status")
+                #endif
             }
         } catch {
             #if DEBUG

@@ -123,6 +123,16 @@ int64_t r2_queue_upload(const char *file_path,
                         const char *account_name);
 
 /**
+ * Process pending upload jobs for a specific account.
+ * Recovers any interrupted uploads, then processes all pending jobs.
+ * Returns the number of jobs completed (>= 0) on success, -1 on error.
+ *
+ * # Safety
+ * All pointer params must be valid NUL-terminated C strings.
+ */
+int32_t r2_process_queue(const char *account_id, const char *token, const char *account_name);
+
+/**
  * Pause an upload job. Returns 0 on success, -1 on error.
  */
 int32_t r2_pause_upload(int64_t job_id);

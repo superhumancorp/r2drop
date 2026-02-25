@@ -47,6 +47,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Monitors upload state transitions and fires macOS notifications (FR-061, FR-062).
     let uploadMonitor = UploadMonitor()
 
+    /// Periodically invokes the Rust engine to process pending upload jobs.
+    let uploadProcessor = UploadProcessor()
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         #if DEBUG
         R2Log.app.debug("applicationDidFinishLaunching")
@@ -81,6 +84,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Start monitoring uploads for notification triggers (FR-062)
         uploadMonitor.start()
 
+        // Start the Rust upload engine processor — picks up pending jobs and uploads them.
+        uploadProcessor.start()
+
         #if DEBUG
         // Always show onboarding in debug mode for UI development/testing
         let shouldShowOnboarding = true
@@ -112,6 +118,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         tokenValidationService.stop()
         finderQueueBridge.stop()
         uploadMonitor.stop()
+        uploadProcessor.stop()
     }
 
     /// Prevent app from quitting when Settings window (or any window) is closed.
@@ -257,6 +264,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if accountsExist() {
             tokenValidationService.start()
         }
+
+        // Show the Settings window so user sees the main app after onboarding
+        Self.openSettingsWindow()
     }
 
     // MARK: - Settings Window Helper

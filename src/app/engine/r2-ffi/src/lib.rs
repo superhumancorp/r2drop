@@ -12,7 +12,7 @@ mod helpers;
 use std::os::raw::c_char;
 
 use helpers::{from_c_str, runtime, set_last_error, take_last_error, to_c_string};
-use r2_core::{config, history, logging, queue, s3};
+use r2_core::{config, history, logging, queue, runner, s3, upload};
 
 // ---------------------------------------------------------------------------
 // Progress callback type
@@ -305,6 +305,60 @@ pub unsafe extern "C" fn r2_queue_upload(
     };
     match db.insert_job(file_path, r2_key, bucket, account_name, total_bytes) {
         Ok(id) => id,
+        Err(e) => {
+            set_last_error(e.to_string());
+            -1
+        }
+    }
+}
+
+/// Process pending upload jobs for a specific account.
+/// Recovers any interrupted uploads, then processes all pending jobs.
+/// Returns the number of jobs completed (>= 0) on success, -1 on error.
+///
+/// # Safety
+/// All pointer params must be valid NUL-terminated C strings.
+#[no_mangle]
+pub unsafe extern "C" fn r2_process_queue(
+    account_id: *const c_char,
+    token: *const c_char,
+    account_name: *const c_char,
+) -> i32 {
+    let (Some(account_id), Some(token), Some(account_name)) = (
+        unsafe { from_c_str(account_id) },
+        unsafe { from_c_str(token) },
+        unsafe { from_c_str(account_name) },
+    ) else {
+        set_last_error("null or invalid pointer argument".into());
+        return -1;
+    };
+
+    let db = match queue::QueueDb::open_default() {
+        Ok(db) => db,
+        Err(e) => {
+            set_last_error(e.to_string());
+            return -1;
+        }
+    };
+
+    // Recover any interrupted uploads from a previous crash
+    if let Err(e) = runner::recover_interrupted(&db) {
+        tracing::warn!("failed to recover interrupted uploads: {e}");
+    }
+
+    let client = s3::R2Client::new(account_id, token);
+    let config = upload::UploadConfig::default();
+    let shutdown = std::sync::atomic::AtomicBool::new(false);
+
+    match runtime().block_on(runner::process_pending(
+        &client,
+        &db,
+        &config,
+        helpers::network_available(),
+        &shutdown,
+        account_name,
+    )) {
+        Ok(completed) => completed as i32,
         Err(e) => {
             set_last_error(e.to_string());
             -1

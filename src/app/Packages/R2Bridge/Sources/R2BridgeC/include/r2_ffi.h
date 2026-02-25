@@ -155,4 +155,16 @@ char *r2_get_queue_status(void);
  */
 char *r2_get_history(void);
 
+/**
+ * Process pending upload jobs for a specific account.
+ * Recovers any interrupted uploads, then processes all pending jobs.
+ * Returns the number of jobs completed (>= 0) on success, -1 on error.
+ *
+ * # Safety
+ * All pointer params must be valid NUL-terminated C strings.
+ */
+int32_t r2_process_queue(const char *account_id,
+                         const char *token,
+                         const char *account_name);
+
 #endif  /* R2_FFI_H */

@@ -43,14 +43,39 @@ class FinderSync: FIFinderSync {
             action: #selector(sendToR2(_:)),
             keyEquivalent: ""
         )
-        item.image = NSImage(
-            systemSymbolName: "arrow.up.circle",
-            accessibilityDescription: "Upload to R2"
-        )
-        // Template mode makes the icon adapt to dark/light context menus
-        item.image?.isTemplate = true
+        // Use a hand-drawn template image instead of SF Symbols.
+        // SF Symbols don't reliably render as template images in Finder extensions.
+        item.image = makeTemplateIcon()
         menu.addItem(item)
         return menu
+    }
+
+    /// Create a 16x16 template image of an up-arrow in a circle.
+    /// Drawn in pure black so macOS can tint it to match the context menu style.
+    private func makeTemplateIcon() -> NSImage {
+        let size = NSSize(width: 16, height: 16)
+        let img = NSImage(size: size, flipped: false) { rect in
+            NSColor.black.setStroke()
+            // Circle outline
+            let circle = NSBezierPath(ovalIn: rect.insetBy(dx: 1, dy: 1))
+            circle.lineWidth = 1.2
+            circle.stroke()
+            // Up arrow shaft (bottom to top)
+            let arrow = NSBezierPath()
+            arrow.move(to: NSPoint(x: 8, y: 3.5))
+            arrow.line(to: NSPoint(x: 8, y: 11.5))
+            // Arrowhead
+            arrow.move(to: NSPoint(x: 5, y: 8.5))
+            arrow.line(to: NSPoint(x: 8, y: 11.5))
+            arrow.line(to: NSPoint(x: 11, y: 8.5))
+            arrow.lineWidth = 1.2
+            arrow.lineCapStyle = .round
+            arrow.lineJoinStyle = .round
+            arrow.stroke()
+            return true
+        }
+        img.isTemplate = true
+        return img
     }
 
     // MARK: - Send to R2 Action

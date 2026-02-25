@@ -192,6 +192,33 @@ public final class R2Client: Sendable {
         return String(cString: ptr)
     }
 
+    // MARK: - Queue Processing
+
+    /// Process pending upload jobs for a specific account.
+    /// Recovers interrupted uploads and processes all pending jobs.
+    /// Returns the number of jobs completed.
+    public func processQueue(accountId: String, token: String, accountName: String) throws -> Int32 {
+        let result = accountId.withCString { aid in
+            token.withCString { tok in
+                accountName.withCString { name in
+                    r2_process_queue(aid, tok, name)
+                }
+            }
+        }
+        if result < 0 {
+            #if DEBUG
+            print("[R2Bridge:R2Client] processQueue failed: \(lastError())")
+            #endif
+            throw R2BridgeError.ffiError(lastError())
+        }
+        #if DEBUG
+        if result > 0 {
+            print("[R2Bridge:R2Client] processQueue completed=\(result)")
+        }
+        #endif
+        return result
+    }
+
 
     // MARK: - Network Status (FR-031)
 

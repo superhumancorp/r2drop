@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 63;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -52,11 +52,13 @@
 		EA02C3E3AAD8D5FC353FE46D /* AccountsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 124CA1A97D09E4B5B83AB2BC /* AccountsTabView.swift */; };
 		EA12E51672881552C5293739 /* Hero1.png in Resources */ = {isa = PBXBuildFile; fileRef = 88961B41D4106631A1D5E7E2 /* Hero1.png */; };
 		EDF92286C18C14953AEAC958 /* AboutViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 299D9D5E713C277B14FF8174 /* AboutViewModel.swift */; };
+		EF44E6355E13CA88FC6133F9 /* ConfettiSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = AABDFDEBAB26E9C36125096A /* ConfettiSwiftUI */; };
 		EFFDA890F678B796EFF8BC96 /* HistoryTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AF5FAD50680BA166646996F /* HistoryTabView.swift */; };
 		F09838517F97C719A81F295C /* QueueJobRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63723F38B23FCAF195B1F07 /* QueueJobRow.swift */; };
 		F41C1471697D68536F188F4B /* SettingsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8501464791299D219B21F14E /* SettingsTabView.swift */; };
 		FADB3198A070228F3646F6A0 /* R2Core in Frameworks */ = {isa = PBXBuildFile; productRef = C1982E7F8628BE4836CD5FB4 /* R2Core */; };
 		FB929FBF92BE6A8E68F8450D /* StatusBarDragView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E2EB54091718754465BE53F /* StatusBarDragView.swift */; };
+		FFEA2A792FD2415FE3C1FA8E /* UploadProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9027CF9993303E331BE21BDD /* UploadProcessor.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -118,6 +120,7 @@
 		895B4748BE8DA2F5A012B32C /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		8CF3A0ED4891B0AC8074417A /* HistoryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryViewModel.swift; sourceTree = "<group>"; };
 		8DF2E0FB70D7FA22051B5C4E /* QueueTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueTabView.swift; sourceTree = "<group>"; };
+		9027CF9993303E331BE21BDD /* UploadProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadProcessor.swift; sourceTree = "<group>"; };
 		941C20310D17AF3C8B50F712 /* R2Bridge */ = {isa = PBXFileReference; lastKnownFileType = folder; name = R2Bridge; path = ../Packages/R2Bridge; sourceTree = SOURCE_ROOT; };
 		959609F94F0860F0DF282AE4 /* FinderQueueBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderQueueBridge.swift; sourceTree = "<group>"; };
 		9E2EB54091718754465BE53F /* StatusBarDragView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarDragView.swift; sourceTree = "<group>"; };
@@ -144,6 +147,7 @@
 				B392C49392BE6388F1689425 /* R2Core in Frameworks */,
 				1DC6605C3B322B25C9F3ABB4 /* R2Bridge in Frameworks */,
 				AE5B487FADE44977751FBF31 /* Sparkle in Frameworks */,
+				EF44E6355E13CA88FC6133F9 /* ConfettiSwiftUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -313,6 +317,7 @@
 				895B4748BE8DA2F5A012B32C /* NotificationService.swift */,
 				45C5B8A7A0BE9FBB08B30708 /* TokenValidationService.swift */,
 				C040D0288EF490C9BB3613BA /* UploadMonitor.swift */,
+				9027CF9993303E331BE21BDD /* UploadProcessor.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -367,6 +372,7 @@
 				FEC26E9B8067944C2F872D0E /* R2Core */,
 				9A0B2592ABA6D517E479184E /* R2Bridge */,
 				31041CEEDF5650FA66389A3B /* Sparkle */,
+				AABDFDEBAB26E9C36125096A /* ConfettiSwiftUI */,
 			);
 			productName = R2Drop;
 			productReference = A1D3B81C8C2E55DB0D042611 /* R2Drop.app */;
@@ -392,10 +398,12 @@
 			mainGroup = 6BD624BC7C03A93FA3134CF4;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				5F6FFC80C4A2F0F923BB2D6F /* XCRemoteSwiftPackageReference "ConfettiSwiftUI" */,
 				D0EE24C125ED268DA9EF614D /* XCRemoteSwiftPackageReference "Sparkle" */,
 				54A00052BDE555F13C51791B /* XCLocalSwiftPackageReference "../Packages/R2Bridge" */,
 				AEE43ABAD0762645C6D0DAAF /* XCLocalSwiftPackageReference "../Packages/R2Core" */,
 			);
+			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -464,6 +472,7 @@
 				FB929FBF92BE6A8E68F8450D /* StatusBarDragView.swift in Sources */,
 				A3B3F91F46A891285001C190 /* TokenValidationService.swift in Sources */,
 				446409FFAC19A3C84349BC4C /* UploadMonitor.swift in Sources */,
+				FFEA2A792FD2415FE3C1FA8E /* UploadProcessor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -490,11 +499,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = FinderExtension/FinderExtension.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = A89MU37ZLB;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = FinderExtension/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -505,7 +511,6 @@
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.superhumancorp.r2drop.FinderExtension;
-				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.9;
 			};
@@ -516,11 +521,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = R2Drop.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = A89MU37ZLB;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -544,7 +546,6 @@
 					CoreFoundation,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.superhumancorp.r2drop;
-				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.9;
 			};
@@ -555,11 +556,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = R2Drop.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = A89MU37ZLB;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -583,7 +581,6 @@
 					CoreFoundation,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.superhumancorp.r2drop;
-				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.9;
 			};
@@ -656,11 +653,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = FinderExtension/FinderExtension.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = A89MU37ZLB;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = FinderExtension/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -671,7 +665,6 @@
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.superhumancorp.r2drop.FinderExtension;
-				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.9;
 			};
@@ -777,6 +770,14 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		5F6FFC80C4A2F0F923BB2D6F /* XCRemoteSwiftPackageReference "ConfettiSwiftUI" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/simibac/ConfettiSwiftUI";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.0.0;
+			};
+		};
 		D0EE24C125ED268DA9EF614D /* XCRemoteSwiftPackageReference "Sparkle" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sparkle-project/Sparkle";
@@ -796,6 +797,11 @@
 		9A0B2592ABA6D517E479184E /* R2Bridge */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = R2Bridge;
+		};
+		AABDFDEBAB26E9C36125096A /* ConfettiSwiftUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5F6FFC80C4A2F0F923BB2D6F /* XCRemoteSwiftPackageReference "ConfettiSwiftUI" */;
+			productName = ConfettiSwiftUI;
 		};
 		C1982E7F8628BE4836CD5FB4 /* R2Core */ = {
 			isa = XCSwiftPackageProductDependency;

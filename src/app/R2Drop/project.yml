@@ -19,6 +19,9 @@ packages:
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
     from: "2.6.0"
+  ConfettiSwiftUI:
+    url: https://github.com/simibac/ConfettiSwiftUI
+    from: 3.0.0
 
 targets:
   R2Drop:
@@ -72,6 +75,7 @@ targets:
       - package: R2Core
       - package: R2Bridge
       - package: Sparkle
+      - package: ConfettiSwiftUI
       - target: FinderExtension
         embed: true
 
