@@ -1,0 +1,67 @@
+name: CLI Release
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  build-cli:
+    strategy:
+      matrix:
+        include:
+          - os: macos-14
+            target: aarch64-apple-darwin
+            arch_flag: arm64
+          - os: macos-13
+            target: x86_64-apple-darwin
+            arch_flag: x86_64
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            arch_flag: x86_64
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+            arch_flag: aarch64
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install cross (Linux aarch64)
+        if: matrix.target == 'aarch64-unknown-linux-musl'
+        run: cargo install cross
+
+      - name: Install musl tools (Linux x86_64)
+        if: matrix.target == 'x86_64-unknown-linux-musl'
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+
+      - name: Build CLI
+        run: |
+          cd src/cli
+          if [ "${{ matrix.target }}" = "aarch64-unknown-linux-musl" ]; then
+            cross build --release --target ${{ matrix.target }}
+          else
+            cargo build --release --target ${{ matrix.target }}
+          fi
+
+      - name: Package
+        run: |
+          BINARY="src/cli/target/${{ matrix.target }}/release/r2-cli"
+          [ -f "$BINARY.exe" ] && BINARY="$BINARY.exe"
+          TARBALL="r2-cli-${{ matrix.target }}.tar.gz"
+          tar czf "$TARBALL" -C "$(dirname $BINARY)" "$(basename $BINARY)"
+          echo "TARBALL=$TARBALL" >> "$GITHUB_ENV"
+
+      - name: Upload to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+          # Wait for release to exist (created by release.yml)
+          for i in $(seq 1 30); do
+            gh release view "$VERSION" && break || sleep 10
+          done
+          gh release upload "$VERSION" "$TARBALL" --clobber
