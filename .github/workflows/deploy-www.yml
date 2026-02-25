@@ -1,0 +1,50 @@
+name: Deploy Website to R2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/www/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to R2
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+        run: |
+          cd src/www
+          find . -type f | while IFS= read -r file; do
+            key="${file#./}"
+            # Determine content type
+            case "${file##*.}" in
+              html) ct="text/html" ;;
+              css)  ct="text/css" ;;
+              js)   ct="application/javascript" ;;
+              json) ct="application/json" ;;
+              svg)  ct="image/svg+xml" ;;
+              png)  ct="image/png" ;;
+              jpg|jpeg) ct="image/jpeg" ;;
+              webp) ct="image/webp" ;;
+              avif) ct="image/avif" ;;
+              woff2) ct="font/woff2" ;;
+              woff) ct="font/woff" ;;
+              ico)  ct="image/x-icon" ;;
+              xml)  ct="application/xml" ;;
+              txt)  ct="text/plain" ;;
+              *)    ct="application/octet-stream" ;;
+            esac
+            
+            echo "Uploading: $key ($ct)"
+            curl -sf -X PUT \
+              "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/r2/buckets/r2drop/objects/$key" \
+              -H "Authorization: Bearer $CF_API_TOKEN" \
+              -H "Content-Type: $ct" \
+              --data-binary @"$file" > /dev/null
+          done
+          echo "✅ Deployed $(find . -type f | wc -l) files to R2"
