@@ -228,10 +228,45 @@ enum DeepLinkHandler {
         }
     }
 
-    /// Insert an upload job into queue.db for the active account.
+    /// Insert upload jobs into queue.db for the active account.
+    /// If a folder is passed, recursively enumerates all files.
+    /// Applies exclusion pattern filtering (FR-049).
     private static func queueFile(fileURL: URL, account: ConfigAccount) {
         guard let qm = try? QueueManager() else { return }
+
+        // Load exclusion patterns from config
+        let config = (try? ConfigManager.load()) ?? R2Config()
+        let exclusions = config.preferences.exclusionPatterns
+
+        let isDirectory = (try? fileURL.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
+
+        if isDirectory {
+            // Recursively enumerate folder contents
+            let enumerator = FileManager.default.enumerator(
+                at: fileURL,
+                includingPropertiesForKeys: [.isRegularFileKey, .fileSizeKey],
+                options: [.skipsHiddenFiles]
+            )
+            let baseName = fileURL.lastPathComponent
+            while let childURL = enumerator?.nextObject() as? URL {
+                let isFile = (try? childURL.resourceValues(forKeys: [.isRegularFileKey]))?.isRegularFile ?? false
+                guard isFile else { continue }
+                let fileName = childURL.lastPathComponent
+                guard !matchesExclusionPattern(fileName, patterns: exclusions) else { continue }
+                let relativePath = childURL.path.replacingOccurrences(of: fileURL.path + "/", with: "")
+                let name = "\(baseName)/\(relativePath)"
+                let pathPrefix = account.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+                let r2Key = pathPrefix.isEmpty ? name : "\(pathPrefix)/\(name)"
+                let attrs = try? FileManager.default.attributesOfItem(atPath: childURL.path)
+                let size = attrs?[.size] as? UInt64 ?? 0
+                _ = try? qm.insertJob(filePath: childURL.path, r2Key: r2Key, bucket: account.bucket, accountName: account.name, totalBytes: size)
+            }
+            return
+        }
+
+        // Single file: apply exclusion filter
         let name = fileURL.lastPathComponent
+        guard !matchesExclusionPattern(name, patterns: exclusions) else { return }
         let pathPrefix = account.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
         let r2Key = pathPrefix.isEmpty ? name : "\(pathPrefix)/\(name)"
         let attrs = try? FileManager.default.attributesOfItem(atPath: fileURL.path)
@@ -241,6 +276,40 @@ enum DeepLinkHandler {
             bucket: account.bucket, accountName: account.name,
             totalBytes: size
         )
+    }
+
+
+    // MARK: - Exclusion Patterns (FR-049)
+
+    /// Check if a filename matches any exclusion pattern.
+    /// Supports suffix wildcards ("*.tmp"), prefix wildcards ("._*"),
+    /// contains wildcards ("foo*bar"), and exact matches ("Thumbs.db").
+    private static func matchesExclusionPattern(_ filename: String, patterns: [String]) -> Bool {
+        for pattern in patterns {
+            if pattern.contains("*") {
+                if pattern.hasPrefix("*") {
+                    // Suffix match: "*.tmp" matches "file.tmp"
+                    let suffix = String(pattern.dropFirst())
+                    if filename.hasSuffix(suffix) { return true }
+                } else if pattern.hasSuffix("*") {
+                    // Prefix match: "._*" matches "._DS_Store"
+                    let prefix = String(pattern.dropLast())
+                    if filename.hasPrefix(prefix) { return true }
+                } else {
+                    // Contains match: "foo*bar"
+                    let parts = pattern.split(separator: "*", maxSplits: 1)
+                    if parts.count == 2 {
+                        if filename.hasPrefix(String(parts[0])) && filename.hasSuffix(String(parts[1])) {
+                            return true
+                        }
+                    }
+                }
+            } else {
+                // Exact match
+                if filename == pattern { return true }
+            }
+        }
+        return false
     }
 
     /// Open the Preferences window and bring the app to front.

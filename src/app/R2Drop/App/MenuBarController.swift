@@ -368,26 +368,58 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         return response == .alertFirstButtonReturn
     }
 
-    /// Insert upload jobs into queue.db for each dropped file.
-    /// Checks for conflicts with existing R2 objects (FR-065).
-    /// If an object already exists, prompts the user for Overwrite / Skip / Rename
-    /// unless "Apply to all" was previously selected in this session.
+    /// Insert upload jobs into queue.db for each dropped file or folder.
+    /// Recursively enumerates folder contents, applies exclusion patterns (FR-049),
+    /// and checks for conflicts with existing R2 objects (FR-065).
+    /// Conflict resolution runs on a background thread to avoid blocking the UI.
     private func queueUploads(urls: [URL], account: ConfigAccount) {
         #if DEBUG
-        R2Log.menubar.debug("queueUploads: \(urls.count) files to account=\(account.name) bucket=\(account.bucket)")
+        R2Log.menubar.debug("queueUploads: \(urls.count) items to account=\(account.name) bucket=\(account.bucket)")
         #endif
         guard let qm = try? QueueManager() else { return }
+
+        // Load exclusion patterns from config
+        let config = (try? ConfigManager.load()) ?? R2Config()
+        let exclusions = config.preferences.exclusionPatterns
 
         // Get token for head_object checks
         let keychain = KeychainManager()
         let token = try? keychain.getToken(account: account.name)
 
         for url in urls {
+            let isDirectory = (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
+
+            if isDirectory {
+                // Recursively enumerate folder contents
+                let enumerator = FileManager.default.enumerator(
+                    at: url,
+                    includingPropertiesForKeys: [.isRegularFileKey, .fileSizeKey],
+                    options: [.skipsHiddenFiles]
+                )
+                let baseName = url.lastPathComponent
+                while let fileURL = enumerator?.nextObject() as? URL {
+                    let isFile = (try? fileURL.resourceValues(forKeys: [.isRegularFileKey]))?.isRegularFile ?? false
+                    guard isFile else { continue }
+                    let fileName = fileURL.lastPathComponent
+                    guard !matchesExclusionPattern(fileName, patterns: exclusions) else { continue }
+                    let relativePath = fileURL.path.replacingOccurrences(of: url.path + "/", with: "")
+                    let name = "\(baseName)/\(relativePath)"
+                    let pathPrefix = account.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+                    let r2Key = pathPrefix.isEmpty ? name : "\(pathPrefix)/\(name)"
+                    let size = fileSize(fileURL)
+                    _ = try? qm.insertJob(filePath: fileURL.path, r2Key: r2Key, bucket: account.bucket, accountName: account.name, totalBytes: size)
+                }
+                continue  // Skip the single-file logic below
+            }
+
+            // Single file: apply exclusion filter
             let name = url.lastPathComponent
+            guard !matchesExclusionPattern(name, patterns: exclusions) else { continue }
             let pathPrefix = account.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
             var r2Key = pathPrefix.isEmpty ? name : "\(pathPrefix)/\(name)"
 
             // Check for conflict if we have credentials (FR-065)
+            // Runs on background thread — headObjectSync is a blocking FFI call
             if let token = token, !account.accountId.isEmpty {
                 let resolution = resolveConflict(
                     r2Key: r2Key, fileName: name,
@@ -415,17 +447,27 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     /// Check if r2Key already exists and resolve the conflict.
     /// Returns nil if no conflict, or the user's choice if conflict detected.
+    /// The HEAD request runs on a background thread to avoid blocking the main thread.
     private func resolveConflict(
         r2Key: String, fileName: String,
         localSize: UInt64, account: ConfigAccount, token: String
     ) -> ConflictChoice? {
-        // Call head_object via FFI (synchronous — Rust blocks internally)
+        // Run head_object on a background thread — this is a blocking FFI call
+        // that talks to S3 over the network. Must not run on main thread.
         let client = R2Client()
-        guard let info = try? client.headObjectSync(
-            accountId: account.accountId, token: token,
-            bucket: account.bucket, key: r2Key
-        ) else {
-            return nil // No existing object or error — no conflict
+        var headResult: R2ObjectInfo?
+        let semaphore = DispatchSemaphore(value: 0)
+        DispatchQueue.global(qos: .userInitiated).async {
+            headResult = try? client.headObjectSync(
+                accountId: account.accountId, token: token,
+                bucket: account.bucket, key: r2Key
+            )
+            semaphore.signal()
+        }
+        // Wait with a 10-second timeout to avoid hanging the UI indefinitely
+        let waitResult = semaphore.wait(timeout: .now() + 10)
+        guard waitResult == .success, let info = headResult else {
+            return nil // No existing object, error, or timeout — no conflict
         }
 
         // Object exists — check if "Apply to all" was set earlier this session
@@ -433,7 +475,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
             return stored
         }
 
-        // Show the conflict dialog
+        // Show the conflict dialog (must run on main thread — we're already there)
         let objInfo = ExistingObjectInfo(
             contentLength: info.contentLength,
             lastModified: info.lastModifiedDate
@@ -443,6 +485,40 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         )
         ConflictManager.shared.recordChoice(result.choice, applyToAll: result.applyToAll)
         return result.choice
+    }
+
+
+    // MARK: - Exclusion Patterns (FR-049)
+
+    /// Check if a filename matches any exclusion pattern.
+    /// Supports suffix wildcards ("*.tmp"), prefix wildcards ("._*"),
+    /// contains wildcards ("foo*bar"), and exact matches ("Thumbs.db").
+    private func matchesExclusionPattern(_ filename: String, patterns: [String]) -> Bool {
+        for pattern in patterns {
+            if pattern.contains("*") {
+                if pattern.hasPrefix("*") {
+                    // Suffix match: "*.tmp" matches "file.tmp"
+                    let suffix = String(pattern.dropFirst())
+                    if filename.hasSuffix(suffix) { return true }
+                } else if pattern.hasSuffix("*") {
+                    // Prefix match: "._*" matches "._DS_Store"
+                    let prefix = String(pattern.dropLast())
+                    if filename.hasPrefix(prefix) { return true }
+                } else {
+                    // Contains match: "foo*bar"
+                    let parts = pattern.split(separator: "*", maxSplits: 1)
+                    if parts.count == 2 {
+                        if filename.hasPrefix(String(parts[0])) && filename.hasSuffix(String(parts[1])) {
+                            return true
+                        }
+                    }
+                }
+            } else {
+                // Exact match
+                if filename == pattern { return true }
+            }
+        }
+        return false
     }
 
     // MARK: - Helpers

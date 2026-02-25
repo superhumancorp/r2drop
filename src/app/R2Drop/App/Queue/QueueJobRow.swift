@@ -13,8 +13,10 @@ struct QueueJobRow: View {
     let onResume: () -> Void
     let onCancel: () -> Void
     let onBrowse: () -> Void
+    let onCopyURL: () -> Void
 
     @State private var showCancelConfirm = false
+    @State private var copied = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -156,6 +158,20 @@ struct QueueJobRow: View {
                 .buttonStyle(.borderless)
                 .help("Cancel")
             }
+            if job.status == .completed {
+                Button(action: {
+                    onCopyURL()
+                    copied = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { copied = false }
+                }) {
+                    Image(systemName: copied ? "checkmark" : "doc.on.clipboard")
+                        .font(.caption)
+                        .foregroundColor(copied ? .green : .secondary)
+                }
+                .buttonStyle(.borderless)
+                .help(copied ? "Copied!" : "Copy URL")
+            }
+
 
             // Browse button — opens R2 dashboard (FR-040)
             Button(action: onBrowse) {

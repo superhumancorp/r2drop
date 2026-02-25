@@ -74,6 +74,7 @@ impl JobStatus {
                 | (Self::Uploading, Self::Failed)
                 | (Self::Uploading, Self::Paused)
                 | (Self::Paused, Self::Uploading)
+                | (Self::Paused, Self::Pending)
                 | (Self::Failed, Self::Pending)
         )
     }

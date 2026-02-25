@@ -197,7 +197,37 @@ class FinderSync: FIFinderSync {
             return
         }
 
+        // Load exclusion patterns for per-file filtering during folder enumeration
+        let config = (try? ConfigManager.load()) ?? R2Config()
+        let exclusions = config.preferences.exclusionPatterns
+
         for url in urls {
+            let isDirectory = (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
+
+            if isDirectory {
+                // Recursively enumerate folder contents
+                let enumerator = FileManager.default.enumerator(
+                    at: url,
+                    includingPropertiesForKeys: [.isRegularFileKey, .fileSizeKey],
+                    options: [.skipsHiddenFiles]
+                )
+                let baseName = url.lastPathComponent
+                while let fileURL = enumerator?.nextObject() as? URL {
+                    let isFile = (try? fileURL.resourceValues(forKeys: [.isRegularFileKey]))?.isRegularFile ?? false
+                    guard isFile else { continue }
+                    let fileName = fileURL.lastPathComponent
+                    guard !matchesExclusionPattern(fileName, patterns: exclusions) else { continue }
+                    let relativePath = fileURL.path.replacingOccurrences(of: url.path + "/", with: "")
+                    let name = "\(baseName)/\(relativePath)"
+                    let pathPrefix = account.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+                    let r2Key = pathPrefix.isEmpty ? name : "\(pathPrefix)/\(name)"
+                    let size = fileSize(fileURL)
+                    _ = try? qm.insertJob(filePath: fileURL.path, r2Key: r2Key, bucket: account.bucket, accountName: account.name, totalBytes: size)
+                }
+                continue  // Skip the single-file logic below
+            }
+
+            // Single file
             let name = url.lastPathComponent
             // Build the R2 key: account.path prefix + filename
             let pathPrefix = account.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
@@ -224,9 +254,23 @@ class FinderSync: FIFinderSync {
     ) -> Bool {
         for pattern in patterns {
             if pattern.contains("*") {
-                // Simple wildcard: "._*" matches any file starting with "._"
-                let prefix = pattern.replacingOccurrences(of: "*", with: "")
-                if filename.hasPrefix(prefix) { return true }
+                if pattern.hasPrefix("*") {
+                    // Suffix match: "*.tmp" matches "file.tmp"
+                    let suffix = String(pattern.dropFirst())
+                    if filename.hasSuffix(suffix) { return true }
+                } else if pattern.hasSuffix("*") {
+                    // Prefix match: "._*" matches "._DS_Store"
+                    let prefix = String(pattern.dropLast())
+                    if filename.hasPrefix(prefix) { return true }
+                } else {
+                    // Contains match: "foo*bar"
+                    let parts = pattern.split(separator: "*", maxSplits: 1)
+                    if parts.count == 2 {
+                        if filename.hasPrefix(String(parts[0])) && filename.hasSuffix(String(parts[1])) {
+                            return true
+                        }
+                    }
+                }
             } else {
                 // Exact match
                 if filename == pattern { return true }

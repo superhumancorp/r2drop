@@ -205,13 +205,18 @@ final class SettingsViewModel: ObservableObject {
 
     // MARK: - CLI Detection (FR-046)
 
-    /// Check if r2drop CLI is installed at /usr/local/bin/r2drop.
+    /// Check if r2drop CLI is installed at /usr/local/bin or ~/.local/bin.
     func detectCLI() {
-        let cliPath = "/usr/local/bin/r2drop"
-        cliInstalled = FileManager.default.fileExists(atPath: cliPath)
-        if cliInstalled {
-            cliVersion = getCLIVersion(at: cliPath)
+        let systemPath = "/usr/local/bin/r2drop"
+        let localPath = NSHomeDirectory() + "/.local/bin/r2drop"
+        if FileManager.default.fileExists(atPath: systemPath) {
+            cliInstalled = true
+            cliVersion = getCLIVersion(at: systemPath)
+        } else if FileManager.default.fileExists(atPath: localPath) {
+            cliInstalled = true
+            cliVersion = getCLIVersion(at: localPath)
         } else {
+            cliInstalled = false
             cliVersion = ""
         }
     }
@@ -269,7 +274,7 @@ final class SettingsViewModel: ObservableObject {
             
             let process = Process()
             process.executableURL = URL(fileURLWithPath: "/bin/bash")
-            process.arguments = [scriptPath]
+            process.arguments = [scriptPath, "--prefix", NSHomeDirectory() + "/.local"]
             let pipe = Pipe()
             process.standardOutput = pipe
             process.standardError = pipe
@@ -296,20 +301,4 @@ final class SettingsViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Hotkey Recording (FR-047) - DISABLED
-    // Hotkey recording UI is disabled pending implementation of global hotkey registration
-
-    /// Format an NSEvent into a human-readable hotkey string.
-    private func formatHotkey(_ event: NSEvent) -> String {
-        var parts: [String] = []
-        let flags = event.modifierFlags
-        if flags.contains(.control) { parts.append("^") }
-        if flags.contains(.option) { parts.append("\u{2325}") }
-        if flags.contains(.shift) { parts.append("\u{21E7}") }
-        if flags.contains(.command) { parts.append("\u{2318}") }
-        if let chars = event.charactersIgnoringModifiers?.uppercased(), !chars.isEmpty {
-            parts.append(chars)
-        }
-        return parts.joined()
-    }
 }

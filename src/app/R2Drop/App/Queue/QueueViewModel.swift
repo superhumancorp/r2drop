@@ -4,6 +4,7 @@
 // Provides pause/resume/cancel actions and aggregate statistics.
 
 import Foundation
+import AppKit
 import R2Core
 
 @MainActor
@@ -21,7 +22,7 @@ final class QueueViewModel: ObservableObject {
 
     private var timer: Timer?
     private var previousBytes: [Int64: UInt64] = [:]
-    private let pollInterval: TimeInterval = 1.5
+    private let pollInterval: TimeInterval = 0.5
 
     // MARK: - Lifecycle
 
@@ -153,6 +154,32 @@ final class QueueViewModel: ObservableObject {
         poll()
     }
 
+    /// Copy the public URL for a completed upload to the clipboard.
+    func copyURL(for job: UploadJob) {
+        let config = (try? ConfigManager.load()) ?? R2Config()
+        guard let account = config.accounts.first(where: { $0.name == job.accountName }) else { return }
+        
+        // Build URL: prefer custom domain, fall back to account-based R2 URL
+        let r2Key = job.r2Key.hasPrefix("/") ? String(job.r2Key.dropFirst()) : job.r2Key
+        let url: String
+        if let domain = account.customDomain, !domain.isEmpty {
+            let base = domain.hasSuffix("/") ? String(domain.dropLast()) : domain
+            let scheme = base.hasPrefix("http") ? "" : "https://"
+            url = "\(scheme)\(base)/\(r2Key)"
+        } else if !account.accountId.isEmpty {
+            url = "https://\(account.bucket).\(account.accountId).r2.cloudflarestorage.com/\(r2Key)"
+        } else {
+            url = "https://\(account.bucket).r2.cloudflarestorage.com/\(r2Key)"
+        }
+        
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(url, forType: .string)
+        
+        #if DEBUG
+        R2Log.ui.debug("QueueViewModel: copyURL job=\(job.id) url=\(url)")
+        #endif
+    }
+
     // MARK: - Drag-and-Drop Upload
 
     /// Queue a file or folder dropped onto the Uploads tab for upload.
@@ -231,13 +258,28 @@ final class QueueViewModel: ObservableObject {
     }
 
     /// Check if a filename matches any of the exclusion patterns.
-    /// Supports exact matches and simple wildcard patterns (e.g. "._*").
+    /// Supports suffix wildcards ("*.tmp"), prefix wildcards ("._*"),
+    /// contains wildcards ("foo*bar"), and exact matches ("Thumbs.db").
     private func matchesExclusionPattern(_ filename: String, patterns: [String]) -> Bool {
         for pattern in patterns {
             if pattern.contains("*") {
-                // Simple wildcard: "._*" matches any file starting with "._"
-                let prefix = pattern.replacingOccurrences(of: "*", with: "")
-                if filename.hasPrefix(prefix) { return true }
+                if pattern.hasPrefix("*") {
+                    // Suffix match: "*.tmp" matches "file.tmp"
+                    let suffix = String(pattern.dropFirst())
+                    if filename.hasSuffix(suffix) { return true }
+                } else if pattern.hasSuffix("*") {
+                    // Prefix match: "._*" matches "._DS_Store"
+                    let prefix = String(pattern.dropLast())
+                    if filename.hasPrefix(prefix) { return true }
+                } else {
+                    // Contains match: "foo*bar"
+                    let parts = pattern.split(separator: "*", maxSplits: 1)
+                    if parts.count == 2 {
+                        if filename.hasPrefix(String(parts[0])) && filename.hasSuffix(String(parts[1])) {
+                            return true
+                        }
+                    }
+                }
             } else {
                 // Exact match
                 if filename == pattern { return true }

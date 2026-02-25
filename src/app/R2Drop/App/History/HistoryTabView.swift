@@ -145,13 +145,12 @@ private struct HistoryRow: View {
                 viewModel.copyURL(for: entry)
                 showCopiedFeedback()
             }) {
-                HStack(spacing: 4) {
-                    Image(systemName: copied ? "checkmark" : "doc.on.doc")
-                    Text(copied ? "Copied" : "Copy URL")
-                }
-                .font(.caption)
+                Image(systemName: copied ? "checkmark" : "doc.on.clipboard")
+                    .font(.caption)
+                    .foregroundColor(copied ? .green : .secondary)
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(.borderless)
+            .help(copied ? "Copied!" : "Copy URL")
         }
         .padding(10)
         .background(.ultraThinMaterial)

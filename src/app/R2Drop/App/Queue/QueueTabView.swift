@@ -111,7 +111,8 @@ struct QueueTabView: View {
                         onPause: { viewModel.pauseJob(job) },
                         onResume: { viewModel.resumeJob(job) },
                         onCancel: { viewModel.cancelJob(job) },
-                        onBrowse: { openBrowse(for: job) }
+                        onBrowse: { openBrowse(for: job) },
+                        onCopyURL: { viewModel.copyURL(for: job) }
                     )
                 }
             }

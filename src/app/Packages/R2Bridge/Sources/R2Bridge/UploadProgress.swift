@@ -34,6 +34,11 @@ public struct UploadProgress: Sendable {
 }
 
 // MARK: - Progress Bridge
+//
+// NOTE: ProgressBridge and cCallback are currently not wired into any upload path.
+// Progress currently flows through queue.db polling (QueueViewModel polls bytesUploaded).
+// This infrastructure is reserved for future direct-callback progress reporting,
+// which would bypass SQLite polling for lower-latency UI updates.
 
 /// Bridges the C function pointer progress callback from Rust FFI
 /// to a Swift `AsyncStream<UploadProgress>`.

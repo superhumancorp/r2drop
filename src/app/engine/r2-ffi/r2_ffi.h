@@ -146,7 +146,7 @@ int32_t r2_process_queue(const char *account_id,
 int32_t r2_pause_upload(int64_t job_id);
 
 /**
- * Resume a paused upload job (transitions to Uploading).
+ * Resume a paused upload job (transitions to Pending for re-processing).
  * Returns 0 on success, -1 on error.
  */
 int32_t r2_resume_upload(int64_t job_id);

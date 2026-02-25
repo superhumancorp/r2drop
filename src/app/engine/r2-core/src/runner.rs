@@ -5,6 +5,7 @@
 
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use tracing::{error, info, warn};
@@ -238,7 +239,12 @@ pub async fn process_job(
             }
             Err(UploadError::Cancelled) => {
                 info!(job_id = job.id, status = "paused", "upload cancelled by user");
-                queue.update_status(job.id, JobStatus::Paused, None, None)?;
+                // Only update if not already paused (UI may have already set this via SQLite)
+                if let Ok(Some(current)) = queue.get_job(job.id) {
+                    if current.status != JobStatus::Paused {
+                        let _ = queue.update_status(job.id, JobStatus::Paused, None, None);
+                    }
+                }
                 return Err(RunnerError::Upload(UploadError::Cancelled));
             }
             Err(ref e) => {
@@ -271,7 +277,12 @@ pub async fn process_job(
         }
         Err(UploadError::Cancelled) => {
             info!(job_id = job.id, status = "paused", "upload cancelled by user");
-            queue.update_status(job.id, JobStatus::Paused, None, None)?;
+            // Only update if not already paused (UI may have already set this via SQLite)
+            if let Ok(Some(current)) = queue.get_job(job.id) {
+                if current.status != JobStatus::Paused {
+                    let _ = queue.update_status(job.id, JobStatus::Paused, None, None);
+                }
+            }
             Err(RunnerError::Upload(UploadError::Cancelled))
         }
         Err(e) => {
@@ -320,6 +331,11 @@ pub async fn process_pending(
         .into_iter()
         .filter(|j| j.account_name == active_account)
         .collect();
+
+    // Open a separate DB connection for progress updates from the callback.
+    // The callback needs Send+Sync, and rusqlite::Connection is Send but not Sync,
+    // so we wrap in Arc<Mutex<>> to satisfy the trait bounds.
+    let progress_db = Arc::new(Mutex::new(QueueDb::open_default()?));
     for job in jobs {
         // Respect shutdown signal
         if shutdown.load(Ordering::Relaxed) {
@@ -353,14 +369,32 @@ pub async fn process_pending(
             continue;
         }
 
-        let cancel = AtomicBool::new(false);
-        match process_job(&job, client, queue, config, &cancel, None).await {
+        let cancel = Arc::new(AtomicBool::new(false));
+        let job_id = job.id;
+        let pdb = Arc::clone(&progress_db);
+        let cancel_for_cb = Arc::clone(&cancel);
+        let progress_cb: Option<Box<dyn Fn(UploadProgress) + Send + Sync>> = Some(Box::new(move |p| {
+            if let Ok(q) = pdb.lock() {
+                let _ = q.update_progress(job_id, p.bytes_uploaded);
+                // Check if the UI paused this job
+                if let Ok(Some(j)) = q.get_job(job_id) {
+                    if j.status == JobStatus::Paused {
+                        cancel_for_cb.store(true, Ordering::Relaxed);
+                    }
+                }
+            }
+        }));
+        match process_job(&job, client, queue, config, &*cancel, progress_cb).await {
             Ok(()) => completed += 1,
             Err(RunnerError::FileNotReadable { .. }) => {
                 // File errors are permanent — don't retry
             }
             Err(RunnerError::Upload(UploadError::Cancelled)) => {
-                break;
+                // If global shutdown, stop everything. Otherwise it was a per-job pause.
+                if shutdown.load(Ordering::Relaxed) {
+                    break;
+                }
+                // Job was paused — continue processing remaining jobs
             }
             Err(_) => {
                 // Upload failed — schedule retry with backoff (FR-029)

@@ -241,7 +241,7 @@ public final class R2Client: Sendable {
     // MARK: - Network Status (FR-031)
 
     /// Inform the Rust engine about network connectivity changes.
-    /// Called by NetworkMonitor when NWPathMonitor detects a transition.
+    /// Called when NWPathMonitor detects a network connectivity transition.
     public func setNetworkAvailable(_ available: Bool) {
         #if DEBUG
         print("[R2Bridge:R2Client] setNetworkAvailable=\(available)")

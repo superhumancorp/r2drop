@@ -386,11 +386,11 @@ pub extern "C" fn r2_pause_upload(job_id: i64) -> i32 {
     with_queue_db(|db| db.update_status(job_id, queue::JobStatus::Paused, None, None))
 }
 
-/// Resume a paused upload job (transitions to Uploading).
+/// Resume a paused upload job (transitions to Pending for re-processing).
 /// Returns 0 on success, -1 on error.
 #[no_mangle]
 pub extern "C" fn r2_resume_upload(job_id: i64) -> i32 {
-    with_queue_db(|db| db.update_status(job_id, queue::JobStatus::Uploading, None, None))
+    with_queue_db(|db| db.update_status(job_id, queue::JobStatus::Pending, None, None))
 }
 
 /// Cancel an upload job by deleting it from the queue.
