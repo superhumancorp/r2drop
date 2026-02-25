@@ -3,7 +3,7 @@
 // Left sidebar lists configured accounts with frosted background.
 // Right panel shows editable account details via GlassCard sections.
 // Empty state uses GlassEmptyState. "Add Account" at bottom of sidebar (FR-042).
-// Permission banner shown at top when Finder Extension or Notifications are missing.
+// Notifications banner shown at top when Notifications are not authorized.
 
 import SwiftUI
 import R2Core
@@ -14,7 +14,7 @@ struct AccountsTabView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Permission banner at top
+            // Permission banner at top (notifications only)
             if permissions.hasIssues {
                 PermissionBannerView(permissions: permissions)
                     .padding(.bottom, 8)
@@ -125,37 +125,13 @@ struct AccountsTabView: View {
 
 // MARK: - Permission Banner
 
-/// Warning banner shown when Finder Extension or Notifications are not enabled.
+/// Warning banner shown when Notifications are not enabled.
+/// Finder Extension banner removed -- no special permissions needed.
 struct PermissionBannerView: View {
     @ObservedObject var permissions: PermissionChecker
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if !permissions.finderExtensionEnabled {
-                HStack(spacing: 12) {
-                    Image(systemName: "exclamationmark.circle.fill")
-                        .foregroundColor(.orange)
-                        .font(.title3)
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Finder Extension not enabled")
-                            .font(.body)
-                            .fontWeight(.medium)
-                        Text("Enable it to use 'Send to R2' in Finder")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Spacer()
-                    
-                    Button("Enable") {
-                        permissions.openFinderExtensionSettings()
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                }
-            }
-            
             if !permissions.notificationsAuthorized {
                 HStack(spacing: 12) {
                     Image(systemName: "bell.slash.fill")

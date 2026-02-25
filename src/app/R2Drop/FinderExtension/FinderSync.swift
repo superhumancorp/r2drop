@@ -43,16 +43,10 @@ class FinderSync: FIFinderSync {
             action: #selector(sendToR2(_:)),
             keyEquivalent: ""
         )
-        // Use an SF Symbol for the context menu icon.
-        // Finder context menus on macOS 13+ support SF Symbols directly.
-        // We use a monochrome rendering mode and set as template for proper tinting.
-        if let symbolImg = NSImage(systemSymbolName: "icloud.and.arrow.up",
-                                     accessibilityDescription: "Send to R2") {
-            let config = NSImage.SymbolConfiguration(pointSize: 13, weight: .medium)
-            let configured = symbolImg.withSymbolConfiguration(config) ?? symbolImg
-            configured.isTemplate = true
-            item.image = configured
-        }
+        // Use a programmatically drawn template image for the context menu icon.
+        // Template images let macOS auto-tint for light/dark mode.
+        // We draw it ourselves because SF Symbols can be unreliable in Finder extensions.
+        item.image = createTemplateIcon()
         menu.addItem(item)
         return menu
     }
@@ -302,5 +296,51 @@ class FinderSync: FIFinderSync {
     /// Format bytes as a human-readable string (e.g. "4.2 MB").
     private func formatSize(_ bytes: UInt64) -> String {
         ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .file)
+    }
+
+    // MARK: - Context Menu Icon
+
+    /// Create a 16x16 monochrome template image for the Finder context menu.
+    /// Draws an upward arrow over a tray shape (standard "upload" icon).
+    /// Returned image has isTemplate = true so macOS auto-tints for light/dark mode.
+    private func createTemplateIcon() -> NSImage {
+        let size = NSSize(width: 16, height: 16)
+        let image = NSImage(size: size, flipped: true) { rect in
+            NSColor.black.setStroke()
+            NSColor.black.setFill()
+
+            // Upward arrow shaft (centered, from bottom-ish to top)
+            let shaft = NSBezierPath()
+            shaft.move(to: NSPoint(x: 8, y: 3))
+            shaft.line(to: NSPoint(x: 8, y: 11))
+            shaft.lineWidth = 1.5
+            shaft.lineCapStyle = .round
+            shaft.stroke()
+
+            // Arrow head (chevron pointing up)
+            let head = NSBezierPath()
+            head.move(to: NSPoint(x: 4.5, y: 7))
+            head.line(to: NSPoint(x: 8, y: 3))
+            head.line(to: NSPoint(x: 11.5, y: 7))
+            head.lineWidth = 1.5
+            head.lineCapStyle = .round
+            head.lineJoinStyle = .round
+            head.stroke()
+
+            // Tray base (U-shape at bottom)
+            let tray = NSBezierPath()
+            tray.move(to: NSPoint(x: 2, y: 10))
+            tray.line(to: NSPoint(x: 2, y: 14))
+            tray.line(to: NSPoint(x: 14, y: 14))
+            tray.line(to: NSPoint(x: 14, y: 10))
+            tray.lineWidth = 1.5
+            tray.lineCapStyle = .round
+            tray.lineJoinStyle = .round
+            tray.stroke()
+
+            return true
+        }
+        image.isTemplate = true
+        return image
     }
 }
