@@ -16,27 +16,26 @@ if (container) {
   const camera = new THREE.PerspectiveCamera(40, w / h, 0.1, 1000);
   camera.position.set(0, 0, 5);
 
-  // Strong multi-directional lighting
-  scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-  const lights = [
-    { color: 0xffffff, intensity: 2.5, pos: [0, 0, 6] },      // front key
-    { color: 0xddc8ff, intensity: 1.5, pos: [4, 4, 3] },       // top right
-    { color: 0x8b5cf6, intensity: 1.2, pos: [-4, 2, 2] },      // left purple fill
-    { color: 0xc084fc, intensity: 0.8, pos: [0, -3, -2] },     // bottom rim
-    { color: 0xa78bfa, intensity: 0.6, pos: [-2, -1, 4] },     // front fill
-  ];
-  lights.forEach(l => {
-    const d = new THREE.DirectionalLight(l.color, l.intensity);
-    d.position.set(...l.pos); scene.add(d);
+  // Bright studio lighting
+  scene.add(new THREE.AmbientLight(0xffffff, 1.0));
+  [
+    [0xffffff, 3.0, [0, 0, 6]],
+    [0xddc8ff, 2.0, [4, 4, 3]],
+    [0xc4b5fd, 1.5, [-4, 2, 2]],
+    [0xe0d4ff, 1.0, [0, -3, 2]],
+    [0xffffff, 1.0, [-2, 0, 4]],
+  ].forEach(([color, intensity, pos]) => {
+    const d = new THREE.DirectionalLight(color, intensity);
+    d.position.set(...pos); scene.add(d);
   });
 
-  // Glossy purple material
+  // Bright glossy material — light purple, very visible on dark bg
   const mat = new THREE.MeshStandardMaterial({
-    color: 0x8b5cf6,
-    emissive: 0x3b1f7a,
-    emissiveIntensity: 0.6,
-    metalness: 0.15,
-    roughness: 0.25,
+    color: 0xc4b5fd,
+    emissive: 0x7c3aed,
+    emissiveIntensity: 0.35,
+    metalness: 0.1,
+    roughness: 0.2,
     side: THREE.DoubleSide,
   });
 
@@ -73,7 +72,9 @@ if (container) {
   const sz = new THREE.Vector3();
   box.getSize(sz);
   const sc = 3.2 / Math.max(sz.x, sz.y);
-  pivot.scale.set(sc, -sc, sc);
+  pivot.scale.set(sc, sc, sc);
+  pivot.rotation.x = Math.PI; // flip Y (SVG coords) via rotation, not negative scale
+
   scene.add(pivot);
 
   // Mouse tracking
@@ -84,13 +85,14 @@ if (container) {
   });
 
   // Animate
+  const baseRotX = Math.PI;
   const clock = new THREE.Clock();
   (function animate() {
     requestAnimationFrame(animate);
     const t = clock.getElapsedTime();
     pivot.position.y = Math.sin(t * 0.8) * 0.1;
     pivot.rotation.y = t * 0.12 + mx * 0.25;
-    pivot.rotation.x = Math.sin(t * 0.5) * 0.04 + my * 0.1;
+    pivot.rotation.x = baseRotX + Math.sin(t * 0.5) * 0.04 + my * 0.1;
     renderer.render(scene, camera);
   })();
 

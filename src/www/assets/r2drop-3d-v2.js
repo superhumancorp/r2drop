@@ -73,7 +73,8 @@ if (container) {
   const sz = new THREE.Vector3();
   box.getSize(sz);
   const sc = 3.2 / Math.max(sz.x, sz.y);
-  pivot.scale.set(sc, -sc, sc);
+  pivot.scale.set(sc, sc, sc);
+  pivot.rotation.x = Math.PI; // flip via rotation instead of negative scale (preserves normals)
   scene.add(pivot);
 
   // Mouse tracking
