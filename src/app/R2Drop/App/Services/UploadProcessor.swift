@@ -166,6 +166,16 @@ final class UploadProcessor {
                     }
                 }
                 #endif
+                // Track completed uploads
+                if completed > 0 {
+                    await MainActor.run {
+                        AnalyticsService.shared.trackUploadCompleted(
+                            fileCount: Int(completed),
+                            totalBytes: 0,  // Rust runner doesn't return byte totals
+                            durationSeconds: 0
+                        )
+                    }
+                }
             } catch {
                 NSLog("R2Drop UploadProcessor: processQueue error: %@", "\(error)")
                 #if DEBUG
@@ -173,6 +183,13 @@ final class UploadProcessor {
                     R2Log.upload.error("UploadProcessor: processQueue failed: \(error)")
                 }
                 #endif
+                // Track upload failure
+                await MainActor.run {
+                    AnalyticsService.shared.trackUploadFailed(
+                        errorCode: String(describing: error),
+                        retryCount: 0
+                    )
+                }
             }
             await MainActor.run {
                 self?.processingTask = nil

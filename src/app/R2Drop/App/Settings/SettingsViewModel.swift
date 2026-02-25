@@ -30,6 +30,10 @@ final class SettingsViewModel: ObservableObject {
 
     @Published var followSymlinks: Bool = false
 
+    // MARK: - Telemetry
+
+    @Published var allowAnonymousTelemetry: Bool = true
+
     // MARK: - Hotkey (FR-047)
 
     @Published var hotkeyDisplay: String = ""
@@ -69,6 +73,7 @@ final class SettingsViewModel: ObservableObject {
         followSymlinks = prefs.followSymlinks
         maxLogFiles = prefs.maxLogFiles
         maxLogFileSizeMb = prefs.maxLogFileSizeMb
+        allowAnonymousTelemetry = prefs.allowAnonymousTelemetry
         configDirPath = ConfigManager.configDir().path
         logDirPath = ConfigManager.configDir().appendingPathComponent("logs").path
 
@@ -96,6 +101,7 @@ final class SettingsViewModel: ObservableObject {
             config.preferences.followSymlinks = followSymlinks
             config.preferences.maxLogFiles = maxLogFiles
             config.preferences.maxLogFileSizeMb = maxLogFileSizeMb
+            config.preferences.allowAnonymousTelemetry = allowAnonymousTelemetry
             try ConfigManager.save(config)
             #if DEBUG
             R2Log.ui.debug("SettingsViewModel.save success")
@@ -126,6 +132,7 @@ final class SettingsViewModel: ObservableObject {
             }
         }
         save()
+        AnalyticsService.shared.trackSettingsChanged(settingName: "launch_at_login", newValue: String(enabled))
     }
 
     // MARK: - Hide Dock Icon (FR-045)
@@ -138,6 +145,7 @@ final class SettingsViewModel: ObservableObject {
         hideDockIcon = hide
         NSApp.setActivationPolicy(hide ? .accessory : .regular)
         save()
+        AnalyticsService.shared.trackSettingsChanged(settingName: "hide_dock_icon", newValue: String(hide))
         // Re-activate our settings window after policy change.
         // Switching to .accessory hides all windows — we need to bring ours back.
         if hide {
@@ -152,11 +160,20 @@ final class SettingsViewModel: ObservableObject {
     func togglePlaySound(_ enabled: Bool) {
         playSound = enabled
         save()
+        AnalyticsService.shared.trackSettingsChanged(settingName: "play_sound", newValue: String(enabled))
     }
 
     func toggleFollowSymlinks(_ enabled: Bool) {
         followSymlinks = enabled
         save()
+        AnalyticsService.shared.trackSettingsChanged(settingName: "follow_symlinks", newValue: String(enabled))
+    }
+
+    func toggleAllowAnonymousTelemetry(_ enabled: Bool) {
+        allowAnonymousTelemetry = enabled
+        AnalyticsService.shared.setEnabled(enabled)
+        save()
+        AnalyticsService.shared.trackSettingsChanged(settingName: "allow_anonymous_telemetry", newValue: String(enabled))
     }
 
     // MARK: - Upload Performance (FR-048)

@@ -68,6 +68,8 @@ public struct R2Preferences: Equatable {
     public var maxLogFiles: Int
     /// Maximum log file size in MB before rotation cleanup (FR-067).
     public var maxLogFileSizeMb: Int
+    /// Allow anonymous telemetry via PostHog (default: true, user can opt out).
+    public var allowAnonymousTelemetry: Bool
 
     public static let defaultExclusions = [
         ".DS_Store", "._*", ".Thumbs.db", ".Spotlight-V100",
@@ -83,7 +85,8 @@ public struct R2Preferences: Equatable {
         playSound: Bool = true,
         followSymlinks: Bool = false,
         maxLogFiles: Int = 5,
-        maxLogFileSizeMb: Int = 10
+        maxLogFileSizeMb: Int = 10,
+        allowAnonymousTelemetry: Bool = true
     ) {
         self.concurrentUploads = concurrentUploads
         self.chunkSizeMb = chunkSizeMb
@@ -94,6 +97,7 @@ public struct R2Preferences: Equatable {
         self.followSymlinks = followSymlinks
         self.maxLogFiles = maxLogFiles
         self.maxLogFileSizeMb = maxLogFileSizeMb
+        self.allowAnonymousTelemetry = allowAnonymousTelemetry
     }
 }
 
@@ -244,6 +248,7 @@ enum TOMLParser {
                 case "follow_symlinks": config.preferences.followSymlinks = str == "true"
                 case "max_log_files": config.preferences.maxLogFiles = Int(str) ?? 5
                 case "max_log_file_size_mb": config.preferences.maxLogFileSizeMb = Int(str) ?? 10
+                case "allow_anonymous_telemetry": config.preferences.allowAnonymousTelemetry = str == "true"
                 default: break
                 }
             }
@@ -306,6 +311,7 @@ enum TOMLWriter {
         lines.append("follow_symlinks = \(p.followSymlinks)")
         lines.append("max_log_files = \(p.maxLogFiles)")
         lines.append("max_log_file_size_mb = \(p.maxLogFileSizeMb)")
+        lines.append("allow_anonymous_telemetry = \(p.allowAnonymousTelemetry)")
         lines.append("")
 
         return lines.joined(separator: "\n")

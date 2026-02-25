@@ -88,6 +88,22 @@ struct OnboardingChooseBucketPanel: View {
 
                 Spacer().frame(height: 4)
 
+                // Telemetry opt-in toggle
+                Divider().opacity(0.3)
+                    .padding(.horizontal, 48)
+
+                Toggle(isOn: $viewModel.allowAnonymousTelemetry) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Allow anonymous telemetry")
+                            .font(.body)
+                        Text("Help improve R2Drop by sharing anonymous usage data. No personal information is collected.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .toggleStyle(.switch)
+                .padding(.horizontal, 48)
+
                 // Done button
                 Button(action: {
                     Task { await viewModel.finishSetup() }

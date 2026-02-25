@@ -74,6 +74,17 @@ struct SettingsTabView: View {
                     set: { viewModel.toggleFollowSymlinks($0) }
                 )
             )
+
+            Divider().opacity(0.3)
+
+            GlassToggleRow(
+                title: "Allow anonymous telemetry",
+                subtitle: "Help improve R2Drop by sharing anonymous usage data.",
+                isOn: Binding(
+                    get: { viewModel.allowAnonymousTelemetry },
+                    set: { viewModel.toggleAllowAnonymousTelemetry($0) }
+                )
+            )
         }
     }
 

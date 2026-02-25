@@ -110,6 +110,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         R2Log.app.debug("Activation policy: \(config.preferences.hideDockIcon ? ".accessory" : ".regular")")
         #endif
 
+        // Initialize PostHog analytics (respects user's telemetry preference)
+        AnalyticsService.shared.configure()
+        AnalyticsService.shared.trackAppLaunch()
+
         let hasAccounts = accountsExist()
         #if DEBUG
         R2Log.app.debug("Accounts exist: \(hasAccounts)")

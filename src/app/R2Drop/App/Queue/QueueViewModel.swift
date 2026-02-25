@@ -277,6 +277,9 @@ final class QueueViewModel: ObservableObject {
         #if DEBUG
         R2Log.ui.debug("QueueViewModel: queued dropped file(s) from \(url.lastPathComponent)")
         #endif
+        // Track upload queued event
+        let totalSize = isDirectory ? UInt64(0) : fileSize(url)
+        AnalyticsService.shared.trackUploadStarted(fileCount: 1, totalBytes: totalSize, entryPoint: "drop")
         poll() // Refresh immediately
         // Trigger immediate processing instead of waiting for the 3s timer.
         NotificationCenter.default.post(name: .r2dropQueueDidChange, object: nil)

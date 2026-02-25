@@ -22,6 +22,9 @@ packages:
   ConfettiSwiftUI:
     url: https://github.com/simibac/ConfettiSwiftUI
     from: 3.0.0
+  PostHog:
+    url: https://github.com/PostHog/posthog-ios.git
+    from: "3.0.0"
 
 targets:
   R2Drop:
@@ -76,6 +79,7 @@ targets:
       - package: R2Bridge
       - package: Sparkle
       - package: ConfettiSwiftUI
+      - package: PostHog
       - target: FinderExtension
         embed: true
 

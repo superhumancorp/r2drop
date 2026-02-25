@@ -74,6 +74,7 @@ final class OnboardingViewModel: ObservableObject {
     @Published var bucketError: String?
     @Published var showCelebration = false
     @Published var showFinalConfetti = false
+    @Published var allowAnonymousTelemetry: Bool = true
 
     // MARK: - Dependencies
 
@@ -390,6 +391,12 @@ final class OnboardingViewModel: ObservableObject {
                 // Add as new account
                 try manager.addAccount(account)
             }
+
+            // Persist telemetry preference to config.toml
+            var config = try ConfigManager.load()
+            config.preferences.allowAnonymousTelemetry = allowAnonymousTelemetry
+            try ConfigManager.save(config)
+            AnalyticsService.shared.setEnabled(allowAnonymousTelemetry)
         } catch {
             #if DEBUG
             R2Log.ui.error("OnboardingViewModel: finishSetup save failed: \(error)")
@@ -400,6 +407,9 @@ final class OnboardingViewModel: ObservableObject {
         }
         // FR-005: Wipe plaintext token from memory now that it's in Keychain
         token = ""
+
+        // Track account added event
+        AnalyticsService.shared.trackAccountAdded(bucketCount: buckets.count)
 
         // Show celebration with confetti and play bell sound.
         // User dismisses manually via the Done button — no auto-dismiss.

@@ -86,6 +86,10 @@ pub struct Preferences {
     /// Maximum log file size in megabytes before rotation (default 10).
     #[serde(default = "default_max_log_file_size_mb")]
     pub max_log_file_size_mb: u16,
+
+    /// Allow anonymous telemetry via PostHog (default: true, user can opt out).
+    #[serde(default = "default_true")]
+    pub allow_anonymous_telemetry: bool,
 }
 
 // Serde default helpers
@@ -128,6 +132,7 @@ impl Default for Preferences {
             follow_symlinks: false,
             max_log_files: default_max_log_files(),
             max_log_file_size_mb: default_max_log_file_size_mb(),
+            allow_anonymous_telemetry: default_true(),
         }
     }
 }
