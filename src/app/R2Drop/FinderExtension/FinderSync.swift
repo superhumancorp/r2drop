@@ -27,26 +27,28 @@ class FinderSync: FIFinderSync {
 
     override init() {
         super.init()
-        // Monitor the entire filesystem so the context menu appears everywhere.
-        // FIFinderSync requires at least one directory URL to activate.
-        FIFinderSyncController.default().directoryURLs = [
-            URL(fileURLWithPath: "/")
-        ]
+        configureMonitoredDirectories()
     }
 
     // MARK: - Context Menu (FR-017)
 
     override func menu(for menuKind: FIMenuKind) -> NSMenu? {
+        switch menuKind {
+        case .contextualMenuForItems, .contextualMenuForContainer:
+            break
+        default:
+            return nil
+        }
+
         let menu = NSMenu(title: "R2Drop")
         let item = NSMenuItem(
             title: "Send to R2",
             action: #selector(sendToR2(_:)),
             keyEquivalent: ""
         )
-        // Use a programmatically drawn template image for the context menu icon.
-        // Template images let macOS auto-tint for light/dark mode.
-        // We draw it ourselves because SF Symbols can be unreliable in Finder extensions.
-        item.image = createTemplateIcon()
+        item.target = self
+        item.image = createMenuIcon()
+        item.image?.isTemplate = true
         menu.addItem(item)
         return menu
     }
@@ -287,6 +289,35 @@ class FinderSync: FIFinderSync {
 
     // MARK: - Helpers
 
+    /// Finder Sync needs explicit monitored roots before it will show menus.
+    /// Using "/" is unreliable in practice; prefer user home + mounted volumes.
+    private func configureMonitoredDirectories() {
+        var monitored = Set<URL>()
+
+        monitored.insert(
+            URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
+                .standardizedFileURL
+        )
+
+        // Include mounted external/network volumes where users often drag assets.
+        monitored.insert(URL(fileURLWithPath: "/Volumes", isDirectory: true))
+
+        if let mountedVolumes = FileManager.default.mountedVolumeURLs(
+            includingResourceValuesForKeys: nil,
+            options: [.skipHiddenVolumes]
+        ) {
+            for volume in mountedVolumes {
+                // Finder Sync can behave inconsistently when monitoring "/".
+                // Home + /Volumes covers normal user workflows more reliably.
+                if volume.path == "/" { continue }
+                monitored.insert(volume.standardizedFileURL)
+            }
+        }
+
+        FIFinderSyncController.default().directoryURLs = monitored
+        NSLog("R2Drop FinderExtension: Monitoring \(monitored.count) roots")
+    }
+
     /// Get the file size in bytes. Returns 0 for directories or errors.
     private func fileSize(_ url: URL) -> UInt64 {
         let attrs = try? FileManager.default.attributesOfItem(atPath: url.path)
@@ -300,10 +331,28 @@ class FinderSync: FIFinderSync {
 
     // MARK: - Context Menu Icon
 
+    /// Prefer a system template symbol so Finder renders a native-looking menu icon.
+    private func createMenuIcon() -> NSImage {
+        if #available(macOS 11.0, *),
+           let symbol = NSImage(
+               systemSymbolName: "square.and.arrow.up",
+               accessibilityDescription: "Send to R2"
+           ) {
+            let configured = symbol.withSymbolConfiguration(
+                .init(pointSize: 12, weight: .regular)
+            ) ?? symbol
+            configured.size = NSSize(width: 16, height: 16)
+            configured.isTemplate = true
+            return configured
+        }
+
+        return createFallbackTemplateIcon()
+    }
+
     /// Create a 16x16 monochrome template image for the Finder context menu.
     /// Draws an upward arrow over a tray shape (standard "upload" icon).
     /// Returned image has isTemplate = true so macOS auto-tints for light/dark mode.
-    private func createTemplateIcon() -> NSImage {
+    private func createFallbackTemplateIcon() -> NSImage {
         let size = NSSize(width: 16, height: 16)
         let image = NSImage(size: size, flipped: true) { rect in
             NSColor.black.setStroke()
@@ -340,6 +389,7 @@ class FinderSync: FIFinderSync {
 
             return true
         }
+        image.size = size
         image.isTemplate = true
         return image
     }
