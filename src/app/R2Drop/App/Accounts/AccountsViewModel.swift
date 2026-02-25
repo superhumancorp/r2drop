@@ -261,16 +261,37 @@ final class AccountsViewModel: ObservableObject {
             tokenId: selectedAccount?.tokenId ?? ""
         )
 
+        // P0: account_edit_save_started
+        let renamed = editName != originalName
+        let bucketChanged = editBucket != (selectedAccount?.bucket ?? "")
+        let pathChanged = editPath != (selectedAccount?.path ?? "")
+        let customDomainChanged = editCustomDomain != (selectedAccount?.customDomain ?? "")
+        TelemetryService.shared.track("account_edit_save_started", properties: [
+            "renamed": renamed,
+            "bucket_changed": bucketChanged,
+            "path_changed": pathChanged,
+            "custom_domain_changed": customDomainChanged
+        ])
+
         do {
             let manager = try AccountManager()
             let didUpdate = try manager.updateAccount(named: originalName, to: updated)
             guard didUpdate else {
                 #if DEBUG
-                R2Log.ui.error("AccountsViewModel: saveChanges failed — original account '\(originalName)' not found")
+                R2Log.ui.error("AccountsViewModel: saveChanges failed \u{2014} original account '\(originalName)' not found")
                 #endif
+                // P0: account_edit_save_failed
+                TelemetryService.shared.track("account_edit_save_failed", properties: [
+                    "reason": "account_not_found"
+                ])
                 return
             }
             hasUnsavedChanges = false
+            // P0: account_edit_save_succeeded
+            TelemetryService.shared.track("account_edit_save_succeeded", properties: [
+                "renamed": renamed,
+                "has_custom_domain": !editCustomDomain.isEmpty
+            ])
             // Refresh list from disk
             load()
             // Re-select to update detail view
@@ -279,9 +300,12 @@ final class AccountsViewModel: ObservableObject {
             #if DEBUG
             R2Log.ui.error("AccountsViewModel: saveChanges error: \(error)")
             #endif
+            // P0: account_edit_save_failed
+            TelemetryService.shared.track("account_edit_save_failed", properties: [
+                "reason": String(describing: error)
+            ])
         }
     }
-
     // MARK: - Actions (FR-044)
 
     /// Trigger the "Add Account" flow via AppDelegate (FR-042).

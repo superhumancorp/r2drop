@@ -69,6 +69,15 @@ final class TokenValidationService: ObservableObject {
 
             let accounts = loadAccounts()
 
+            // P0: token_validation_run_started
+            TelemetryService.shared.track("token_validation_run_started", properties: [
+                "account_count": accounts.count
+            ])
+
+            let startTime = Date()
+            var validCount = 0
+            var invalidCount = 0
+
             for account in accounts {
                 // FR-003: Retrieve token silently from Keychain
                 guard let token = try? keychainManager.getToken(account: account.name) else {
@@ -77,17 +86,33 @@ final class TokenValidationService: ObservableObject {
 
                 if let tokenId = await validateSingleToken(token) {
                     backfillTokenIdIfNeeded(accountName: account.name, tokenId: tokenId)
+                    validCount += 1
                     #if DEBUG
                     R2Log.service.debug("TokenValidationService: token valid for account \(account.name)")
                     #endif
                 } else {
                     invalidAccounts.append(account.name)
+                    invalidCount += 1
                     #if DEBUG
                     R2Log.service.debug("TokenValidationService: token invalid for account \(account.name)")
                     #endif
                     postTokenExpiredNotification(accountName: account.name)
+
+                    // P0: token_invalid_detected (rate-limited per account)
+                    TelemetryService.shared.trackIfAllowed("token_invalid_detected", dedupeKey: "token_invalid_\(account.name)", properties: [
+                        "account_name_hash": TelemetrySanitizer.hash(account.name)
+                    ])
                 }
             }
+
+            // P0: token_validation_run_completed
+            let durationMs = Int(Date().timeIntervalSince(startTime) * 1000)
+            TelemetryService.shared.track("token_validation_run_completed", properties: [
+                "account_count": accounts.count,
+                "valid_count": validCount,
+                "invalid_count": invalidCount,
+                "duration_ms": durationMs
+            ])
 
             isChecking = false
             #if DEBUG
@@ -95,7 +120,6 @@ final class TokenValidationService: ObservableObject {
             #endif
         }
     }
-
     // MARK: - Private
 
     /// Validate a single token against the Cloudflare API.

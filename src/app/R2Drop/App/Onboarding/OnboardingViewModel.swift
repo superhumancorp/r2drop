@@ -107,6 +107,14 @@ final class OnboardingViewModel: ObservableObject {
         }
     }
 
+    /// Mode as a simple string for telemetry properties.
+    private var modeString: String {
+        switch mode {
+        case .initial: return "initial"
+        case .addAccount: return "add_account"
+        case .updateToken: return "update_token"
+        }
+    }
     /// The first panel for the current mode (used by navigation guards).
     var firstPanel: OnboardingPanel {
         switch mode {
@@ -145,6 +153,10 @@ final class OnboardingViewModel: ObservableObject {
 
     /// Skip setup entirely — user can configure later from Accounts tab.
     func skip() {
+        // P0: onboarding_skipped
+        TelemetryService.shared.track("onboarding_skipped", properties: [
+            "panel": String(describing: currentPanel)
+        ])
         dismissed = true
     }
 
@@ -158,6 +170,13 @@ final class OnboardingViewModel: ObservableObject {
         R2Log.ui.debug("OnboardingViewModel: validateAndStoreToken")
         #endif
         let trimmed = tokenText.trimmingCharacters(in: .whitespacesAndNewlines)
+        // P0: onboarding_token_validation_started
+        let modeStr = modeString
+        let tokenLenBucket = trimmed.count < 20 ? "short" : trimmed.count < 60 ? "medium" : "long"
+        TelemetryService.shared.track("onboarding_token_validation_started", properties: [
+            "token_length_bucket": tokenLenBucket,
+            "mode": modeStr
+        ])
         guard !trimmed.isEmpty else {
             tokenError = "Please paste your API token."
             return
@@ -222,6 +241,14 @@ final class OnboardingViewModel: ObservableObject {
             // Advance to bucket selection
             goNext()
 
+            // P0: onboarding_token_validation_succeeded
+            TelemetryService.shared.track("onboarding_token_validation_succeeded", properties: [
+                "mode": modeStr,
+                "bucket_count": bucketList.count,
+                "selected_bucket_present": !self.selectedBucket.isEmpty,
+                "custom_domain_prefilled": !self.customDomain.isEmpty
+            ])
+
             // Fetch custom domains for the selected bucket (best effort)
             if !selectedBucket.isEmpty {
                 await fetchCustomDomains(bucket: selectedBucket)
@@ -235,6 +262,15 @@ final class OnboardingViewModel: ObservableObject {
             let errorDesc = error.localizedDescription
             tokenError = "Token validation failed: \(errorDesc) (ERR_TOKEN_INVALID)"
             isValidatingToken = false
+
+            // P0: onboarding_token_validation_failed
+            let nsErr = error as NSError
+            TelemetryService.shared.track("onboarding_token_validation_failed", properties: [
+                "error_type": String(describing: type(of: error)),
+                "error_domain": nsErr.domain,
+                "error_code": nsErr.code,
+                "user_visible": true
+            ])
         }
     }
 
@@ -372,6 +408,13 @@ final class OnboardingViewModel: ObservableObject {
         #if DEBUG
         R2Log.ui.debug("OnboardingViewModel: finishSetup account=\(self.accountName) bucket=\(self.selectedBucket)")
         #endif
+
+        // P0: onboarding_finish_started
+        TelemetryService.shared.track("onboarding_finish_started", properties: [
+            "mode": modeString,
+            "has_custom_domain": !customDomain.isEmpty,
+            "path_depth": TelemetrySanitizer.pathDepth(defaultPath)
+        ])
         let account = ConfigAccount(
             name: accountName,
             bucket: selectedBucket,
@@ -396,20 +439,31 @@ final class OnboardingViewModel: ObservableObject {
             var config = try ConfigManager.load()
             config.preferences.allowAnonymousTelemetry = allowAnonymousTelemetry
             try ConfigManager.save(config)
-            AnalyticsService.shared.setEnabled(allowAnonymousTelemetry)
+            TelemetryService.shared.setEnabled(allowAnonymousTelemetry)
         } catch {
             #if DEBUG
             R2Log.ui.error("OnboardingViewModel: finishSetup save failed: \(error)")
             #endif
             // Show error instead of silently swallowing — account may not be saved
             bucketError = "Failed to save account: \(error.localizedDescription)"
+
+            // P0: onboarding_finish_failed
+            TelemetryService.shared.track("onboarding_finish_failed", properties: [
+                "error_type": String(describing: type(of: error)),
+                "user_visible": true
+            ])
             return
         }
+
         // FR-005: Wipe plaintext token from memory now that it's in Keychain
         token = ""
 
-        // Track account added event
-        AnalyticsService.shared.trackAccountAdded(bucketCount: buckets.count)
+        // P0: onboarding_finish_succeeded
+        TelemetryService.shared.track("onboarding_finish_succeeded", properties: [
+            "mode": modeString,
+            "bucket_hash": TelemetrySanitizer.hash(selectedBucket),
+            "has_custom_domain": !customDomain.isEmpty
+        ])
 
         // Show celebration with confetti and play bell sound.
         // User dismisses manually via the Done button — no auto-dismiss.

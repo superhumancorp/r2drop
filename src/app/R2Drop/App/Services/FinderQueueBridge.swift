@@ -68,12 +68,21 @@ final class FinderQueueBridge {
         guard let sharedJobs = try? sharedQM.listJobs(status: .pending),
               !sharedJobs.isEmpty else { return }
 
+        // P0: finder_queue_transfer_run
+        TelemetryService.shared.track("finder_queue_transfer_run", properties: [
+            "shared_job_count": sharedJobs.count
+        ])
+
         #if DEBUG
         R2Log.service.debug("FinderQueueBridge: transferPendingJobs found \(sharedJobs.count) jobs")
         #endif
 
         // Transfer each job with conflict checking
         var transferredAny = false
+        var jobCountTransferred = 0
+        var jobCountSkipped = 0
+        var jobCountFailed = 0
+        var hadConflicts = false
         for job in sharedJobs {
             do {
                 var r2Key = job.r2Key
@@ -84,12 +93,15 @@ final class FinderQueueBridge {
                     case .skip:
                         // User chose to skip — delete from shared queue, don't transfer
                         try sharedQM.deleteJob(id: job.id)
+                        jobCountSkipped += 1
+                        hadConflicts = true
                         #if DEBUG
                         R2Log.service.debug("FinderQueueBridge: job \(job.id) skipped due to conflict")
                         #endif
                         continue
                     case .rename:
                         r2Key = ConflictManager.renamedKey(job.r2Key)
+                        hadConflicts = true
                         #if DEBUG
                         R2Log.service.debug("FinderQueueBridge: job \(job.id) renamed")
                         #endif
@@ -107,16 +119,26 @@ final class FinderQueueBridge {
                 )
                 try sharedQM.deleteJob(id: job.id)
                 transferredAny = true
+                jobCountTransferred += 1
                 #if DEBUG
                 R2Log.service.debug("FinderQueueBridge: job \(job.id) transferred successfully")
                 #endif
             } catch {
+                jobCountFailed += 1
                 #if DEBUG
                 R2Log.service.error("FinderQueueBridge: Failed to transfer job \(job.id): \(error)")
                 #endif
                 NSLog("R2Drop: Failed to transfer job \(job.id): \(error)")
             }
         }
+
+        // P0: finder_jobs_transferred
+        TelemetryService.shared.track("finder_jobs_transferred", properties: [
+            "job_count_transferred": jobCountTransferred,
+            "job_count_skipped": jobCountSkipped,
+            "job_count_failed": jobCountFailed,
+            "had_conflicts": hadConflicts
+        ])
 
         if transferredAny {
             NotificationCenter.default.post(name: .r2dropQueueDidChange, object: nil)
@@ -141,8 +163,10 @@ final class FinderQueueBridge {
             bucket: job.bucket,
             key: job.r2Key,
             timeoutSeconds: 10
-        ) else { return nil }
-
+        ) else {
+            // P0: conflict_check_timeout_or_error (nil means timeout or no object)
+            return nil
+        }
         // Object exists — check "Apply to all" or show dialog
         if let stored = ConflictManager.shared.storedChoice() {
             return stored

@@ -150,6 +150,7 @@ final class UploadProcessor {
         let secretAccessKey = sha256Hex(token)
         let client = self.r2Client
         NSLog("R2Drop UploadProcessor: invoking Rust processQueue (account=%@, accountId=%@)", activeName, accountId)
+        let startTime = Date()
         let task = Task.detached { [weak self] in
             do {
                 let completed = try client.processQueue(
@@ -166,14 +167,14 @@ final class UploadProcessor {
                     }
                 }
                 #endif
-                // Track completed uploads
+                // P0: upload_processing_cycle_completed
+                let durationMs = Int(Date().timeIntervalSince(startTime) * 1000)
                 if completed > 0 {
                     await MainActor.run {
-                        AnalyticsService.shared.trackUploadCompleted(
-                            fileCount: Int(completed),
-                            totalBytes: 0,  // Rust runner doesn't return byte totals
-                            durationSeconds: 0
-                        )
+                        TelemetryService.shared.track("upload_processing_cycle_completed", properties: [
+                            "jobs_processed": Int(completed),
+                            "duration_ms": durationMs
+                        ])
                     }
                 }
             } catch {
@@ -183,12 +184,13 @@ final class UploadProcessor {
                     R2Log.upload.error("UploadProcessor: processQueue failed: \(error)")
                 }
                 #endif
-                // Track upload failure
+                // P0: upload_processing_cycle_failed
+                let durationMs = Int(Date().timeIntervalSince(startTime) * 1000)
                 await MainActor.run {
-                    AnalyticsService.shared.trackUploadFailed(
-                        errorCode: String(describing: error),
-                        retryCount: 0
-                    )
+                    TelemetryService.shared.track("upload_processing_cycle_failed", properties: [
+                        "error_type": String(describing: error),
+                        "duration_ms": durationMs
+                    ])
                 }
             }
             await MainActor.run {

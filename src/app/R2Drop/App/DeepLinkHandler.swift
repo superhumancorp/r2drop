@@ -28,25 +28,46 @@ enum DeepLinkHandler {
         // host is the first path component (e.g. "upload", "preferences")
         guard let host = url.host else { return false }
 
+        // P0: deeplink_received
+        TelemetryService.shared.track("deeplink_received", properties: [
+            "host": host,
+            "path": url.path,
+            "has_query": url.query != nil
+        ])
+
+        var handled = false
         switch host {
         case "upload":
-            return handleUpload(url: url)
+            handled = handleUpload(url: url)
         case "preferences":
-            return handlePreferences(url: url)
+            handled = handlePreferences(url: url)
         case "account":
-            return handleAccountSwitch(url: url)
+            handled = handleAccountSwitch(url: url)
         case "browse":
-            return handleBrowse(url: url)
+            handled = handleBrowse(url: url)
         case "auth":
-            return handleAuth(url: url, appDelegate: appDelegate)
+            handled = handleAuth(url: url, appDelegate: appDelegate)
         case "status":
             // Health check — app is running if we get here.
-            return true
+            handled = true
         default:
+            // P0: deeplink_rejected
+            TelemetryService.shared.track("deeplink_rejected", properties: [
+                "host": host,
+                "reason": "unknown_host"
+            ])
             return false
         }
-    }
 
+        if handled {
+            // P0: deeplink_handled
+            TelemetryService.shared.track("deeplink_handled", properties: [
+                "host": host,
+                "route": url.path.isEmpty ? host : "\(host)\(url.path)"
+            ])
+        }
+        return handled
+    }
     // MARK: - Upload (FR-060)
 
     /// Queue a file for upload. Validates path exists and is readable.
@@ -314,7 +335,7 @@ enum DeepLinkHandler {
 
     /// Open the Preferences window and bring the app to front.
     private static func openPreferencesWindow() {
-        AppDelegate.openSettingsWindow()
+        AppDelegate.openSettingsWindow(reason: "deeplink")
     }
 
     /// Show an informational alert.

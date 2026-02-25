@@ -54,6 +54,12 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
 
         // Request permission (FR-061)
         center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
+            // P0: notification_permission_requested
+            Task { @MainActor in
+                TelemetryService.shared.track("notification_permission_requested", properties: [
+                    "granted": granted
+                ])
+            }
             #if DEBUG
             R2Log.service.debug("NotificationService: permission requested granted=\(granted)")
             #endif
@@ -206,6 +212,13 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
         let actionId = response.actionIdentifier
 
         Task { @MainActor in
+            // P0: notification_action_clicked
+            let category = response.notification.request.content.categoryIdentifier
+            TelemetryService.shared.track("notification_action_clicked", properties: [
+                "action": actionId,
+                "category": category
+            ])
+
             switch actionId {
             case NotificationAction.copyURL.rawValue:
                 // Copy the R2 URL to clipboard

@@ -148,15 +148,24 @@ final class QueueViewModel: ObservableObject {
         #if DEBUG
         R2Log.ui.debug("QueueViewModel: pauseJob id=\(job.id)")
         #endif
+        // P0: queue_pause_requested
+        TelemetryService.shared.track("queue_pause_requested", properties: [
+            "job_id": job.id,
+            "status_before": String(describing: job.status)
+        ])
         guard let qm = try? QueueManager() else { return }
         try? qm.updateStatus(id: job.id, status: .paused)
         poll()
     }
-
     func resumeJob(_ job: UploadJob) {
         #if DEBUG
         R2Log.ui.debug("QueueViewModel: resumeJob id=\(job.id)")
         #endif
+        // P0: queue_resume_requested
+        TelemetryService.shared.track("queue_resume_requested", properties: [
+            "job_id": job.id,
+            "status_before": String(describing: job.status)
+        ])
         guard let qm = try? QueueManager() else { return }
         // Reset retry_count so the Rust engine gives this job a fresh set of attempts.
         // Without this, jobs that already hit MAX_RETRIES would immediately re-fail.
@@ -172,7 +181,14 @@ final class QueueViewModel: ObservableObject {
         R2Log.ui.debug("QueueViewModel: cancelJob id=\(job.id)")
         #endif
         guard let qm = try? QueueManager() else { return }
-        if job.status == .uploading {
+        // P0: queue_cancel_requested
+        let deferredDelete = job.status == .uploading
+        TelemetryService.shared.track("queue_cancel_requested", properties: [
+            "job_id": job.id,
+            "status_before": String(describing: job.status),
+            "deferred_delete": deferredDelete
+        ])
+        if deferredDelete {
             // Request a pause first so the runner stops after the current chunk.
             // Deleting immediately can race with runner status/progress updates.
             try? qm.updateStatus(id: job.id, status: .paused)
@@ -277,9 +293,14 @@ final class QueueViewModel: ObservableObject {
         #if DEBUG
         R2Log.ui.debug("QueueViewModel: queued dropped file(s) from \(url.lastPathComponent)")
         #endif
-        // Track upload queued event
-        let totalSize = isDirectory ? UInt64(0) : fileSize(url)
-        AnalyticsService.shared.trackUploadStarted(fileCount: 1, totalBytes: totalSize, entryPoint: "drop")
+        // P0: upload_enqueue_requested (from queue drop)
+        TelemetryService.shared.track("upload_enqueue_requested", properties: [
+            "entrypoint": "queue_drop",
+            "file_count": 1,
+            "contains_directory": isDirectory,
+            "account_name_hash": TelemetrySanitizer.hash(activeName),
+            "bucket_hash": TelemetrySanitizer.hash(account.bucket)
+        ])
         poll() // Refresh immediately
         // Trigger immediate processing instead of waiting for the 3s timer.
         NotificationCenter.default.post(name: .r2dropQueueDidChange, object: nil)

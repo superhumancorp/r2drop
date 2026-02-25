@@ -167,6 +167,13 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     /// Rebuild the menu each time it opens for fresh data.
     func menuWillOpen(_ menu: NSMenu) {
+        // P0: menu_bar_opened
+        let config = (try? ConfigManager.load()) ?? R2Config()
+        TelemetryService.shared.track("menu_bar_opened", properties: [
+            "account_count": config.accounts.count,
+            "has_active_uploads": isUploading,
+            "is_enabled": isEnabled
+        ])
         rebuildMenu(menu)
     }
 
@@ -288,6 +295,10 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     @objc private func addAccount() { appDelegate?.showAddAccount() }
 
     @objc private func openUploadPicker() {
+        // P0: menu_upload_picker_opened
+        TelemetryService.shared.track("menu_upload_picker_opened", properties: [
+            "surface": "menu_bar"
+        ])
         let panel = NSOpenPanel()
         panel.title = "Upload to R2"
         panel.message = "Select one or more files and/or folders to upload."
@@ -298,6 +309,13 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         panel.canCreateDirectories = false
 
         guard panel.runModal() == .OK else { return }
+
+        // P0: menu_upload_picker_selection_submitted
+        let hasDir = panel.urls.contains { (try? $0.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false }
+        TelemetryService.shared.track("menu_upload_picker_selection_submitted", properties: [
+            "file_count": panel.urls.count,
+            "contains_directory": hasDir
+        ])
         queueUserSelectedURLs(panel.urls)
     }
 
@@ -318,7 +336,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     }
 
     @objc private func showPreferences() {
-        AppDelegate.openSettingsWindow()
+        AppDelegate.openSettingsWindow(reason: "menu")
     }
 
     @objc private func quitApp() { NSApplication.shared.terminate(nil) }
@@ -340,6 +358,14 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         #if DEBUG
         R2Log.menubar.debug("handleDroppedFiles: \(urls.count) files")
         #endif
+
+        // P0: menu_bar_files_dropped
+        let hasDirInDrop = urls.contains { (try? $0.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false }
+        TelemetryService.shared.track("menu_bar_files_dropped", properties: [
+            "file_count": urls.count,
+            "contains_directory": hasDirInDrop,
+            "is_enabled": isEnabled
+        ])
         guard isEnabled else { return }
 
         // Need an active account to upload
@@ -376,6 +402,17 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     /// NSAlert confirmation for dropped files. Returns true if user clicks Upload.
     private func showDropConfirmation(urls: [URL]) -> Bool {
+        let hasDir = urls.contains { (try? $0.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false }
+        let neverAskPre = UserDefaults(suiteName: "group.com.superhumancorp.r2drop")?.bool(forKey: "R2Drop.NeverAskConfirmation") ?? false
+
+        // P0: upload_confirmation_shown
+        TelemetryService.shared.track("upload_confirmation_shown", properties: [
+            "entrypoint": "menu_bar_drop",
+            "file_count": urls.count,
+            "contains_directory": hasDir,
+            "never_ask_preexisting": neverAskPre
+        ])
+
         let alert = NSAlert()
         alert.alertStyle = .informational
         if urls.count == 1, let url = urls.first {
@@ -396,9 +433,17 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         if checkbox.state == .on {
             UserDefaults(suiteName: "group.com.superhumancorp.r2drop")?.set(true, forKey: "R2Drop.NeverAskConfirmation")
         }
-        return response == .alertFirstButtonReturn
-    }
 
+        // P0: upload_confirmation_result
+        let uploaded = response == .alertFirstButtonReturn
+        TelemetryService.shared.track("upload_confirmation_result", properties: [
+            "entrypoint": "menu_bar_drop",
+            "result": uploaded ? "confirmed" : "cancelled",
+            "never_ask_checked": checkbox.state == .on
+        ])
+
+        return uploaded
+    }
     /// Insert upload jobs into queue.db for each dropped file or folder.
     /// Recursively enumerates folder contents, applies exclusion patterns (FR-049),
     /// and checks for conflicts with existing R2 objects (FR-065).
@@ -407,12 +452,22 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         #if DEBUG
         R2Log.menubar.debug("queueUploads: \(urls.count) items to account=\(account.name) bucket=\(account.bucket)")
         #endif
+
+        // P0: upload_enqueue_requested
+        let hasDirInQueue = urls.contains { (try? $0.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false }
+        TelemetryService.shared.track("upload_enqueue_requested", properties: [
+            "entrypoint": "menu_bar_drop",
+            "file_count": urls.count,
+            "contains_directory": hasDirInQueue,
+            "account_name_hash": TelemetrySanitizer.hash(account.name),
+            "bucket_hash": TelemetrySanitizer.hash(account.bucket)
+        ])
+
         let snapshot = MenuBarUploadQueueWorker.AccountSnapshot(account)
         _ = await Task.detached(priority: .userInitiated) {
             await MenuBarUploadQueueWorker.queue(urls: urls, account: snapshot)
         }.value
     }
-
     // MARK: - Helpers
 
     private func fileSize(_ url: URL) -> UInt64 {
@@ -454,9 +509,13 @@ private enum MenuBarUploadQueueWorker {
         let exclusions = config.preferences.exclusionPatterns
         let token = try? KeychainManager().getToken(account: account.name)
         var queuedAny = false
+        var jobsEnqueued = 0
+        var filesSkippedExcluded = 0
+        var containsDirectory = false
 
         for url in urls {
             let isDirectory = (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
+            if isDirectory { containsDirectory = true }
 
             if isDirectory {
                 let enumerator = FileManager.default.enumerator(
@@ -469,7 +528,10 @@ private enum MenuBarUploadQueueWorker {
                     let isFile = (try? fileURL.resourceValues(forKeys: [.isRegularFileKey]))?.isRegularFile ?? false
                     guard isFile else { continue }
                     let fileName = fileURL.lastPathComponent
-                    guard !matchesExclusionPattern(fileName, patterns: exclusions) else { continue }
+                    guard !matchesExclusionPattern(fileName, patterns: exclusions) else {
+                        filesSkippedExcluded += 1
+                        continue
+                    }
                     let relativePath = fileURL.path.replacingOccurrences(of: url.path + "/", with: "")
                     let name = "\(baseName)/\(relativePath)"
                     let pathPrefix = account.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
@@ -482,13 +544,17 @@ private enum MenuBarUploadQueueWorker {
                         totalBytes: fileSize(fileURL)
                     )) != nil {
                         queuedAny = true
+                        jobsEnqueued += 1
                     }
                 }
                 continue
             }
 
             let name = url.lastPathComponent
-            guard !matchesExclusionPattern(name, patterns: exclusions) else { continue }
+            guard !matchesExclusionPattern(name, patterns: exclusions) else {
+                filesSkippedExcluded += 1
+                continue
+            }
             let pathPrefix = account.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
             var r2Key = pathPrefix.isEmpty ? name : "\(pathPrefix)/\(name)"
 
@@ -520,7 +586,18 @@ private enum MenuBarUploadQueueWorker {
                 totalBytes: fileSize(url)
             )) != nil {
                 queuedAny = true
+                jobsEnqueued += 1
             }
+        }
+
+        // P0: upload_jobs_enqueued
+        await MainActor.run {
+            TelemetryService.shared.track("upload_jobs_enqueued", properties: [
+                "entrypoint": "menu_bar",
+                "jobs_enqueued": jobsEnqueued,
+                "files_skipped_excluded": filesSkippedExcluded,
+                "contains_directory": containsDirectory
+            ])
         }
 
         if queuedAny {

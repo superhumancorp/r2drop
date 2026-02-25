@@ -37,7 +37,7 @@ struct R2DropApp: App {
         .commands {
             CommandGroup(replacing: .appSettings) {
                 Button("Settings...") {
-                    AppDelegate.openSettingsWindow()
+                    AppDelegate.openSettingsWindow(reason: "cmd_comma")
                 }
                 .keyboardShortcut(",", modifiers: .command)
             }
@@ -110,10 +110,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         R2Log.app.debug("Activation policy: \(config.preferences.hideDockIcon ? ".accessory" : ".regular")")
         #endif
 
-        // Initialize PostHog analytics (respects user's telemetry preference)
-        AnalyticsService.shared.configure()
-        AnalyticsService.shared.trackAppLaunch()
+        // Initialize PostHog telemetry (respects user's telemetry preference)
+        TelemetryService.shared.configure()
 
+        // P0: app_launch — enhanced with account info
+        let activationPolicy = config.preferences.hideDockIcon ? "accessory" : "regular"
+        TelemetryService.shared.track("app_launch", properties: [
+            "has_accounts": accountsExist(),
+            "activation_policy": activationPolicy,
+            "hide_dock_icon": config.preferences.hideDockIcon,
+            "account_count": config.accounts.count
+        ])
         let hasAccounts = accountsExist()
         #if DEBUG
         R2Log.app.debug("Accounts exist: \(hasAccounts)")
@@ -126,6 +133,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Start the Rust upload engine processor — picks up pending jobs and uploads them.
         uploadProcessor.start()
+
+        // P0: app_services_started — confirm all background services initialized
+        TelemetryService.shared.track("app_services_started", properties: [
+            "started_notification_service": true,
+            "started_finder_bridge": true,
+            "started_upload_monitor": true,
+            "started_upload_processor": true
+        ])
 
         #if DEBUG
         // Always show onboarding in debug mode for UI development/testing
@@ -147,7 +162,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Need a longer delay — SwiftUI's Settings scene isn't ready immediately.
         // 0.5s gives the scene graph time to register the Settings window.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            Self.openSettingsWindow()
+            Self.openSettingsWindow(reason: "launch")
         }
 
         // Cmd+, is handled by CommandGroup(replacing: .appSettings) in the body scene.
@@ -157,6 +172,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         #if DEBUG
         R2Log.app.debug("applicationWillTerminate — stopping services")
         #endif
+        // Flush telemetry before shutdown
+        TelemetryService.shared.shutdown()
         tokenValidationService.stop()
         finderQueueBridge.stop()
         uploadMonitor.stop()
@@ -177,7 +194,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         #if DEBUG
         R2Log.app.debug("URLs received: \(urls.map { $0.absoluteString })")
         #endif
+
+        // P0: app_open_urls_received
         let fileURLs = urls.filter(\.isFileURL)
+        let deeplinks = urls.filter { !$0.isFileURL }
+        TelemetryService.shared.track("app_open_urls_received", properties: [
+            "url_count": urls.count,
+            "file_url_count": fileURLs.count,
+            "deeplink_count": deeplinks.count
+        ])
         if !fileURLs.isEmpty {
             handleIncomingUploadURLs(fileURLs)
         }
@@ -259,7 +284,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             showOnboarding()
         }
         SelectedTabStore.shared.requestedTab = .accounts
-        Self.openSettingsWindow()
+        Self.openSettingsWindow(reason: "post_logout")
     }
 
     // MARK: - Private
@@ -280,15 +305,34 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func handleIncomingUploadURLs(_ urls: [URL]) {
         let fileURLs = urls.filter(\.isFileURL)
         guard !fileURLs.isEmpty else { return }
+
+        // P0: dock_files_received
+        let hasDirectory = fileURLs.contains { (try? $0.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false }
+        TelemetryService.shared.track("dock_files_received", properties: [
+            "file_count": fileURLs.count,
+            "contains_directory": hasDirectory
+        ])
+
         menuBarController?.queueUserSelectedURLs(fileURLs)
     }
-
     /// Present an onboarding/setup window with the given mode and title.
     /// Closes any existing onboarding window first.
     private func presentOnboardingWindow(mode: OnboardingMode, title: String) {
         #if DEBUG
         R2Log.app.debug("presentOnboardingWindow: mode=\(String(describing: mode)), title=\(title)")
         #endif
+
+        // P0: onboarding_presented
+        let modeStr: String = {
+            switch mode {
+            case .initial: return "initial"
+            case .addAccount: return "add_account"
+            case .updateToken: return "update_token"
+            }
+        }()
+        TelemetryService.shared.track("onboarding_presented", properties: [
+            "onboarding_mode": modeStr
+        ])
         // Close existing window if open
         onboardingWindow?.close()
         onboardingWindow = nil
@@ -339,7 +383,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NotificationCenter.default.post(name: .r2dropAccountsDidChange, object: nil)
 
         // Show the Settings window so user sees the main app after onboarding
-        Self.openSettingsWindow()
+        Self.openSettingsWindow(reason: "post_onboarding")
     }
 
     // MARK: - Settings Window Helper
@@ -348,7 +392,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// The SwiftUI `Settings` scene + `sendAction(showSettingsWindow:)` approach
     /// is broken on macOS 14+ (logs "Please use SettingsLink" and does nothing).
     /// This creates a real NSWindow wrapping SettingsView, same pattern as onboarding.
-    static func openSettingsWindow() {
+    static func openSettingsWindow(reason: String = "unknown") {
+        // P0: settings_window_opened
+        TelemetryService.shared.track("settings_window_opened", properties: [
+            "reason": reason
+        ])
+
         // If the window already exists and is visible, just bring it to front
         if let existing = settingsWindow, existing.isVisible {
             existing.makeKeyAndOrderFront(nil)

@@ -113,12 +113,30 @@ final class UploadMonitor {
             // Single upload completed — include URL from history if available
             let url = lookupURL(for: job)
             service.notifyUploadComplete(fileName: fileNameFromPath(job.filePath), url: url)
+
+            // P0: upload_completed
+            TelemetryService.shared.track("upload_completed", properties: [
+                "job_id": job.id,
+                "size_bucket": TelemetrySanitizer.sizeBucket(job.totalBytes),
+                "account_name_hash": TelemetrySanitizer.hash(job.accountName),
+                "bucket_hash": TelemetrySanitizer.hash(job.bucket),
+                "used_custom_domain_url": url?.contains("r2.cloudflarestorage.com") == false
+            ])
+
             #if DEBUG
             R2Log.upload.debug("UploadMonitor: notified single upload complete")
             #endif
         } else if completedJobs.count > 1 {
             // Batch completed
             service.notifyBatchComplete(count: completedJobs.count)
+
+            // P0: upload_batch_completed
+            let totalBytes = completedJobs.reduce(UInt64(0)) { $0 + $1.totalBytes }
+            TelemetryService.shared.track("upload_batch_completed", properties: [
+                "count": completedJobs.count,
+                "total_bytes": TelemetrySanitizer.sizeBucket(totalBytes)
+            ])
+
             #if DEBUG
             R2Log.upload.debug("UploadMonitor: notified batch complete count=\(completedJobs.count)")
             #endif
@@ -131,6 +149,13 @@ final class UploadMonitor {
                 error: error,
                 jobId: job.id
             )
+
+            // P0: upload_failed
+            TelemetryService.shared.track("upload_failed", properties: [
+                "job_id": job.id,
+                "error_type": String(describing: type(of: error)),
+                "error_message_hash": TelemetrySanitizer.errorHash(error)
+            ])
         }
         #if DEBUG
         if !failedJobs.isEmpty {

@@ -132,7 +132,7 @@ final class SettingsViewModel: ObservableObject {
             }
         }
         save()
-        AnalyticsService.shared.trackSettingsChanged(settingName: "launch_at_login", newValue: String(enabled))
+        TelemetryService.shared.track("setting_changed", properties: ["setting_key": "launch_at_login", "new_value_bucket": String(enabled)])
     }
 
     // MARK: - Hide Dock Icon (FR-045)
@@ -145,12 +145,12 @@ final class SettingsViewModel: ObservableObject {
         hideDockIcon = hide
         NSApp.setActivationPolicy(hide ? .accessory : .regular)
         save()
-        AnalyticsService.shared.trackSettingsChanged(settingName: "hide_dock_icon", newValue: String(hide))
+        TelemetryService.shared.track("setting_changed", properties: ["setting_key": "hide_dock_icon", "new_value_bucket": String(hide)])
         // Re-activate our settings window after policy change.
         // Switching to .accessory hides all windows — we need to bring ours back.
         if hide {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                AppDelegate.openSettingsWindow()
+                AppDelegate.openSettingsWindow(reason: "dock_icon_toggle")
             }
         }
     }
@@ -160,20 +160,20 @@ final class SettingsViewModel: ObservableObject {
     func togglePlaySound(_ enabled: Bool) {
         playSound = enabled
         save()
-        AnalyticsService.shared.trackSettingsChanged(settingName: "play_sound", newValue: String(enabled))
+        TelemetryService.shared.track("setting_changed", properties: ["setting_key": "play_sound", "new_value_bucket": String(enabled)])
     }
 
     func toggleFollowSymlinks(_ enabled: Bool) {
         followSymlinks = enabled
         save()
-        AnalyticsService.shared.trackSettingsChanged(settingName: "follow_symlinks", newValue: String(enabled))
+        TelemetryService.shared.track("setting_changed", properties: ["setting_key": "follow_symlinks", "new_value_bucket": String(enabled)])
     }
 
     func toggleAllowAnonymousTelemetry(_ enabled: Bool) {
         allowAnonymousTelemetry = enabled
-        AnalyticsService.shared.setEnabled(enabled)
+        TelemetryService.shared.setEnabled(enabled)
         save()
-        AnalyticsService.shared.trackSettingsChanged(settingName: "allow_anonymous_telemetry", newValue: String(enabled))
+        TelemetryService.shared.track("setting_changed", properties: ["setting_key": "allow_anonymous_telemetry", "new_value_bucket": String(enabled)])
     }
 
     // MARK: - Upload Performance (FR-048)
@@ -268,8 +268,13 @@ final class SettingsViewModel: ObservableObject {
         #endif
         cliInstallStatus = "Installing..."
 
+        // P0: cli_install_started
+        TelemetryService.shared.track("cli_install_started", properties: [
+            "surface": "settings"
+        ])
+
         Task.detached {
-            let (_, statusMessage) = Self.installCLIInBackground()
+            let (success, statusMessage) = Self.installCLIInBackground()
 
             await MainActor.run { [weak self] in
                 #if DEBUG
@@ -277,10 +282,20 @@ final class SettingsViewModel: ObservableObject {
                 #endif
                 self?.cliInstallStatus = statusMessage
                 self?.detectCLI()
+
+                // P0: cli_install_succeeded/failed
+                if success {
+                    TelemetryService.shared.track("cli_install_succeeded", properties: [
+                        "install_method": "settings"
+                    ])
+                } else {
+                    TelemetryService.shared.track("cli_install_failed", properties: [
+                        "failure_reason": statusMessage
+                    ])
+                }
             }
         }
     }
-
     // MARK: - CLI Install Helpers
 
     private nonisolated static func installCLIInBackground() -> (Bool, String) {
