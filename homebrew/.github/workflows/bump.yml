@@ -1,0 +1,44 @@
+# .github/workflows/bump.yml
+# Auto-bumps Cask and Formula versions when a new r2drop release is published.
+# Triggered by repository_dispatch from the main r2drop release workflow,
+# or daily as a fallback.
+name: Bump Tap
+
+on:
+  repository_dispatch:
+    types: [new-release]
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  bump:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Git identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@main
+
+      - name: Bump Formula and Cask
+        env:
+          HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Bump the cask (downloads new .dmg, computes SHA256 automatically)
+          brew bump-cask-pr --no-fork --write-only r2drop || true
+
+          # Bump the formula
+          brew bump-formula-pr --no-fork --write-only r2-cli || true
+
+          # Commit if anything changed
+          git diff --quiet || (
+            git add -A &&
+            git commit -m "chore: bump to $(gh api repos/superhumancorp/r2drop/releases/latest --jq '.tag_name')" &&
+            git push
+          )

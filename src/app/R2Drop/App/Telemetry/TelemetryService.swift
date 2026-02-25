@@ -1,5 +1,5 @@
 // R2Drop/App/Telemetry/TelemetryService.swift
-// Main telemetry service — replaces AnalyticsService.
+// Main telemetry service wrapping PostHog SDK.
 // Wraps PostHog SDK with identity management, common properties, sanitization,
 // rate limiting, and error tracking. All telemetry calls are fire-and-forget
 // and must never throw or block the UI.

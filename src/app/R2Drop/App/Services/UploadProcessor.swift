@@ -93,6 +93,11 @@ final class UploadProcessor {
             let elapsed = Date().timeIntervalSince(start)
             if elapsed > processingTimeout {
                 NSLog("R2Drop UploadProcessor: processing still running after %.0fs (skipping re-entry)", elapsed)
+
+                // P1: upload_processing_reentry_skipped (sampled)
+                TelemetryService.shared.trackIfAllowed("upload_processing_reentry_skipped", dedupeKey: "reentry_skip", properties: [
+                    "elapsed_sec": Int(elapsed)
+                ])
             }
             return
         }
@@ -104,12 +109,17 @@ final class UploadProcessor {
         // Get active account credentials — log each failure path so we can diagnose
         guard let config = try? ConfigManager.load() else {
             NSLog("R2Drop UploadProcessor: failed to load config")
+
+            // P1: upload_processing_blocked
+            TelemetryService.shared.trackIfAllowed("upload_processing_blocked", dedupeKey: "blocked_no_config", properties: [
+                "reason": "config_load_failed"
+            ])
+
             isProcessing = false
             processingStartTime = nil
             return
         }
         guard let activeName = config.activeAccount else {
-            // Not an error for first-time users. Only log once per minute.
             #if DEBUG
             R2Log.upload.debug("UploadProcessor: no activeAccount set in config (accounts=\(config.accounts.count))")
             #endif
@@ -119,24 +129,48 @@ final class UploadProcessor {
         }
         guard let account = config.accounts.first(where: { $0.name == activeName }) else {
             NSLog("R2Drop UploadProcessor: activeAccount '%@' not found in config", activeName)
+
+            // P1: upload_processing_blocked
+            TelemetryService.shared.trackIfAllowed("upload_processing_blocked", dedupeKey: "blocked_account_not_found", properties: [
+                "reason": "account_not_found"
+            ])
+
             isProcessing = false
             processingStartTime = nil
             return
         }
         guard !account.accountId.isEmpty else {
             NSLog("R2Drop UploadProcessor: account '%@' has empty accountId", activeName)
+
+            // P1: upload_processing_blocked
+            TelemetryService.shared.trackIfAllowed("upload_processing_blocked", dedupeKey: "blocked_no_account_id", properties: [
+                "reason": "empty_account_id"
+            ])
+
             isProcessing = false
             processingStartTime = nil
             return
         }
         guard !account.tokenId.isEmpty else {
             NSLog("R2Drop UploadProcessor: account '%@' has no tokenId (S3 Access Key ID). Re-run onboarding to fix.", activeName)
+
+            // P1: upload_processing_blocked
+            TelemetryService.shared.trackIfAllowed("upload_processing_blocked", dedupeKey: "blocked_no_token_id", properties: [
+                "reason": "empty_token_id"
+            ])
+
             isProcessing = false
             processingStartTime = nil
             return
         }
         guard let token = try? KeychainManager().getToken(account: activeName) else {
             NSLog("R2Drop UploadProcessor: no Keychain token for account '%@'", activeName)
+
+            // P1: upload_processing_blocked
+            TelemetryService.shared.trackIfAllowed("upload_processing_blocked", dedupeKey: "blocked_no_token", properties: [
+                "reason": "no_keychain_token"
+            ])
+
             isProcessing = false
             processingStartTime = nil
             return
@@ -150,6 +184,13 @@ final class UploadProcessor {
         let secretAccessKey = sha256Hex(token)
         let client = self.r2Client
         NSLog("R2Drop UploadProcessor: invoking Rust processQueue (account=%@, accountId=%@)", activeName, accountId)
+        // P1: upload_processing_cycle_started
+        TelemetryService.shared.track("upload_processing_cycle_started", properties: [
+            "active_account_hash": TelemetrySanitizer.hash(activeName),
+            "has_token": true,
+            "has_token_id": true
+        ])
+
         let startTime = Date()
         let task = Task.detached { [weak self] in
             do {

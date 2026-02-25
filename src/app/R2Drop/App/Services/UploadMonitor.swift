@@ -165,6 +165,13 @@ final class UploadMonitor {
 
         if wasPaused {
             service.notifyUploadPaused()
+
+            // P1: uploads_paused_detected
+            TelemetryService.shared.track("uploads_paused_detected", properties: [
+                "paused_count": pausedJobs.count,
+                "reason": "network_or_manual_unknown"
+            ])
+
             #if DEBUG
             R2Log.upload.debug("UploadMonitor: notified uploads paused")
             #endif

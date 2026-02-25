@@ -78,6 +78,17 @@ final class SettingsViewModel: ObservableObject {
         logDirPath = ConfigManager.configDir().appendingPathComponent("logs").path
 
         detectCLI()
+
+        // P1: settings_loaded
+        TelemetryService.shared.track("settings_loaded", properties: [
+            "cli_installed": cliInstalled,
+            "hide_dock_icon": hideDockIcon,
+            "launch_at_login": launchAtLogin,
+            "play_sound": playSound,
+            "concurrent_uploads": concurrentUploads,
+            "chunk_size_mb": chunkSizeMb
+        ])
+
         #if DEBUG
         R2Log.ui.debug("SettingsViewModel.load complete")
         #endif
@@ -110,7 +121,17 @@ final class SettingsViewModel: ObservableObject {
             #if DEBUG
             R2Log.ui.debug("SettingsViewModel.save failed: \(error)")
             #endif
+
+            // Part B: captureError for settings save failure
+            TelemetryService.shared.captureError(error, context: ErrorContext(
+                component: "settings",
+                operation: "save_config",
+                userVisible: false,
+                recoverable: true,
+                entrypoint: nil
+            ))
         }
+
     }
 
     // MARK: - Launch at Login (FR-045)
@@ -129,6 +150,15 @@ final class SettingsViewModel: ObservableObject {
             } catch {
                 // Revert on failure
                 launchAtLogin = !enabled
+
+                // Part B: captureError for launch-at-login toggle failure
+                TelemetryService.shared.captureError(error, context: ErrorContext(
+                    component: "settings",
+                    operation: "toggle_launch_at_login",
+                    userVisible: false,
+                    recoverable: true,
+                    entrypoint: nil
+                ))
             }
         }
         save()
@@ -230,14 +260,26 @@ final class SettingsViewModel: ObservableObject {
         if FileManager.default.fileExists(atPath: systemPath) {
             cliInstalled = true
             cliVersion = getCLIVersion(at: systemPath)
+
+            // P1: cli_detected
+            TelemetryService.shared.track("cli_detected", properties: [
+                "location": "/usr/local/bin"
+            ])
         } else if FileManager.default.fileExists(atPath: localPath) {
             cliInstalled = true
             cliVersion = getCLIVersion(at: localPath)
+
+            // P1: cli_detected
+            TelemetryService.shared.track("cli_detected", properties: [
+                "location": "~/.local/bin"
+            ])
         } else {
             cliInstalled = false
             cliVersion = ""
         }
+
     }
+
 
     /// Run `r2drop --version` to get the installed CLI version.
     private func getCLIVersion(at path: String) -> String {
@@ -256,6 +298,14 @@ final class SettingsViewModel: ObservableObject {
                 .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             return output
         } catch {
+            // Part B: captureError for CLI version check failure (minor)
+            TelemetryService.shared.captureError(error, context: ErrorContext(
+                component: "settings",
+                operation: "get_cli_version",
+                userVisible: false,
+                recoverable: true,
+                entrypoint: nil
+            ))
             return "unknown"
         }
     }
@@ -402,8 +452,11 @@ final class SettingsViewModel: ObservableObject {
             process.waitUntilExit()
             return process.terminationStatus == 0
         } catch {
+            // nonisolated static — can't call @MainActor TelemetryService here.
+            // Error is captured upstream in installCLI() via cli_install_failed event.
             return false
         }
+
     }
 
     private nonisolated static func installBinary(from source: URL, to destination: URL) throws {

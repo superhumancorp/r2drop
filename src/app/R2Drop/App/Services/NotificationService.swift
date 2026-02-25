@@ -141,6 +141,12 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
             content.userInfo = ["url": url, "fileName": fileName]
         }
 
+        // P1: notification_upload_complete_shown
+        TelemetryService.shared.track("notification_upload_complete_shown", properties: [
+            "single_or_batch": "single",
+            "count": 1
+        ])
+
         post(content, id: "upload-complete-\(fileName)-\(Date().timeIntervalSince1970)")
         playSoundIfEnabled()
     }
@@ -154,6 +160,12 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
         content.title = "Uploads Complete"
         content.body = "\(count) files have been uploaded to R2."
         // No "Copy URL" action for batch — can't copy multiple URLs to clipboard
+
+        // P1: notification_upload_complete_shown (batch)
+        TelemetryService.shared.track("notification_upload_complete_shown", properties: [
+            "single_or_batch": "batch",
+            "count": count
+        ])
 
         post(content, id: "batch-complete-\(Date().timeIntervalSince1970)")
         playSoundIfEnabled()
@@ -169,6 +181,11 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
         content.body = "\"\(fileName)\" failed: \(error)"
         content.categoryIdentifier = NotificationCategory.uploadFailed.rawValue
         content.userInfo = ["jobId": jobId, "fileName": fileName]
+
+        // P1: notification_upload_failed_shown
+        TelemetryService.shared.track("notification_upload_failed_shown", properties: [
+            "job_id": jobId
+        ])
 
         post(content, id: "upload-failed-\(jobId)")
     }
@@ -196,6 +213,11 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
         content.body = "Your token for \"\(accountName)\" has expired. Click here to set up a new one."
         content.categoryIdentifier = NotificationCategory.tokenExpired.rawValue
         content.userInfo = ["accountName": accountName]
+
+        // P1: notification_token_expired_shown
+        TelemetryService.shared.track("notification_token_expired_shown", properties: [
+            "account_name_hash": TelemetrySanitizer.hash(accountName)
+        ])
 
         post(content, id: "token-expired-\(accountName)")
     }
@@ -270,6 +292,13 @@ final class NotificationService: NSObject, ObservableObject, UNUserNotificationC
 
     /// Submit a notification request to the notification center.
     private func post(_ content: UNMutableNotificationContent, id: String) {
+        // P1: notification_posted
+        let idPrefix = String(id.prefix(while: { $0 != "-" }))
+        TelemetryService.shared.track("notification_posted", properties: [
+            "category": content.categoryIdentifier,
+            "id_prefix": idPrefix
+        ])
+
         let request = UNNotificationRequest(
             identifier: id,
             content: content,

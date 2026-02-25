@@ -174,44 +174,6 @@ public final class R2Client: Sendable {
         return jobId
     }
 
-    /// Pause an upload job.
-    public func pauseUpload(id: Int64) throws {
-        if r2_pause_upload(id) != 0 {
-            throw R2BridgeError.ffiError(lastError())
-        }
-    }
-
-    /// Resume a paused upload job.
-    public func resumeUpload(id: Int64) throws {
-        if r2_resume_upload(id) != 0 {
-            throw R2BridgeError.ffiError(lastError())
-        }
-    }
-
-    /// Cancel an upload job.
-    public func cancelUpload(id: Int64) throws {
-        if r2_cancel_upload(id) != 0 {
-            throw R2BridgeError.ffiError(lastError())
-        }
-    }
-
-    /// Get current queue status as JSON string (to be decoded by caller).
-    public func getQueueStatus() throws -> String {
-        guard let ptr = r2_get_queue_status() else {
-            throw R2BridgeError.ffiError(lastError())
-        }
-        defer { r2_free_string(ptr) }
-        return String(cString: ptr)
-    }
-
-    /// Get upload history as JSON string (to be decoded by caller).
-    public func getHistory() throws -> String {
-        guard let ptr = r2_get_history() else {
-            throw R2BridgeError.ffiError(lastError())
-        }
-        defer { r2_free_string(ptr) }
-        return String(cString: ptr)
-    }
 
     // MARK: - Queue Processing
 

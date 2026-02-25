@@ -172,6 +172,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         #if DEBUG
         R2Log.app.debug("applicationWillTerminate — stopping services")
         #endif
+
+        // P1: app_terminate
+        let sessionDuration = Int(Date().timeIntervalSince(TelemetryService.shared.sessionStartTime))
+        TelemetryService.shared.track("app_terminate", properties: [
+            "session_duration_sec": sessionDuration,
+            "pending_error_summary_count": 0
+        ])
+
         // Flush telemetry before shutdown
         TelemetryService.shared.shutdown()
         tokenValidationService.stop()
@@ -258,6 +266,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         #if DEBUG
         R2Log.app.debug("logOut: \(accountName)")
         #endif
+
+        // P1: account_logout_requested
+        TelemetryService.shared.track("account_logout_requested", properties: [
+            "account_name_hash": TelemetrySanitizer.hash(accountName),
+            "surface": "accounts_tab"
+        ])
+
         let alert = NSAlert()
         alert.messageText = "Log out of \"\(accountName)\"?"
         alert.informativeText = "This will remove the API token from Keychain and delete the account configuration."
@@ -372,6 +387,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func dismissOnboarding() {
         onboardingWindow?.close()
         onboardingWindow = nil
+
+        // P1: onboarding_dismissed
+        TelemetryService.shared.track("onboarding_dismissed", properties: [
+            "has_accounts_after": accountsExist()
+        ])
 
         // After any account setup, start periodic token validation if accounts exist
         if accountsExist() {

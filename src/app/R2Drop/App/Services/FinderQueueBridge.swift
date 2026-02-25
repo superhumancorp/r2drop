@@ -129,6 +129,15 @@ final class FinderQueueBridge {
                 R2Log.service.error("FinderQueueBridge: Failed to transfer job \(job.id): \(error)")
                 #endif
                 NSLog("R2Drop: Failed to transfer job \(job.id): \(error)")
+
+                // Part B: captureError for job transfer failure
+                TelemetryService.shared.captureError(error, context: ErrorContext(
+                    component: "finder_queue_bridge",
+                    operation: "transfer_job",
+                    userVisible: false,
+                    recoverable: true,
+                    entrypoint: "finder_bridge"
+                ))
             }
         }
 

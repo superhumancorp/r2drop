@@ -372,6 +372,12 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         let config = (try? ConfigManager.load()) ?? R2Config()
         guard let activeName = config.activeAccount,
               let account = config.accounts.first(where: { $0.name == activeName }) else {
+
+            // P1: upload_no_active_account_blocked
+            TelemetryService.shared.track("upload_no_active_account_blocked", properties: [
+                "entrypoint": "menu_bar_drop"
+            ])
+
             let alert = NSAlert()
             alert.messageText = "No Active Account"
             alert.informativeText = "Set up an account before uploading files."

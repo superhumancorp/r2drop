@@ -93,6 +93,12 @@ enum DeepLinkHandler {
         let config = (try? ConfigManager.load()) ?? R2Config()
         guard let activeName = config.activeAccount,
               let account = config.accounts.first(where: { $0.name == activeName }) else {
+
+            // P1: upload_no_active_account_blocked
+            TelemetryService.shared.track("upload_no_active_account_blocked", properties: [
+                "entrypoint": "deep_link"
+            ])
+
             showAlert(
                 title: "No Active Account",
                 message: "Set up an account before uploading files."
@@ -102,6 +108,13 @@ enum DeepLinkHandler {
 
         // Check for compress flag
         let compress = components?.queryItems?.first(where: { $0.name == "compress" })?.value == "true"
+
+        // P1: deep_link_upload_requested
+        TelemetryService.shared.track("deep_link_upload_requested", properties: [
+            "compress_requested": compress,
+            "path_exists": true,
+            "readable": true
+        ])
 
         // Confirmation dialog (skipped if "Never ask again")
         let neverAsk = UserDefaults(suiteName: "group.com.superhumancorp.r2drop")?.bool(forKey: "R2Drop.NeverAskConfirmation") ?? false
@@ -115,8 +128,19 @@ enum DeepLinkHandler {
                 : "Upload \"\(fileName)\" (\(sizeStr))?"
 
             guard showConfirmation(title: "Confirm Upload", message: msg) else {
+                // P1: deep_link_upload_confirmation_result (cancelled)
+                TelemetryService.shared.track("deep_link_upload_confirmation_result", properties: [
+                    "compress_requested": compress,
+                    "result": "cancelled"
+                ])
                 return true // handled but user cancelled
             }
+
+            // P1: deep_link_upload_confirmation_result (confirmed)
+            TelemetryService.shared.track("deep_link_upload_confirmation_result", properties: [
+                "compress_requested": compress,
+                "result": "confirmed"
+            ])
         }
 
         // Handle ZIP compression if requested
@@ -131,6 +155,20 @@ enum DeepLinkHandler {
                 try compressToZip(source: fileURL, destination: zipURL)
                 uploadURL = zipURL
             } catch {
+                // P1: deep_link_upload_zip_compress_failed
+                TelemetryService.shared.track("deep_link_upload_zip_compress_failed", properties: [
+                    "error_type": String(describing: type(of: error))
+                ])
+
+                // Part B: captureError for ZIP compression failure
+                TelemetryService.shared.captureError(error, context: ErrorContext(
+                    component: "deep_link",
+                    operation: "zip_compress",
+                    userVisible: true,
+                    recoverable: false,
+                    entrypoint: "deep_link"
+                ))
+
                 showAlert(title: "Compression Failed", message: "Could not create ZIP archive: \(error.localizedDescription)")
                 return true
             }
@@ -148,6 +186,11 @@ enum DeepLinkHandler {
     private static func handlePreferences(url: URL) -> Bool {
         // Parse tab from path: r2drop://preferences/queue → "queue"
         let pathSegment = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+
+        // P1: deep_link_preferences_opened
+        TelemetryService.shared.track("deep_link_preferences_opened", properties: [
+            "tab": pathSegment.isEmpty ? "default" : pathSegment
+        ])
 
         if !pathSegment.isEmpty {
             let tab: SettingsTab? = {
@@ -180,6 +223,12 @@ enum DeepLinkHandler {
 
         guard let manager = try? AccountManager() else { return false }
         let switched = (try? manager.switchAccount(to: name)) ?? false
+
+        // P1: deep_link_account_switch_result
+        TelemetryService.shared.track("deep_link_account_switch_result", properties: [
+            "result": switched ? "success" : "not_found"
+        ])
+
         if !switched {
             showAlert(
                 title: "Account Not Found",
@@ -208,7 +257,12 @@ enum DeepLinkHandler {
             return false
         }
 
-        // Construct Cloudflare dashboard URL (FR-040 pattern)
+        // P1: deep_link_browse_opened
+        TelemetryService.shared.track("deep_link_browse_opened", properties: [
+            "account_name_hash": TelemetrySanitizer.hash(name),
+            "bucket_hash": TelemetrySanitizer.hash(account.bucket)
+        ])
+
         let dashURL = "https://dash.cloudflare.com/\(account.accountId)/r2/default/buckets/\(account.bucket)"
         if let browseURL = URL(string: dashURL) {
             NSWorkspace.shared.open(browseURL)
@@ -222,6 +276,11 @@ enum DeepLinkHandler {
     private static func handleAuth(url: URL, appDelegate: AppDelegate) -> Bool {
         let path = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
         guard path == "setup" else { return false }
+
+        // P1: deep_link_auth_setup_opened
+        TelemetryService.shared.track("deep_link_auth_setup_opened", properties: [
+            "surface": "deeplink"
+        ])
 
         // FR-059: This opens a wizard that requires user action.
         // It does not auto-accept or modify credentials.

@@ -87,6 +87,12 @@ final class TokenValidationService: ObservableObject {
                 if let tokenId = await validateSingleToken(token) {
                     backfillTokenIdIfNeeded(accountName: account.name, tokenId: tokenId)
                     validCount += 1
+
+                    // P1: token_validated (first-run summary)
+                    TelemetryService.shared.trackIfAllowed("token_validated", dedupeKey: "token_valid_\(account.name)", properties: [
+                        "account_name_hash": TelemetrySanitizer.hash(account.name)
+                    ])
+
                     #if DEBUG
                     R2Log.service.debug("TokenValidationService: token valid for account \(account.name)")
                     #endif
@@ -102,8 +108,8 @@ final class TokenValidationService: ObservableObject {
                     TelemetryService.shared.trackIfAllowed("token_invalid_detected", dedupeKey: "token_invalid_\(account.name)", properties: [
                         "account_name_hash": TelemetrySanitizer.hash(account.name)
                     ])
-                }
             }
+        }
 
             // P0: token_validation_run_completed
             let durationMs = Int(Date().timeIntervalSince(startTime) * 1000)
@@ -128,6 +134,14 @@ final class TokenValidationService: ObservableObject {
         do {
             return try await r2Client.validateToken(token)
         } catch {
+            // Part B: captureError for single token validation failure
+            TelemetryService.shared.captureError(error, context: ErrorContext(
+                component: "token_validation",
+                operation: "validate_single_token",
+                userVisible: false,
+                recoverable: true,
+                entrypoint: nil
+            ))
             return nil
         }
     }
@@ -149,6 +163,14 @@ final class TokenValidationService: ObservableObject {
                 return true
             }
         } catch {
+            // Part B: captureError for config load failure in token validation
+            TelemetryService.shared.captureError(error, context: ErrorContext(
+                component: "token_validation",
+                operation: "load_accounts",
+                userVisible: false,
+                recoverable: true,
+                entrypoint: nil
+            ))
             return []
         }
     }
@@ -163,6 +185,12 @@ final class TokenValidationService: ObservableObject {
             guard config.accounts[idx].tokenId != tokenId else { return }
             config.accounts[idx].tokenId = tokenId
             try ConfigManager.save(config)
+
+            // P1: token_id_backfilled
+            TelemetryService.shared.track("token_id_backfilled", properties: [
+                "account_name_hash": TelemetrySanitizer.hash(accountName)
+            ])
+
             #if DEBUG
             R2Log.service.debug("TokenValidationService: backfilled tokenId for account \(accountName)")
             #endif
@@ -170,7 +198,22 @@ final class TokenValidationService: ObservableObject {
             #if DEBUG
             R2Log.service.error("TokenValidationService: failed to backfill tokenId for \(accountName): \(error)")
             #endif
-        }
+
+            // P1: token_id_backfill_failed
+            TelemetryService.shared.track("token_id_backfill_failed", properties: [
+                "account_name_hash": TelemetrySanitizer.hash(accountName),
+                "error_type": String(describing: type(of: error))
+            ])
+
+            // Part B: captureError for tokenId backfill failure
+            TelemetryService.shared.captureError(error, context: ErrorContext(
+                component: "token_validation",
+                operation: "backfill_token_id",
+                userVisible: false,
+                recoverable: true,
+                entrypoint: nil
+            ))
+    }
     }
 
     /// Schedule periodic token re-validation every 24 hours (FR-004).

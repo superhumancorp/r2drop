@@ -221,6 +221,13 @@ final class QueueViewModel: ObservableObject {
         
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(url, forType: .string)
+
+        // P1: queue_copy_url_clicked
+        TelemetryService.shared.track("queue_copy_url_clicked", properties: [
+            "job_id": job.id,
+            "has_custom_domain": account.customDomain != nil && !(account.customDomain?.isEmpty ?? true),
+            "surface": "queue"
+        ])
         
         #if DEBUG
         R2Log.ui.debug("QueueViewModel: copyURL job=\(job.id) url=\(url)")
@@ -239,6 +246,12 @@ final class QueueViewModel: ObservableObject {
             #if DEBUG
             R2Log.ui.debug("QueueViewModel: queueDroppedFile — no active account")
             #endif
+
+            // P1: upload_no_active_account_blocked
+            TelemetryService.shared.track("upload_no_active_account_blocked", properties: [
+                "entrypoint": "queue_tab_drag"
+            ])
+
             return
         }
 
@@ -293,6 +306,12 @@ final class QueueViewModel: ObservableObject {
         #if DEBUG
         R2Log.ui.debug("QueueViewModel: queued dropped file(s) from \(url.lastPathComponent)")
         #endif
+        // P1: queue_tab_files_dropped
+        TelemetryService.shared.track("queue_tab_files_dropped", properties: [
+            "file_count": 1,
+            "contains_directory": isDirectory
+        ])
+
         // P0: upload_enqueue_requested (from queue drop)
         TelemetryService.shared.track("upload_enqueue_requested", properties: [
             "entrypoint": "queue_drop",

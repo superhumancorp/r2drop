@@ -297,6 +297,12 @@ final class OnboardingViewModel: ObservableObject {
         R2Log.ui.debug("OnboardingViewModel: fetchCustomDomains bucket=\(bucket) accountId=\(self.accountId)")
         #endif
 
+        // P1: onboarding_custom_domains_fetch_started
+        let bucketHash = TelemetrySanitizer.hash(bucket)
+        TelemetryService.shared.track("onboarding_custom_domains_fetch_started", properties: [
+            "bucket_hash": bucketHash
+        ])
+
         // Percent-encode the bucket name for URL safety (bucket names may contain dots)
         guard let encodedBucket = bucket.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
             isLoadingDomains = false
@@ -328,19 +334,15 @@ final class OnboardingViewModel: ObservableObject {
             }
             #endif
 
-            // Parse Cloudflare API response:
-            // { result: { domains: [{ domain: "cdn.example.com", enabled: true, status: { ownership: "active" } }] } }
             if httpStatus == 200,
                let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                let result = json["result"] as? [String: Any],
                let domainEntries = result["domains"] as? [[String: Any]] {
-                // Only show domains that are enabled and have active ownership
                 let activeDomains = domainEntries.compactMap { entry -> String? in
                     guard let domain = entry["domain"] as? String,
                           let enabled = entry["enabled"] as? Bool, enabled else {
                         return nil
                     }
-                    // Check ownership status if present, but don't require it
                     if let status = entry["status"] as? [String: Any],
                        let ownership = status["ownership"] as? String,
                        ownership == "deactivated" {
@@ -349,6 +351,13 @@ final class OnboardingViewModel: ObservableObject {
                     return domain
                 }
                 self.customDomains = activeDomains
+
+                // P1: onboarding_custom_domains_fetch_succeeded
+                TelemetryService.shared.track("onboarding_custom_domains_fetch_succeeded", properties: [
+                    "bucket_hash": bucketHash,
+                    "domain_count": activeDomains.count
+                ])
+
                 #if DEBUG
                 R2Log.ui.debug("OnboardingViewModel: found \(activeDomains.count) custom domains: \(activeDomains)")
                 #endif
@@ -356,21 +365,34 @@ final class OnboardingViewModel: ObservableObject {
                 #if DEBUG
                 R2Log.ui.debug("OnboardingViewModel: no domains in response or non-200 status")
                 #endif
-                self.customDomains = []  // Clear on non-200 response
-                #if DEBUG
-                R2Log.ui.debug("OnboardingViewModel: no domains in response or non-200 status")
-                #endif
+                self.customDomains = []
+
+                // P1: onboarding_custom_domains_fetch_failed (non-200)
+                TelemetryService.shared.track("onboarding_custom_domains_fetch_failed", properties: [
+                    "bucket_hash": bucketHash,
+                    "http_status": httpStatus
+                ])
             }
         } catch {
             #if DEBUG
             R2Log.ui.error("OnboardingViewModel: fetchCustomDomains failed: \(error)")
             #endif
-            // Non-fatal — custom domains are optional
-            self.customDomains = []  // Clear on error
-            #if DEBUG
-            R2Log.ui.error("OnboardingViewModel: fetchCustomDomains failed: \(error)")
-            #endif
-            // Non-fatal — custom domains are optional
+            self.customDomains = []
+
+            // P1: onboarding_custom_domains_fetch_failed (network error)
+            TelemetryService.shared.track("onboarding_custom_domains_fetch_failed", properties: [
+                "bucket_hash": bucketHash,
+                "error_type": String(describing: type(of: error))
+            ])
+
+            // Part B: captureError for custom domain fetch failure
+            TelemetryService.shared.captureError(error, context: ErrorContext(
+                component: "onboarding",
+                operation: "fetch_custom_domains",
+                userVisible: false,
+                recoverable: true,
+                entrypoint: nil
+            ))
         }
 
         isLoadingDomains = false
@@ -389,6 +411,11 @@ final class OnboardingViewModel: ObservableObject {
         isCreatingBucket = true
         bucketError = nil
 
+        // P1: onboarding_bucket_create_started
+        TelemetryService.shared.track("onboarding_bucket_create_started", properties: [
+            "bucket_name_len": name.count
+        ])
+
         do {
             try await r2Client.createBucket(accountId: accountId, name: name, token: token)
             let updated = try await r2Client.listBuckets(accountId: accountId, token: token)
@@ -397,9 +424,29 @@ final class OnboardingViewModel: ObservableObject {
             newBucketName = ""
             showCreateBucket = false
             isCreatingBucket = false
+
+            // P1: onboarding_bucket_create_succeeded
+            TelemetryService.shared.track("onboarding_bucket_create_succeeded", properties: [
+                "bucket_count_after": updated.count
+            ])
         } catch {
             bucketError = "Failed to create bucket: \(error.localizedDescription)"
             isCreatingBucket = false
+
+            // P1: onboarding_bucket_create_failed
+            TelemetryService.shared.track("onboarding_bucket_create_failed", properties: [
+                "error_type": String(describing: type(of: error)),
+                "user_visible": true
+            ])
+
+            // Part B: captureError for bucket creation failure
+            TelemetryService.shared.captureError(error, context: ErrorContext(
+                component: "onboarding",
+                operation: "create_bucket",
+                userVisible: true,
+                recoverable: true,
+                entrypoint: nil
+            ))
         }
     }
 

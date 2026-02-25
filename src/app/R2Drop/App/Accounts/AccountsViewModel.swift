@@ -90,6 +90,12 @@ final class AccountsViewModel: ObservableObject {
         if selectedAccountName == nil, let first = accounts.first {
             selectAccount(first.name)
         }
+
+        // P1: accounts_view_loaded
+        TelemetryService.shared.track("accounts_view_loaded", properties: [
+            "account_count": accounts.count,
+            "has_selection": selectedAccountName != nil
+        ])
     }
 
     // MARK: - Selection
@@ -108,6 +114,14 @@ final class AccountsViewModel: ObservableObject {
         pathError = nil
         hasUnsavedChanges = false
         bucketError = nil
+
+        // P1: account_selected
+        TelemetryService.shared.track("account_selected", properties: [
+            "account_name_hash": TelemetrySanitizer.hash(account.name),
+            "has_custom_domain": account.customDomain != nil && !(account.customDomain?.isEmpty ?? true),
+            "has_account_id": !account.accountId.isEmpty,
+            "has_token_id": !account.tokenId.isEmpty
+        ])
 
         // Fetch custom domains for the dropdown
         fetchCustomDomains(for: account)
@@ -144,12 +158,33 @@ final class AccountsViewModel: ObservableObject {
                     accountId: account.accountId, token: token
                 )
                 availableBuckets = buckets
+
+                // P1: account_buckets_fetch_succeeded
+                TelemetryService.shared.track("account_buckets_fetch_succeeded", properties: [
+                    "account_name_hash": TelemetrySanitizer.hash(account.name),
+                    "bucket_count": buckets.count
+                ])
                 isLoadingBuckets = false
             } catch {
                 bucketError = "Could not load buckets."
                 // Show the current bucket at minimum
                 availableBuckets = account.bucket.isEmpty ? [] : [account.bucket]
                 isLoadingBuckets = false
+
+                // P1: account_buckets_fetch_failed
+                TelemetryService.shared.track("account_buckets_fetch_failed", properties: [
+                    "account_name_hash": TelemetrySanitizer.hash(account.name),
+                    "error_type": String(describing: type(of: error))
+                ])
+
+                // Part B: captureError for bucket fetch failure
+                TelemetryService.shared.captureError(error, context: ErrorContext(
+                    component: "accounts",
+                    operation: "fetch_buckets",
+                    userVisible: true,
+                    recoverable: true,
+                    entrypoint: nil
+                ))
             }
         }
     }
@@ -203,6 +238,15 @@ final class AccountsViewModel: ObservableObject {
                 }
             } catch {
                 // Non-fatal — custom domains are optional
+
+                // Part B: captureError for custom domain fetch failure
+                TelemetryService.shared.captureError(error, context: ErrorContext(
+                    component: "accounts",
+                    operation: "fetch_custom_domains",
+                    userVisible: false,
+                    recoverable: true,
+                    entrypoint: nil
+                ))
             }
             isLoadingDomains = false
         }
@@ -211,6 +255,12 @@ final class AccountsViewModel: ObservableObject {
     /// Refresh custom domains for the currently selected account.
     func refreshDomains() {
         guard let account = selectedAccount else { return }
+
+        // P1: account_custom_domains_refresh_requested
+        TelemetryService.shared.track("account_custom_domains_refresh_requested", properties: [
+            "account_name_hash": TelemetrySanitizer.hash(account.name)
+        ])
+
         fetchCustomDomains(for: account)
     }
 

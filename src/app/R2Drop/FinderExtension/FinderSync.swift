@@ -80,26 +80,13 @@ class FinderSync: FIFinderSync {
 
         // Confirmation dialog (FR-019), skipped if "Never ask again" (FR-020)
         let neverAsk = Self.sharedDefaults?.bool(forKey: Self.neverAskKey) ?? false
-        var shouldCompress = false
-        var shouldCopyURL = true
-        // DISABLED: Compress and Copy URL features not yet implemented
-
         if !neverAsk {
             let result = showConfirmationDialog(urls: filteredURLs)
             guard result.confirmed else { return }
-            // shouldCompress = result.compress  // DISABLED
-            // shouldCopyURL = result.copyURL    // DISABLED
-        } else {
-            shouldCopyURL = Self.sharedDefaults?.bool(forKey: Self.copyURLKey) ?? true
         }
 
         // Queue uploads via App Groups shared queue.db (FR-021)
-        queueUploads(
-            urls: filteredURLs,
-            account: account,
-            compress: shouldCompress,
-            copyURL: shouldCopyURL
-        )
+        queueUploads(urls: filteredURLs, account: account)
     }
 
     // MARK: - Confirmation Dialog (FR-019)
@@ -107,8 +94,6 @@ class FinderSync: FIFinderSync {
     /// Result of the confirmation dialog.
     private struct ConfirmResult {
         let confirmed: Bool
-        let compress: Bool
-        let copyURL: Bool
     }
 
     /// Show the upload confirmation dialog with toggles.
@@ -134,23 +119,6 @@ class FinderSync: FIFinderSync {
         // Accessory view with toggles
         let accessoryView = NSView(frame: NSRect(x: 0, y: 0, width: 300, height: 76))
 
-        // DISABLED: "Compress as ZIP" feature not yet implemented
-        // let compressCheck = NSButton(
-        //     checkboxWithTitle: "Compress as ZIP",
-        //     target: nil, action: nil
-        // )
-        // compressCheck.frame = NSRect(x: 0, y: 52, width: 300, height: 20)
-        // compressCheck.state = .off
-        // accessoryView.addSubview(compressCheck)
-
-        // DISABLED: "Copy URL to clipboard" feature not yet implemented
-        // let copyURLCheck = NSButton(
-        //     checkboxWithTitle: "Copy URL to clipboard",
-        //     target: nil, action: nil
-        // )
-        // copyURLCheck.frame = NSRect(x: 0, y: 30, width: 300, height: 20)
-        // copyURLCheck.state = .on
-        // accessoryView.addSubview(copyURLCheck)
 
         // "Never ask again" checkbox (default off)
         let neverAskCheck = NSButton(
@@ -167,14 +135,10 @@ class FinderSync: FIFinderSync {
         // Save "Never ask again" preference if checked (FR-020)
         if neverAskCheck.state == .on {
             Self.sharedDefaults?.set(true, forKey: Self.neverAskKey)
-            // DISABLED: Copy URL feature not yet implemented
-            // Self.sharedDefaults?.set(false, forKey: Self.copyURLKey)
         }
 
         return ConfirmResult(
-            confirmed: response == .alertFirstButtonReturn,
-            compress: false,  // DISABLED: Compress feature not yet implemented
-            copyURL: true     // DISABLED: Copy URL feature not yet implemented
+            confirmed: response == .alertFirstButtonReturn
         )
     }
 
@@ -184,9 +148,7 @@ class FinderSync: FIFinderSync {
     /// The main app polls this database and transfers jobs for processing.
     private func queueUploads(
         urls: [URL],
-        account: ConfigAccount,
-        compress: Bool,
-        copyURL: Bool
+        account: ConfigAccount
     ) {
         guard let qm = try? QueueManager(appGroup: R2CoreConstants.appGroup) else {
             NSLog("R2Drop FinderExtension: Failed to open shared queue.db")

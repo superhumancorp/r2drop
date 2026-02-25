@@ -40,52 +40,127 @@ Telemetry event strategy/source of truth lives in `INSTRUMENTATION.md`.
 - [x] Add Settings UI toggle + persistence for anonymous telemetry.
 - [x] Add onboarding telemetry toggle and persist the choice in onboarding completion flow.
 
-### Event Instrumentation (Current Status)
+### Event Instrumentation
 
-- [x] Instrument core lifecycle events (e.g. `app_launch`, `app_services_started`, settings window opens, incoming URLs).
-- [x] Instrument onboarding funnel events (presented, token validation start/success/failure, finish start/success/failure, skip).
-- [x] Instrument queue/upload outcomes (enqueue requested, jobs enqueued, completed, batch completed, failed, queue pause/resume/cancel).
-- [x] Instrument Finder bridge transfer summaries and token validation summaries.
-- [x] Instrument notification permission and notification action clicks.
-- [x] Instrument settings changes and CLI install started/success/failure.
-- [ ] Complete remaining event coverage gaps and align implementation 1:1 with `INSTRUMENTATION.md` (some documented events are not yet emitted in all branches).
-- [ ] Replace/cleanup any stale references to legacy `AnalyticsService` naming in docs/comments (runtime code uses `TelemetryService`).
+- [x] Instrument P0 lifecycle events (`app_launch`, `app_services_started`, settings window, incoming URLs).
+- [x] Instrument P0 onboarding funnel (presented, token validation start/success/failure, finish start/success/failure, skip).
+- [x] Instrument P0 queue/upload outcomes (enqueue, jobs enqueued, completed, batch completed, failed, pause/resume/cancel).
+- [x] Instrument P0 Finder bridge transfer summaries and token validation summaries.
+- [x] Instrument P0 notification permission and notification action clicks.
+- [x] Instrument P0 settings changes and CLI install started/success/failure.
+- [x] Instrument P1 events across all files (lifecycle, onboarding, accounts, menu bar, uploads, queue, notifications, tokens, settings, deep links).
+- [x] Clean up stale `AnalyticsService` references in docs/comments.
 
 ### Error / Issue Telemetry Quality
 
 - [x] Add rate limiting + aggregation primitives for telemetry anti-spam (`TelemetryRateLimiter`, `TelemetryErrorTracker`).
-- [ ] Audit all user-visible and background failure branches to use structured error capture consistently (`TelemetryService.captureError(...)`) instead of ad-hoc event calls/comments.
+- [x] Audit all failure branches and add structured `captureError()` calls consistently.
 
 ## Distribution & Packaging
 
-### Homebrew Cask (macOS App)
+### curl|bash Installer (CLI)
 
-- [ ] Create `superhumancorp/homebrew-tap`.
-- [ ] Add `Casks/r2drop.rb` pointing to GitHub Release DMG URLs.
-- [ ] Add `Formula/r2drop-cli.rb` for architecture-specific CLI binaries.
-- [ ] Add CI automation to bump cask SHA / version in tap repo.
-- [ ] Add CI automation to bump CLI formula SHA / version in tap repo.
-- [ ] Validate install flows:
-  `brew install --cask superhumancorp/tap/r2drop`
-  and `brew install superhumancorp/tap/r2drop-cli`
+- [x] Create `scripts/install.sh` for `curl -fsSL https://r2drop.com/install.sh | bash` installation.
+  - Detects OS (macOS/Linux) and arch (arm64/x86_64)
+  - Downloads correct binary from GitHub Releases
+  - Installs to `~/.local/bin` or `/usr/local/bin`
+  - Supports `--bin-dir` and `--version` flags
+- [ ] **Host install.sh on r2drop.com** — add a redirect or static file at `https://r2drop.com/install.sh` pointing to `https://raw.githubusercontent.com/superhumancorp/r2drop/main/scripts/install.sh`. Or serve it from the `www/` directory.
+- [ ] **Create first GitHub Release with CLI binaries** — the install script expects assets named:
+  ```
+  r2-cli-aarch64-apple-darwin.tar.gz
+  r2-cli-x86_64-apple-darwin.tar.gz
+  r2-cli-x86_64-unknown-linux-musl.tar.gz
+  r2-cli-aarch64-unknown-linux-musl.tar.gz
+  ```
+  Each tarball should contain a single file named `r2-cli` (no extension).
+
+### Homebrew Tap
+
+Template files are ready in `/homebrew/` — need to be pushed to a separate repo.
+
+- [ ] **Create the `superhumancorp/homebrew-tap` GitHub repo.** Steps:
+  ```bash
+  gh repo create superhumancorp/homebrew-tap --public --description "Homebrew tap for R2Drop"
+  cd /tmp && git clone https://github.com/superhumancorp/homebrew-tap.git
+  # Copy template files from this repo:
+  cp -r /path/to/r2drop/homebrew/* /tmp/homebrew-tap/
+  cp -r /path/to/r2drop/homebrew/.github /tmp/homebrew-tap/
+  cd /tmp/homebrew-tap && git add -A && git commit -m "feat: initial tap with r2drop cask and r2-cli formula"
+  git push origin main
+  ```
+- [ ] **Update SHA256 hashes in Cask/Formula** once first release is published. Replace `REPLACE_WITH_*_SHA256` placeholders:
+  ```bash
+  # Compute SHA for each release asset:
+  curl -fsSL https://github.com/superhumancorp/r2drop/releases/download/v0.1.0/R2Drop-0.1.0-aarch64.dmg | shasum -a 256
+  curl -fsSL https://github.com/superhumancorp/r2drop/releases/download/v0.1.0/r2-cli-aarch64-apple-darwin.tar.gz | shasum -a 256
+  # etc.
+  ```
+- [ ] **Add `repository_dispatch` trigger to release workflow.** In `.github/workflows/release.yml`, add after the release is published:
+  ```yaml
+  - name: Trigger tap bump
+    uses: peter-evans/repository-dispatch@v3
+    with:
+      token: ${{ secrets.TAP_GITHUB_TOKEN }}
+      repository: superhumancorp/homebrew-tap
+      event-type: new-release
+  ```
+  This requires a PAT with `repo` scope stored as `TAP_GITHUB_TOKEN` in the main repo's secrets.
+- [ ] **Validate install flows** end-to-end:
+  ```bash
+  brew tap superhumancorp/tap
+  brew install --cask superhumancorp/tap/r2drop
+  brew install superhumancorp/tap/r2-cli
+  ```
+
+### GitHub Release Workflows
+
+- [ ] **Create `.github/workflows/release.yml`** — sign, notarize, publish .dmg. Must produce:
+  - `R2Drop-{version}-aarch64.dmg` (Apple Silicon)
+  - `R2Drop-{version}-x86_64.dmg` (Intel) — or a universal binary .dmg
+  - Trigger Homebrew tap bump after publishing
+- [ ] **Create `.github/workflows/cli-release.yml`** — cross-compile CLI. Must produce tarballs:
+  - `r2-cli-aarch64-apple-darwin.tar.gz`
+  - `r2-cli-x86_64-apple-darwin.tar.gz`
+  - `r2-cli-x86_64-unknown-linux-musl.tar.gz`
+  - `r2-cli-aarch64-unknown-linux-musl.tar.gz`
+- [ ] **Create `.github/workflows/ci.yml`** — PR lint, build, test
 
 ### App Store (Deferred)
 
-- [ ] Create Apple Distribution certificate + App Store provisioning profile.
-- [ ] Audit App Sandbox entitlements for App Store packaging (network/app group/keychain/Finder extension scope).
-- [ ] Exclude Sparkle from App Store builds.
-- [ ] Add App Store build configuration/scheme.
-- [ ] Add CI archive/export/upload workflow for App Store submission.
-- [ ] Prepare App Store Connect listing assets and metadata.
-- [ ] Submit and address review feedback.
+These steps are needed only when ready for App Store distribution.
 
-## Dead / Unwired / Cleanup
+- [ ] **Create Apple Distribution certificate** — different from Developer ID Application cert used for direct distribution. Generate via Apple Developer portal > Certificates, Identifiers & Profiles > "Apple Distribution".
+- [ ] **Create App Store provisioning profile** — Portal > Profiles > "App Store" type, selecting the R2Drop app ID and the Apple Distribution cert.
+- [ ] **Audit App Sandbox entitlements** — App Store requires stricter sandbox. Review `R2Drop.entitlements`:
+  - `com.apple.security.network.client` — needed for R2 uploads ✅
+  - `com.apple.security.application-groups` — needed for Finder extension IPC ✅
+  - `com.apple.security.keychain-access-groups` — needed for token storage ✅
+  - Finder Sync Extension must declare its own entitlements separately
+  - Remove any entitlements not strictly needed
+- [ ] **Exclude Sparkle from App Store builds** — App Store apps use Apple's built-in update mechanism. Add a build flag or separate scheme that strips the Sparkle dependency. Sparkle's `SUPublicEDKey` in Info.plist should also be removed for App Store builds.
+- [ ] **Add App Store build configuration/scheme** — create an "R2Drop App Store" scheme in `project.yml` with:
+  - `CODE_SIGN_IDENTITY = "Apple Distribution"`
+  - `PROVISIONING_PROFILE_SPECIFIER` pointing to the App Store profile
+  - No Sparkle framework link
+- [ ] **Add CI archive/export/upload workflow** — `.github/workflows/appstore.yml`:
+  ```bash
+  xcodebuild archive -scheme "R2Drop App Store" -archivePath R2Drop.xcarchive
+  xcodebuild -exportArchive -archivePath R2Drop.xcarchive -exportOptionsPlist ExportOptions.plist -exportPath ./export
+  xcrun altool --upload-app -f ./export/R2Drop.pkg -t osx -u $APPLE_ID -p $APPLE_APP_SPECIFIC_PASSWORD
+  ```
+- [ ] **Prepare App Store Connect listing** — screenshots (1280×800, 1440×900, 2560×1600), description, keywords, category (Utilities), privacy policy URL, support URL.
+- [ ] **Submit and address review feedback** — Apple may flag the Finder Sync Extension or network entitlements. Have justification ready.
 
-- [ ] `ProgressBridge` is still orphaned (no exported FFI API currently accepts a progress callback).
-- [ ] `R2Client` queue/history helper APIs appear unused in the macOS app (`pauseUpload`, `resumeUpload`, `getQueueStatus`, `getHistory`).
-- [ ] Finder extension still carries disabled `compress` / `copyURL` plumbing and unused parameters.
+## Dead / Unwired / Cleanup (Completed)
+
+- [x] `ProgressBridge` removed — was orphaned (no FFI API accepts a progress callback). `UploadProgress` struct retained for future use.
+- [x] `R2Client` unused methods removed (`pauseUpload`, `resumeUpload`, `getQueueStatus`, `getHistory`). `cancelUpload` kept (actively used).
+- [x] Finder extension `compress` / `copyURL` dead plumbing removed — `copyURLKey` constant, disabled UI checkboxes, unused function parameters all cleaned up.
 
 ## Notes
 
 - `INSTRUMENTATION.md` is the canonical telemetry specification for event names, funnels, properties, anti-spam rules, and placement guidance.
 - `TODO.md` tracks execution status only (what is done vs still open).
+- `homebrew/` directory contains ready-to-use templates for `superhumancorp/homebrew-tap`. Copy to the separate repo when created.
+- `scripts/install.sh` is the curl|bash installer for the CLI. Host at `r2drop.com/install.sh` when website is live.

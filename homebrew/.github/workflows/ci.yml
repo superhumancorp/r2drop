@@ -1,0 +1,25 @@
+# .github/workflows/ci.yml
+# Lint and audit Homebrew Cask/Formula files on push and PR.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  audit:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Homebrew tap symlink
+        run: |
+          TAP_DIR="$(brew --repository)/Library/Taps/superhumancorp"
+          mkdir -p "$TAP_DIR"
+          ln -s "$GITHUB_WORKSPACE" "$TAP_DIR/homebrew-tap"
+
+      - name: Lint and audit
+        run: |
+          brew style --fix Casks/ Formula/ || true
+          brew audit --strict Casks/r2drop.rb Formula/r2-cli.rb

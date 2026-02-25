@@ -1,0 +1,32 @@
+# superhumancorp/homebrew-tap
+
+Homebrew tap for [R2Drop](https://r2drop.com) — macOS menu bar app and CLI for Cloudflare R2.
+
+## Setup
+
+```sh
+brew tap superhumancorp/tap
+```
+
+## Install
+
+```sh
+# macOS menu bar app
+brew install --cask superhumancorp/tap/r2drop
+
+# CLI (macOS + Linux)
+brew install superhumancorp/tap/r2-cli
+```
+
+## curl installer (CLI only)
+
+```sh
+curl -fsSL https://r2drop.com/install.sh | bash
+```
+
+## Packages
+
+| Package | Type | Description |
+|---------|------|-------------|
+| `r2drop` | Cask | macOS menu bar app (.dmg) |
+| `r2-cli` | Formula | CLI binary (macOS + Linux, arm64 + x86_64) |
