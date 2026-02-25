@@ -973,9 +973,10 @@ if (container) {
   pivot.scale.set(sc, sc, sc);
   scene.add(pivot);
 
-  // Linear Black Hole Suction Effect (No Rotation)
+  // Elegant Data Stream Carousel
   const particles = new THREE.Group();
-  // Center particles on the origin so they suck directly into the logo
+  // Move behind the logo so it frames it nicely
+  particles.position.z = -3;
   scene.add(particles);
 
   const icons = ['image.svg', 'mail.svg', 'music.svg', 'ppt.svg', 'psd.svg', 'record.svg', 'sql.svg', 'ttf.svg', 'vector.svg', 'video.svg', 'word.svg', 'xls.svg', 'zip.svg', 'pdf.png'];
@@ -1006,31 +1007,32 @@ if (container) {
     }
   }
 
-  icons.forEach((icon) => {
+  icons.forEach((icon, i) => {
     // Load texture once per icon via absolute remote URL
     const texture = loadIconTexture('https://r2drop.com/filetypes/' + icon);
     
-    // 4 instances of each icon
-    for(let j=0; j<4; j++) {
+    // 2 instances of each icon for an elegant data stream
+    for(let j=0; j<2; j++) {
       const material = new THREE.SpriteMaterial({ map: texture, transparent: true, opacity: 0.0, depthWrite: false });
       const sprite = new THREE.Sprite(material);
       
-      // Give each particle a random direction starting mostly from behind and around
-      const dx = (Math.random() - 0.5) * 4.0; // Wider horizontal spread
-      const dy = (Math.random() - 0.5) * 0.8; // Narrower vertical spread to prevent clipping
-      const dz = -0.5 - Math.random() * 1.5; // Weight towards the background (negative z)
+      // Distribute evenly in a ring
+      const angle = (i * 2 + j) * (Math.PI * 2 / (icons.length * 2)); 
+      const radius = 8 + Math.random() * 2; // Radius between 8 and 10
+      const yOffset = (Math.random() - 0.5) * 1.5; // Constrain vertical bounds
       
-      // Normalize direction
-      const len = Math.sqrt(dx*dx + dy*dy + dz*dz);
+      const scale = 0.5 + Math.random() * 0.3; // Elegant size
+      sprite.scale.set(scale, scale, scale);
       
       particles.add(sprite);
       particleData.push({
         sprite,
-        dx: dx / len,
-        dy: dy / len,
-        dz: dz / len,
-        distance: 20 + Math.random() * 20, // Start far away (20 to 40 units)
-        baseSpeed: 1.0 + Math.random() * 2.0 // Base speed moving inwards
+        angle,
+        radius,
+        speed: 0.08 + Math.random() * 0.05, // Slow elegant orbit
+        yOffset,
+        bobSpeed: 0.5 + Math.random() * 1.0, // Gentle vertical bob
+        bobPhase: Math.random() * Math.PI * 2
       });
     }
   });
@@ -1055,44 +1057,21 @@ if (container) {
     const dt = Math.min(t - lastT, 0.1); // Cap dt to prevent huge jumps
     lastT = t;
 
-    // Update Particles (Linear Suction Effect)
+    // Update Particles (Elegant Carousel Effect)
     particleData.forEach(p => {
-      // Accelerate exponentially as they get closer to 0
-      const accel = 1 + (50 / Math.max(p.distance, 1.0)); 
+      // Advance angle
+      p.angle += dt * p.speed;
+      
+      // Calculate elliptical path (wide X, shallow Z)
+      p.sprite.position.x = Math.cos(p.angle) * p.radius * 1.5; // Stretch laterally, keeping it in bounds
+      p.sprite.position.z = Math.sin(p.angle) * p.radius * 0.3; // Compress depth
+      
+      // Gentle floating motion
+      p.sprite.position.y = p.yOffset + Math.sin(t * p.bobSpeed + p.bobPhase) * 0.4;
 
-      // Move directly toward the origin
-      p.distance -= dt * p.baseSpeed * accel;
-      
-      // If it reaches the center, respawn far away
-      if (p.distance < 0.5) {
-        p.distance = 30 + Math.random() * 20;
-        
-        // Pick a new random direction, favoring lateral spread
-        const dx = (Math.random() - 0.5) * 4.0;
-        const dy = (Math.random() - 0.5) * 0.8;
-        const dz = -0.5 - Math.random() * 1.5;
-        const len = Math.sqrt(dx*dx + dy*dy + dz*dz);
-        
-        p.dx = dx / len;
-        p.dy = dy / len;
-        p.dz = dz / len;
-      }
-      
-      // Calculate position based on direction and distance
-      p.sprite.position.set(p.dx * p.distance, p.dy * p.distance, p.dz * p.distance);
-      
-      // Scale based on distance: appear small when far, large when close
-      const scale = 1.8 * Math.max(0.2, 1.0 - (p.distance / 40));
-      p.sprite.scale.set(scale, scale, scale);
-
-      // Fade out as it gets sucked in (distance < 3) or when it spawns far away (distance > 25)
-      if (p.distance < 3.0) {
-        p.sprite.material.opacity = 0.6 * Math.max(0, (p.distance - 0.5) / 2.5);
-      } else if (p.distance > 25.0) {
-        p.sprite.material.opacity = 0.6 * Math.max(0, (50.0 - p.distance) / 25.0);
-      } else {
-        p.sprite.material.opacity = 0.6;
-      }
+      // Dynamic opacity: Fade out when it moves to the back of the ellipse
+      const depthRatio = (p.sprite.position.z + 3) / 6; // roughly 0 (back) to 1 (front)
+      p.sprite.material.opacity = 0.05 + (0.5 * Math.max(0, Math.min(1, depthRatio))); 
     });
 
     // Slight parallax for the particle background based on mouse
