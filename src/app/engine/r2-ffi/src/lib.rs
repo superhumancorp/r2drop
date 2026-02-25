@@ -232,20 +232,23 @@ pub unsafe extern "C" fn r2_create_bucket(
 #[no_mangle]
 pub unsafe extern "C" fn r2_head_object(
     account_id: *const c_char,
-    token: *const c_char,
+    access_key_id: *const c_char,
+    secret_access_key: *const c_char,
     bucket: *const c_char,
     key: *const c_char,
 ) -> *mut c_char {
-    let (Some(account_id), Some(token), Some(bucket), Some(key)) = (
+    let (Some(account_id), Some(access_key_id), Some(secret_access_key), Some(bucket), Some(key)) = (
         unsafe { from_c_str(account_id) },
-        unsafe { from_c_str(token) },
+        unsafe { from_c_str(access_key_id) },
+        unsafe { from_c_str(secret_access_key) },
         unsafe { from_c_str(bucket) },
         unsafe { from_c_str(key) },
     ) else {
         set_last_error("null or invalid pointer argument".into());
         return std::ptr::null_mut();
     };
-    let client = s3::R2Client::new(account_id, token, token, token);
+    // REST bearer auth is not needed for S3 head_object checks.
+    let client = s3::R2Client::new(account_id, "", access_key_id, secret_access_key);
     match runtime().block_on(client.head_object(bucket, key)) {
         Ok(Some(info)) => {
             let json = serde_json::json!({
@@ -603,6 +606,7 @@ mod tests {
     fn head_object_null_returns_null() {
         let ptr = unsafe {
             r2_head_object(
+                std::ptr::null(),
                 std::ptr::null(),
                 std::ptr::null(),
                 std::ptr::null(),

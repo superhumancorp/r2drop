@@ -6,6 +6,7 @@
 // Uses a custom template image from the asset catalog for light/dark adaptation.
 
 import AppKit
+import CryptoKit
 import R2Bridge
 import R2Core
 
@@ -197,6 +198,11 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         let addItem = NSMenuItem(title: "Add Account...", action: #selector(addAccount), keyEquivalent: "")
         addItem.target = self
         menu.addItem(addItem)
+
+        // Manual upload picker (files and folders)
+        let uploadItem = NSMenuItem(title: "Upload File(s)...", action: #selector(openUploadPicker), keyEquivalent: "")
+        uploadItem.target = self
+        menu.addItem(uploadItem)
         menu.addItem(.separator())
 
         // 3. Queue summary (only shown when there are jobs)
@@ -281,6 +287,20 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     @objc private func addAccount() { appDelegate?.showAddAccount() }
 
+    @objc private func openUploadPicker() {
+        let panel = NSOpenPanel()
+        panel.title = "Upload to R2"
+        panel.message = "Select one or more files and/or folders to upload."
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = true
+        panel.allowsMultipleSelection = true
+        panel.resolvesAliases = true
+        panel.canCreateDirectories = false
+
+        guard panel.runModal() == .OK else { return }
+        queueUserSelectedURLs(panel.urls)
+    }
+
     @objc private func setActiveAccount(_ sender: NSMenuItem) {
         guard let name = sender.representedObject as? String else { return }
         let manager = try? AccountManager()
@@ -339,8 +359,19 @@ final class MenuBarController: NSObject, NSMenuDelegate {
             guard showDropConfirmation(urls: urls) else { return }
         }
 
-        // Queue uploads for the active account
-        queueUploads(urls: urls, account: account)
+        // Queue uploads for the active account on an async task so conflict
+        // checks (network HEAD calls) do not block the menu bar UI thread.
+        Task { [weak self] in
+            await self?.queueUploads(urls: urls, account: account)
+        }
+    }
+
+    /// Queue user-selected uploads from any UI entry point (menu picker, Dock open, drag-drop).
+    /// Uses the same validation + confirmation flow as menu bar drag-and-drop.
+    func queueUserSelectedURLs(_ urls: [URL]) {
+        let fileURLs = urls.filter { $0.isFileURL }
+        guard !fileURLs.isEmpty else { return }
+        handleDroppedFiles(fileURLs)
     }
 
     /// NSAlert confirmation for dropped files. Returns true if user clicks Upload.
@@ -371,26 +402,63 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     /// Insert upload jobs into queue.db for each dropped file or folder.
     /// Recursively enumerates folder contents, applies exclusion patterns (FR-049),
     /// and checks for conflicts with existing R2 objects (FR-065).
-    /// Conflict resolution runs on a background thread to avoid blocking the UI.
-    private func queueUploads(urls: [URL], account: ConfigAccount) {
+    /// Heavy work runs off-main; only conflict dialogs bounce back to MainActor.
+    private func queueUploads(urls: [URL], account: ConfigAccount) async {
         #if DEBUG
         R2Log.menubar.debug("queueUploads: \(urls.count) items to account=\(account.name) bucket=\(account.bucket)")
         #endif
+        let snapshot = MenuBarUploadQueueWorker.AccountSnapshot(account)
+        _ = await Task.detached(priority: .userInitiated) {
+            await MenuBarUploadQueueWorker.queue(urls: urls, account: snapshot)
+        }.value
+    }
+
+    // MARK: - Helpers
+
+    private func fileSize(_ url: URL) -> UInt64 {
+        let attrs = try? FileManager.default.attributesOfItem(atPath: url.path)
+        return attrs?[.size] as? UInt64 ?? 0
+    }
+
+    private func formatSize(_ bytes: UInt64) -> String {
+        ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .file)
+    }
+}
+
+// MARK: - Menu Upload Worker (off-main)
+
+/// Background worker for menu bar initiated uploads.
+/// Keeps file enumeration, queue DB inserts, and R2 HEAD checks off the main actor.
+private enum MenuBarUploadQueueWorker {
+
+    struct AccountSnapshot: Sendable {
+        let name: String
+        let bucket: String
+        let path: String
+        let accountId: String
+        let tokenId: String
+
+        init(_ account: ConfigAccount) {
+            self.name = account.name
+            self.bucket = account.bucket
+            self.path = account.path
+            self.accountId = account.accountId
+            self.tokenId = account.tokenId
+        }
+    }
+
+    static func queue(urls: [URL], account: AccountSnapshot) async {
         guard let qm = try? QueueManager() else { return }
 
-        // Load exclusion patterns from config
         let config = (try? ConfigManager.load()) ?? R2Config()
         let exclusions = config.preferences.exclusionPatterns
-
-        // Get token for head_object checks
-        let keychain = KeychainManager()
-        let token = try? keychain.getToken(account: account.name)
+        let token = try? KeychainManager().getToken(account: account.name)
+        var queuedAny = false
 
         for url in urls {
             let isDirectory = (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
 
             if isDirectory {
-                // Recursively enumerate folder contents
                 let enumerator = FileManager.default.enumerator(
                     at: url,
                     includingPropertiesForKeys: [.isRegularFileKey, .fileSizeKey],
@@ -406,129 +474,161 @@ final class MenuBarController: NSObject, NSMenuDelegate {
                     let name = "\(baseName)/\(relativePath)"
                     let pathPrefix = account.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
                     let r2Key = pathPrefix.isEmpty ? name : "\(pathPrefix)/\(name)"
-                    let size = fileSize(fileURL)
-                    _ = try? qm.insertJob(filePath: fileURL.path, r2Key: r2Key, bucket: account.bucket, accountName: account.name, totalBytes: size)
+                    if (try? qm.insertJob(
+                        filePath: fileURL.path,
+                        r2Key: r2Key,
+                        bucket: account.bucket,
+                        accountName: account.name,
+                        totalBytes: fileSize(fileURL)
+                    )) != nil {
+                        queuedAny = true
+                    }
                 }
-                continue  // Skip the single-file logic below
+                continue
             }
 
-            // Single file: apply exclusion filter
             let name = url.lastPathComponent
             guard !matchesExclusionPattern(name, patterns: exclusions) else { continue }
             let pathPrefix = account.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
             var r2Key = pathPrefix.isEmpty ? name : "\(pathPrefix)/\(name)"
 
-            // Check for conflict if we have credentials (FR-065)
-            // Runs on background thread — headObjectSync is a blocking FFI call
-            if let token = token, !account.accountId.isEmpty {
-                let resolution = resolveConflict(
-                    r2Key: r2Key, fileName: name,
-                    localSize: fileSize(url), account: account, token: token
+            if let token, !account.accountId.isEmpty, !account.tokenId.isEmpty {
+                let resolution = await resolveConflict(
+                    r2Key: r2Key,
+                    fileName: name,
+                    localSize: fileSize(url),
+                    account: account,
+                    token: token
                 )
                 switch resolution {
                 case .skip:
-                    continue // Don't queue this file
+                    continue
                 case .rename:
                     r2Key = ConflictManager.renamedKey(r2Key)
                 case .overwrite:
-                    break // Queue as-is, will overwrite
+                    break
                 case nil:
-                    break // No conflict — proceed normally
+                    break
                 }
             }
 
-            _ = try? qm.insertJob(
-                filePath: url.path, r2Key: r2Key,
-                bucket: account.bucket, accountName: account.name,
+            if (try? qm.insertJob(
+                filePath: url.path,
+                r2Key: r2Key,
+                bucket: account.bucket,
+                accountName: account.name,
                 totalBytes: fileSize(url)
-            )
+            )) != nil {
+                queuedAny = true
+            }
+        }
+
+        if queuedAny {
+            await MainActor.run {
+                NotificationCenter.default.post(name: .r2dropQueueDidChange, object: nil)
+            }
         }
     }
 
-    /// Check if r2Key already exists and resolve the conflict.
-    /// Returns nil if no conflict, or the user's choice if conflict detected.
-    /// The HEAD request runs on a background thread to avoid blocking the main thread.
-    private func resolveConflict(
-        r2Key: String, fileName: String,
-        localSize: UInt64, account: ConfigAccount, token: String
-    ) -> ConflictChoice? {
-        // Run head_object on a background thread — this is a blocking FFI call
-        // that talks to S3 over the network. Must not run on main thread.
-        let client = R2Client()
-        var headResult: R2ObjectInfo?
-        let semaphore = DispatchSemaphore(value: 0)
-        DispatchQueue.global(qos: .userInitiated).async {
-            headResult = try? client.headObjectSync(
-                accountId: account.accountId, token: token,
-                bucket: account.bucket, key: r2Key
-            )
-            semaphore.signal()
-        }
-        // Wait with a 10-second timeout to avoid hanging the UI indefinitely
-        let waitResult = semaphore.wait(timeout: .now() + 10)
-        guard waitResult == .success, let info = headResult else {
-            return nil // No existing object, error, or timeout — no conflict
+    private static func resolveConflict(
+        r2Key: String,
+        fileName: String,
+        localSize: UInt64,
+        account: AccountSnapshot,
+        token: String
+    ) async -> ConflictChoice? {
+        let secretAccessKey = sha256Hex(token)
+        guard let info = await headObjectWithTimeout(
+            accountId: account.accountId,
+            accessKeyId: account.tokenId,
+            secretAccessKey: secretAccessKey,
+            bucket: account.bucket,
+            key: r2Key,
+            timeoutSeconds: 10
+        ) else {
+            return nil
         }
 
-        // Object exists — check if "Apply to all" was set earlier this session
-        if let stored = ConflictManager.shared.storedChoice() {
-            return stored
-        }
-
-        // Show the conflict dialog (must run on main thread — we're already there)
-        let objInfo = ExistingObjectInfo(
+        let existingInfo = ExistingObjectInfo(
             contentLength: info.contentLength,
             lastModified: info.lastModifiedDate
         )
-        let result = ConflictDialog.show(
-            fileName: fileName, localSize: localSize, existingInfo: objInfo
-        )
-        ConflictManager.shared.recordChoice(result.choice, applyToAll: result.applyToAll)
-        return result.choice
+
+        return await MainActor.run {
+            if let stored = ConflictManager.shared.storedChoice() {
+                return stored
+            }
+            let result = ConflictDialog.show(
+                fileName: fileName,
+                localSize: localSize,
+                existingInfo: existingInfo
+            )
+            ConflictManager.shared.recordChoice(result.choice, applyToAll: result.applyToAll)
+            return result.choice
+        }
     }
 
+    private static func headObjectWithTimeout(
+        accountId: String,
+        accessKeyId: String,
+        secretAccessKey: String,
+        bucket: String,
+        key: String,
+        timeoutSeconds: UInt64
+    ) async -> R2ObjectInfo? {
+        let client = R2Client()
+        return await withTaskGroup(of: R2ObjectInfo?.self, returning: R2ObjectInfo?.self) { group in
+            group.addTask {
+                try? await client.headObject(
+                    accountId: accountId,
+                    accessKeyId: accessKeyId,
+                    secretAccessKey: secretAccessKey,
+                    bucket: bucket,
+                    key: key
+                )
+            }
+            group.addTask {
+                try? await Task.sleep(nanoseconds: timeoutSeconds * 1_000_000_000)
+                return nil
+            }
+            let first = await group.next() ?? nil
+            group.cancelAll()
+            return first
+        }
+    }
 
-    // MARK: - Exclusion Patterns (FR-049)
-
-    /// Check if a filename matches any exclusion pattern.
-    /// Supports suffix wildcards ("*.tmp"), prefix wildcards ("._*"),
-    /// contains wildcards ("foo*bar"), and exact matches ("Thumbs.db").
-    private func matchesExclusionPattern(_ filename: String, patterns: [String]) -> Bool {
+    private static func matchesExclusionPattern(_ filename: String, patterns: [String]) -> Bool {
         for pattern in patterns {
             if pattern.contains("*") {
                 if pattern.hasPrefix("*") {
-                    // Suffix match: "*.tmp" matches "file.tmp"
                     let suffix = String(pattern.dropFirst())
                     if filename.hasSuffix(suffix) { return true }
                 } else if pattern.hasSuffix("*") {
-                    // Prefix match: "._*" matches "._DS_Store"
                     let prefix = String(pattern.dropLast())
                     if filename.hasPrefix(prefix) { return true }
                 } else {
-                    // Contains match: "foo*bar"
                     let parts = pattern.split(separator: "*", maxSplits: 1)
-                    if parts.count == 2 {
-                        if filename.hasPrefix(String(parts[0])) && filename.hasSuffix(String(parts[1])) {
-                            return true
-                        }
+                    if parts.count == 2,
+                       filename.hasPrefix(String(parts[0])) &&
+                       filename.hasSuffix(String(parts[1])) {
+                        return true
                     }
                 }
-            } else {
-                // Exact match
-                if filename == pattern { return true }
+            } else if filename == pattern {
+                return true
             }
         }
         return false
     }
 
-    // MARK: - Helpers
-
-    private func fileSize(_ url: URL) -> UInt64 {
-        let attrs = try? FileManager.default.attributesOfItem(atPath: url.path)
-        return attrs?[.size] as? UInt64 ?? 0
+    private static func sha256Hex(_ input: String) -> String {
+        let data = Data(input.utf8)
+        let hash = SHA256.hash(data: data)
+        return hash.map { String(format: "%02x", $0) }.joined()
     }
 
-    private func formatSize(_ bytes: UInt64) -> String {
-        ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .file)
+    private static func fileSize(_ url: URL) -> UInt64 {
+        let attrs = try? FileManager.default.attributesOfItem(atPath: url.path)
+        return attrs?[.size] as? UInt64 ?? 0
     }
 }

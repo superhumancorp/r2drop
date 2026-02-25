@@ -99,13 +99,19 @@ public final class R2Client: Sendable {
     /// Check if an object exists in R2 and return its metadata (async version).
     /// Returns nil if the object does not exist. Used for conflict detection (FR-065).
     public func headObject(
-        accountId: String, token: String, bucket: String, key: String
+        accountId: String, accessKeyId: String, secretAccessKey: String, bucket: String, key: String
     ) async throws -> R2ObjectInfo? {
         try await Task.detached { [self] in
             #if DEBUG
             print("[R2Bridge:R2Client] headObject key=\(key)")
             #endif
-            let result = try headObjectSync(accountId: accountId, token: token, bucket: bucket, key: key)
+            let result = try headObjectSync(
+                accountId: accountId,
+                accessKeyId: accessKeyId,
+                secretAccessKey: secretAccessKey,
+                bucket: bucket,
+                key: key
+            )
             #if DEBUG
             print("[R2Bridge:R2Client] headObject exists=\(result != nil)")
             #endif
@@ -117,14 +123,16 @@ public final class R2Client: Sendable {
     /// The underlying FFI call blocks via Rust's block_on, so no async needed.
     /// Returns nil if the object does not exist.
     public func headObjectSync(
-        accountId: String, token: String, bucket: String, key: String
+        accountId: String, accessKeyId: String, secretAccessKey: String, bucket: String, key: String
     ) throws -> R2ObjectInfo? {
         guard let ptr = accountId.withCString({ aid in
-            token.withCString({ tok in
+            accessKeyId.withCString({ akid in
+                secretAccessKey.withCString({ sak in
                 bucket.withCString({ b in
                     key.withCString({ k in
-                        r2_head_object(aid, tok, b, k)
+                            r2_head_object(aid, akid, sak, b, k)
                     })
+                })
                 })
             })
         }) else {

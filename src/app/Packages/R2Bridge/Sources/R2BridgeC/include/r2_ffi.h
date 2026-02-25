@@ -109,7 +109,8 @@ int32_t r2_create_bucket(const char *account_id, const char *bucket_name, const 
  * All pointer params must be valid NUL-terminated C strings.
  */
 char *r2_head_object(const char *account_id,
-                     const char *token,
+                     const char *access_key_id,
+                     const char *secret_access_key,
                      const char *bucket,
                      const char *key);
 

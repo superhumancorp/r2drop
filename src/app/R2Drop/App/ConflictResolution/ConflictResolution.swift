@@ -9,7 +9,7 @@ import Foundation
 // MARK: - ConflictChoice
 
 /// User's choice when an upload conflicts with an existing R2 object.
-enum ConflictChoice {
+enum ConflictChoice: Sendable {
     /// Replace the existing object with the new upload.
     case overwrite
     /// Skip this file entirely — do not upload.
@@ -21,7 +21,7 @@ enum ConflictChoice {
 // MARK: - ExistingObjectInfo
 
 /// Metadata about the existing R2 object, shown in the conflict dialog.
-struct ExistingObjectInfo {
+struct ExistingObjectInfo: Sendable {
     /// Object size in bytes (nil if unknown).
     let contentLength: UInt64?
     /// Last modification date (nil if unknown).
@@ -64,7 +64,7 @@ final class ConflictManager {
 
     /// Generate a renamed R2 key by appending a timestamp suffix.
     /// Example: "photos/image.png" → "photos/image-1708790400.png"
-    static func renamedKey(_ originalKey: String) -> String {
+    nonisolated static func renamedKey(_ originalKey: String) -> String {
         let timestamp = Int(Date().timeIntervalSince1970)
         let url = URL(fileURLWithPath: originalKey)
         let ext = url.pathExtension

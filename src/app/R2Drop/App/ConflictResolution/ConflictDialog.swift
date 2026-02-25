@@ -10,7 +10,7 @@ import Foundation
 // MARK: - ConflictDialogResult
 
 /// Result from the conflict resolution dialog.
-struct ConflictDialogResult {
+struct ConflictDialogResult: Sendable {
     let choice: ConflictChoice
     let applyToAll: Bool
 }

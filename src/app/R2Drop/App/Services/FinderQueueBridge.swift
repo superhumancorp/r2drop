@@ -6,6 +6,7 @@
 // Polling interval: 2 seconds.
 
 import Foundation
+import CryptoKit
 import R2Bridge
 import R2Core
 
@@ -13,6 +14,7 @@ import R2Core
 final class FinderQueueBridge {
 
     private var pollTimer: Timer?
+    private var isTransferring = false
 
     /// Start polling the App Groups queue for new jobs.
     func start() {
@@ -23,10 +25,10 @@ final class FinderQueueBridge {
         pollTimer = Timer.scheduledTimer(
             withTimeInterval: 2.0, repeats: true
         ) { [weak self] _ in
-            Task { @MainActor in self?.transferPendingJobs() }
+            Task { @MainActor in await self?.transferPendingJobs() }
         }
         // Run immediately on start too
-        transferPendingJobs()
+        Task { @MainActor in await transferPendingJobs() }
     }
 
     /// Stop polling.
@@ -43,7 +45,11 @@ final class FinderQueueBridge {
     /// Check the shared App Groups queue.db for pending jobs,
     /// copy them to the main queue.db, and delete from shared DB.
     /// Checks for conflicts with existing R2 objects before transferring (FR-065).
-    private func transferPendingJobs() {
+    private func transferPendingJobs() async {
+        guard !isTransferring else { return }
+        isTransferring = true
+        defer { isTransferring = false }
+
         // Open the shared (Finder extension) queue
         guard let sharedQM = try? QueueManager(
             appGroup: R2CoreConstants.appGroup
@@ -67,12 +73,13 @@ final class FinderQueueBridge {
         #endif
 
         // Transfer each job with conflict checking
+        var transferredAny = false
         for job in sharedJobs {
             do {
                 var r2Key = job.r2Key
 
                 // Check for conflicts if we can get account credentials
-                if let resolution = checkConflict(job: job) {
+                if let resolution = await checkConflict(job: job) {
                     switch resolution {
                     case .skip:
                         // User chose to skip — delete from shared queue, don't transfer
@@ -99,6 +106,7 @@ final class FinderQueueBridge {
                     totalBytes: job.totalBytes
                 )
                 try sharedQM.deleteJob(id: job.id)
+                transferredAny = true
                 #if DEBUG
                 R2Log.service.debug("FinderQueueBridge: job \(job.id) transferred successfully")
                 #endif
@@ -109,22 +117,30 @@ final class FinderQueueBridge {
                 NSLog("R2Drop: Failed to transfer job \(job.id): \(error)")
             }
         }
+
+        if transferredAny {
+            NotificationCenter.default.post(name: .r2dropQueueDidChange, object: nil)
+        }
     }
 
     /// Check if an R2 object already exists for this job and resolve the conflict.
     /// Returns nil if no conflict, or the user's choice if conflict detected.
-    private func checkConflict(job: UploadJob) -> ConflictChoice? {
+    private func checkConflict(job: UploadJob) async -> ConflictChoice? {
         // Get account credentials from config + Keychain
         guard let config = try? ConfigManager.load(),
               let account = config.accounts.first(where: { $0.name == job.accountName }),
               !account.accountId.isEmpty,
+              !account.tokenId.isEmpty,
               let token = try? KeychainManager().getToken(account: account.name) else { return nil }
 
-        // Check if object exists via FFI
-        let client = R2Client()
-        guard let info = try? client.headObjectSync(
-            accountId: account.accountId, token: token,
-            bucket: job.bucket, key: job.r2Key
+        // Check if object exists via async FFI wrapper + timeout (avoid blocking main actor)
+        guard let info = await headObjectWithTimeout(
+            accountId: account.accountId,
+            accessKeyId: account.tokenId,
+            secretAccessKey: sha256Hex(token),
+            bucket: job.bucket,
+            key: job.r2Key,
+            timeoutSeconds: 10
         ) else { return nil }
 
         // Object exists — check "Apply to all" or show dialog
@@ -142,5 +158,40 @@ final class FinderQueueBridge {
         )
         ConflictManager.shared.recordChoice(result.choice, applyToAll: result.applyToAll)
         return result.choice
+    }
+
+    private func sha256Hex(_ input: String) -> String {
+        let data = Data(input.utf8)
+        let hash = SHA256.hash(data: data)
+        return hash.map { String(format: "%02x", $0) }.joined()
+    }
+
+    private func headObjectWithTimeout(
+        accountId: String,
+        accessKeyId: String,
+        secretAccessKey: String,
+        bucket: String,
+        key: String,
+        timeoutSeconds: UInt64
+    ) async -> R2ObjectInfo? {
+        let client = R2Client()
+        return await withTaskGroup(of: R2ObjectInfo?.self, returning: R2ObjectInfo?.self) { group in
+            group.addTask {
+                try? await client.headObject(
+                    accountId: accountId,
+                    accessKeyId: accessKeyId,
+                    secretAccessKey: secretAccessKey,
+                    bucket: bucket,
+                    key: key
+                )
+            }
+            group.addTask {
+                try? await Task.sleep(nanoseconds: timeoutSeconds * 1_000_000_000)
+                return nil
+            }
+            let first = await group.next() ?? nil
+            group.cancelAll()
+            return first
+        }
     }
 }

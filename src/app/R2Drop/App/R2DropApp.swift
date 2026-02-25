@@ -167,15 +167,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: - Deep Links (US-022)
 
-    /// Handle r2drop:// URL scheme invocations from CLI, browser, or other apps.
-    /// Delegates to DeepLinkHandler for parsing and routing.
+    /// Handle incoming URLs from deep links and file-open events (including Dock drops).
+    /// `r2drop://` URLs are routed to DeepLinkHandler; `file://` URLs are queued for upload.
     func application(_ application: NSApplication, open urls: [URL]) {
         #if DEBUG
-        R2Log.app.debug("Deep link received: \(urls.map { $0.absoluteString })")
+        R2Log.app.debug("URLs received: \(urls.map { $0.absoluteString })")
         #endif
-        for url in urls {
-            DeepLinkHandler.handle(url, appDelegate: self)
+        let fileURLs = urls.filter(\.isFileURL)
+        if !fileURLs.isEmpty {
+            handleIncomingUploadURLs(fileURLs)
         }
+
+        for url in urls where !url.isFileURL {
+            _ = DeepLinkHandler.handle(url, appDelegate: self)
+        }
+    }
+
+    /// Legacy NSApplicationDelegate callback used by Finder/Dock in some open-file flows.
+    func application(_ sender: NSApplication, openFiles filenames: [String]) {
+        let urls = filenames.map { URL(fileURLWithPath: $0) }
+        handleIncomingUploadURLs(urls)
+        sender.reply(toOpenOrPrint: .success)
+    }
+
+    /// Single-file variant of the open-file callback.
+    func application(_ sender: NSApplication, openFile filename: String) -> Bool {
+        handleIncomingUploadURLs([URL(fileURLWithPath: filename)])
+        return true
     }
 
     // MARK: - Onboarding (First Launch)
@@ -250,6 +268,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } catch {
             return false
         }
+    }
+
+    /// Queue files/folders dropped onto the Dock icon or opened via Finder.
+    /// Reuses the menu bar upload flow so confirmation, exclusions, and folder recursion
+    /// stay consistent with drag-and-drop on the status item.
+    private func handleIncomingUploadURLs(_ urls: [URL]) {
+        let fileURLs = urls.filter(\.isFileURL)
+        guard !fileURLs.isEmpty else { return }
+        menuBarController?.queueUserSelectedURLs(fileURLs)
     }
 
     /// Present an onboarding/setup window with the given mode and title.
