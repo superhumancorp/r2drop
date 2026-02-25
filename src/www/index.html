@@ -872,8 +872,7 @@
       var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setSize(w, h);
-      renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.2;
+      renderer.toneMapping = THREE.NoToneMapping;
       container.appendChild(renderer.domElement);
 
       var scene = new THREE.Scene();
@@ -925,16 +924,9 @@
       pivot.scale.set(sc, -sc, sc);
       scene.add(pivot);
 
-      // Environment map for reflections
-      try {
-         var pmrem = new THREE.PMREMGenerator(renderer);
-         var envS = new THREE.Scene();
-         envS.background = new THREE.Color(0x1a1a2e);
-         var eL1 = new THREE.DirectionalLight(0x818cf8, 2); eL1.position.set(1,1,1); envS.add(eL1);
-         var eL2 = new THREE.DirectionalLight(0xc084fc, 1); eL2.position.set(-1,-1,0.5); envS.add(eL2);
-         mat.envMap = pmrem.fromScene(envS, 0.04).texture;
-         mat.envMapIntensity = 0.8;
-      } catch(e) {}
+      // Extra lights for reflective look (env map removed — shader compat issue)
+      var bl = new THREE.DirectionalLight(0xc084fc, 0.5);
+      bl.position.set(-2, -3, -2); scene.add(bl);
 
       // Mouse
       var mx = 0, my = 0;
