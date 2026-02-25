@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Getting Started with R2Drop: Your First Upload in 60 Seconds</title>
+<meta name="description" content="Learn how to install R2Drop, the native macOS menu bar app for Cloudflare R2, and upload your first file in under 60 seconds. Step-by-step guide for developers."/>
+<link rel="canonical" href="https://r2drop.com/blog/getting-started-with-r2drop"/>
+<meta property="og:title" content="Getting Started with R2Drop: Your First Upload in 60 Seconds"/>
+<meta property="og:description" content="Learn how to install R2Drop, the native macOS menu bar app for Cloudflare R2, and upload your first file in under 60 seconds."/>
+<meta property="og:image" content="https://r2drop.com/r2-logo.png"/>
+<meta property="og:url" content="https://r2drop.com/blog/getting-started-with-r2drop"/>
+<meta property="og:type" content="article"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:site" content="@superhumancorp"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<link href="https://cdn.prod.website-files.com/69383496538f3c3da700a557/css/orvimo.webflow.shared.4ccc8b082.min.css" rel="stylesheet" type="text/css" integrity="sha384-TMyLCCqRf402eL9Xa141g9lhk+tJWCTwPtAHheUrmRVyE66GCRAZ+zpBk6WoX6Bl" crossorigin="anonymous"/>
+<link href="https://fonts.googleapis.com/" rel="preconnect"/>
+<link href="https://fonts.gstatic.com/" rel="preconnect" crossorigin="anonymous"/>
+<link href="https://cdn.prod.website-files.com/" rel="preconnect" crossorigin="anonymous"/>
+<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js" type="text/javascript"></script>
+<script type="text/javascript">WebFont.load({ google: { families: ["DM Sans:300,400,500,600,700","Inter:300,400,500,600,700","Poppins:500,500italic,900,900italic"] } });</script>
+<link href="https://cdn.prod.website-files.com/69383496538f3c3da700a557/693834d0fbef503fe40926ec_Favicon.png" rel="shortcut icon" type="image/x-icon"/>
+<style>
+  .w-webflow-badge{display:none!important;}
+  body { background: #0a0a0a; color: #e8e8e8; font-family: 'DM Sans', sans-serif; }
+  .blog-article { max-width: 740px; margin: 0 auto; padding: 80px 24px 120px; }
+  .blog-article h1 { font-family: 'Poppins', sans-serif; font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 700; line-height: 1.2; margin-bottom: 24px; }
+  .blog-article h2 { font-size: 1.4rem; font-weight: 600; margin-top: 48px; margin-bottom: 16px; }
+  .blog-article h3 { font-size: 1.15rem; font-weight: 600; margin-top: 32px; margin-bottom: 12px; }
+  .blog-article p { font-size: 1.05rem; line-height: 1.75; margin-bottom: 20px; color: #c8c8c8; }
+  .blog-article ul, .blog-article ol { padding-left: 24px; margin-bottom: 20px; }
+  .blog-article li { font-size: 1.05rem; line-height: 1.75; color: #c8c8c8; margin-bottom: 8px; }
+  .blog-article code { background: #1a1a2e; padding: 2px 8px; border-radius: 4px; font-family: monospace; font-size: 0.9rem; color: #a78bfa; }
+  .blog-article pre { background: #1a1a2e; padding: 20px; border-radius: 8px; overflow-x: auto; margin-bottom: 24px; }
+  .blog-article pre code { background: none; padding: 0; color: #a78bfa; }
+  .blog-meta { font-size: 0.85rem; color: #666; margin-bottom: 40px; display: flex; gap: 16px; }
+  .blog-tag { background: #1a1a2e; color: #a78bfa; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .back-link { display: inline-block; color: #a78bfa; text-decoration: none; font-size: 0.9rem; margin-bottom: 40px; }
+  .back-link:hover { text-decoration: underline; }
+  .cta-block { background: linear-gradient(135deg, #1a1a2e, #16213e); border: 1px solid #2a2a4e; border-radius: 12px; padding: 40px; margin-top: 60px; text-align: center; }
+  .cta-block h3 { color: #fff; margin-top: 0; }
+  .cta-block p { color: #aaa; margin-bottom: 24px; }
+  .btn-primary { display: inline-block; background: #a78bfa; color: #0a0a0a; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 1rem; margin-right: 12px; }
+  .btn-secondary { display: inline-block; border: 1px solid #a78bfa; color: #a78bfa; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 1rem; }
+  .nav-simple { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid #1a1a1a; }
+  .nav-simple a { color: #e8e8e8; text-decoration: none; font-size: 0.95rem; }
+  .nav-logo { font-family: 'Poppins', sans-serif; font-style: italic; font-size: 1.4rem; }
+  .nav-logo span:first-child { font-weight: 500; }
+  .nav-logo span:last-child { font-weight: 900; }
+  .related-posts { margin-top: 60px; border-top: 1px solid #1a1a1a; padding-top: 40px; }
+  .related-posts h3 { color: #fff; margin-bottom: 20px; }
+  .related-link { display: block; color: #a78bfa; text-decoration: none; margin-bottom: 12px; font-size: 1rem; }
+  .related-link:hover { text-decoration: underline; }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Getting Started with R2Drop: Your First Upload in 60 Seconds",
+  "description": "Learn how to install R2Drop, the native macOS menu bar app for Cloudflare R2, and upload your first file in under 60 seconds.",
+  "image": "https://r2drop.com/r2-logo.png",
+  "author": { "@type": "Organization", "name": "Superhuman Corp" },
+  "publisher": { "@type": "Organization", "name": "R2Drop", "url": "https://r2drop.com" },
+  "datePublished": "2026-02-25",
+  "url": "https://r2drop.com/blog/getting-started-with-r2drop",
+  "mainEntityOfPage": "https://r2drop.com/blog/getting-started-with-r2drop"
+}
+</script>
+</head>
+<body>
+<div class="page-wrapper">
+  <nav class="nav-simple">
+    <a href="../index.html" class="nav-logo"><span>R2</span><span>Drop</span></a>
+    <div style="display:flex;gap:24px;align-items:center;">
+      <a href="../index.html">Home</a>
+      <a href="https://github.com/superhumancorp/r2drop/releases" style="background:#a78bfa;color:#0a0a0a;padding:8px 20px;border-radius:6px;font-weight:700;">Download for macOS</a>
+    </div>
+  </nav>
+  <main class="blog-article">
+    <a href="../index.html" class="back-link">← Back to R2Drop</a>
+    <div class="blog-meta">
+      <span class="blog-tag">Getting Started</span>
+      <span>February 25, 2026</span>
+      <span>5 min read</span>
+    </div>
+    <h1>Getting Started with R2Drop: Your First Upload in 60 Seconds</h1>
+    <p>R2Drop is the first native macOS menu bar app built specifically for Cloudflare R2 uploads. If you've spent time navigating the Cloudflare dashboard just to upload a file, R2Drop eliminates that entirely. This guide walks you through installing R2Drop and completing your first upload to Cloudflare R2 in under 60 seconds.</p>
+
+    <h2>What is R2Drop?</h2>
+    <p>R2Drop is a native macOS application that lives in your menu bar. It integrates with macOS Finder through a right-click context menu extension, so you can upload any file or folder to your Cloudflare R2 bucket directly from Finder — no browser required. Under the hood, R2Drop uses a Rust-powered upload engine that supports multipart uploads, parallel transfers, and resumable sessions for large files.</p>
+    <p>R2Drop is free, open source under the MIT license, and stores your Cloudflare API credentials exclusively in the macOS Keychain. Your files go directly from your Mac to your R2 bucket — they never touch R2Drop's servers.</p>
+
+    <h2>Prerequisites</h2>
+    <p>Before installing R2Drop, make sure you have the following:</p>
+    <ul>
+      <li>A Mac running macOS 13 Ventura or later</li>
+      <li>A Cloudflare account with at least one R2 bucket created</li>
+      <li>A Cloudflare R2 API token with <strong>Object Read &amp; Write</strong> permissions (you can create one at dash.cloudflare.com → R2 → Manage R2 API Tokens)</li>
+    </ul>
+
+    <h2>Step 1: Install R2Drop</h2>
+    <p>There are two ways to install R2Drop on your Mac:</p>
+
+    <h3>Option A: Download the .dmg (Recommended)</h3>
+    <p>Visit the <a href="https://github.com/superhumancorp/r2drop/releases" style="color:#a78bfa;">R2Drop GitHub Releases page</a> and download the latest <code>.dmg</code> file. Open it, drag R2Drop to your Applications folder, then double-click to launch. macOS may ask for permission to open an app from an identified developer — click Open to proceed.</p>
+
+    <h3>Option B: Install via Homebrew</h3>
+    <p>If you prefer Homebrew, run the following commands in your terminal:</p>
+    <pre><code>brew tap superhumancorp/tap
+brew install --cask r2drop</code></pre>
+    <p>Homebrew will download, verify, and install R2Drop automatically.</p>
+
+    <h2>Step 2: Launch R2Drop and Configure Your First Account</h2>
+    <p>After installing, launch R2Drop from your Applications folder or Spotlight. You'll see the R2Drop icon appear in your macOS menu bar. Click it to open the setup panel.</p>
+    <p>Click <strong>Add Account</strong> and fill in the following details:</p>
+    <ul>
+      <li><strong>Account Name</strong> — a friendly label (e.g., "Personal R2" or "Work Bucket")</li>
+      <li><strong>Access Key ID</strong> — from your Cloudflare R2 API token</li>
+      <li><strong>Secret Access Key</strong> — from your Cloudflare R2 API token</li>
+      <li><strong>Bucket Name</strong> — the name of your R2 bucket</li>
+      <li><strong>Endpoint URL</strong> — found in your Cloudflare R2 dashboard (format: <code>https://&lt;account-id&gt;.r2.cloudflarestorage.com</code>)</li>
+    </ul>
+    <p>Optionally, set a <strong>custom domain</strong> if your R2 bucket is connected to a Cloudflare custom domain. This means uploaded files will get shareable links using your own domain.</p>
+    <p>Click <strong>Save</strong>. R2Drop stores your credentials securely in the macOS Keychain — they are never written to disk or sent to any server.</p>
+
+    <h2>Step 3: Upload Your First File</h2>
+    <p>With your account configured, uploading to Cloudflare R2 is as simple as:</p>
+    <ol>
+      <li>Open Finder and navigate to any file or folder you want to upload</li>
+      <li>Right-click (or Control-click) the file</li>
+      <li>Select <strong>"Send to R2"</strong> from the context menu</li>
+      <li>R2Drop uploads the file in the background and copies the shareable URL to your clipboard</li>
+    </ol>
+    <p>That's it. Within seconds, your file is live on Cloudflare R2 and the link is ready to paste. No browser tabs, no dashboard navigation, no manual copy-pasting of URLs.</p>
+
+    <h2>Step 4: Monitor Upload Progress</h2>
+    <p>Click the R2Drop menu bar icon at any time to see active uploads, their progress, and a log of recently uploaded files. Each entry shows the filename, upload time, size, and the public URL. You can click any URL in the history to copy it to your clipboard again.</p>
+    <p>For large files, R2Drop automatically switches to multipart upload mode, splitting the file into parallel chunks for maximum speed. Uploads are also resumable — if your connection drops, R2Drop picks up where it left off.</p>
+
+    <h2>What's Next?</h2>
+    <p>Now that you've completed your first Cloudflare R2 upload with R2Drop, here are some things to explore:</p>
+    <ul>
+      <li><a href="multi-account-setup.html" style="color:#a78bfa;">Set up multiple Cloudflare accounts</a> — useful if you manage R2 buckets for multiple projects or clients</li>
+      <li><a href="r2drop-cli-guide.html" style="color:#a78bfa;">Use the R2Drop CLI</a> — for terminal uploads, shell scripts, and CI/CD pipelines</li>
+      <li>Configure path prefixes in the account settings to organize uploads into folders automatically</li>
+    </ul>
+
+    <div class="cta-block">
+      <h3>Ready to eliminate the R2 dashboard from your workflow?</h3>
+      <p>Download R2Drop for macOS — free, open source, no account required.</p>
+      <a href="https://github.com/superhumancorp/r2drop/releases" class="btn-primary">Download for macOS</a>
+      <a href="https://github.com/superhumancorp/r2drop" class="btn-secondary">View on GitHub</a>
+    </div>
+
+    <div class="related-posts">
+      <h3>Related Articles</h3>
+      <a href="r2drop-cli-guide.html" class="related-link">R2Drop CLI: Terminal Uploads to Cloudflare R2</a>
+      <a href="multi-account-setup.html" class="related-link">Managing Multiple Cloudflare R2 Accounts with R2Drop</a>
+    </div>
+  </main>
+</div>
+</body>
+</html>
