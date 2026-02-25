@@ -14,21 +14,24 @@ public final class R2Client: Sendable {
     // MARK: - Authentication
 
     /// Validate an API token against the Cloudflare API.
-    public func validateToken(_ token: String) async throws {
+    /// Returns the token UUID (used as S3 Access Key ID for R2 uploads).
+    public func validateToken(_ token: String) async throws -> String {
         try await Task.detached { [self] in
             #if DEBUG
             print("[R2Bridge:R2Client] validateToken begin")
             #endif
-            let result = token.withCString { r2_validate_token($0) }
-            if result != 0 {
+            guard let ptr = token.withCString({ r2_validate_token($0) }) else {
                 #if DEBUG
                 print("[R2Bridge:R2Client] validateToken failed: \(lastError())")
                 #endif
                 throw R2BridgeError.ffiError(lastError())
             }
+            defer { r2_free_string(ptr) }
+            let tokenId = String(cString: ptr)
             #if DEBUG
-            print("[R2Bridge:R2Client] validateToken success")
+            print("[R2Bridge:R2Client] validateToken success tokenId=\(tokenId)")
             #endif
+            return tokenId
         }.value
     }
 
@@ -205,13 +208,18 @@ public final class R2Client: Sendable {
     // MARK: - Queue Processing
 
     /// Process pending upload jobs for a specific account.
-    /// Recovers interrupted uploads and processes all pending jobs.
+    /// Uses S3-compatible credentials (access_key_id, secret_access_key) for R2 uploads.
+    /// The access_key_id is the token UUID, secret_access_key is SHA-256(api_token).
     /// Returns the number of jobs completed.
-    public func processQueue(accountId: String, token: String, accountName: String) throws -> Int32 {
+    public func processQueue(
+        accountId: String, accessKeyId: String, secretAccessKey: String, accountName: String
+    ) throws -> Int32 {
         let result = accountId.withCString { aid in
-            token.withCString { tok in
-                accountName.withCString { name in
-                    r2_process_queue(aid, tok, name)
+            accessKeyId.withCString { akid in
+                secretAccessKey.withCString { sak in
+                    accountName.withCString { name in
+                        r2_process_queue(aid, akid, sak, name)
+                    }
                 }
             }
         }

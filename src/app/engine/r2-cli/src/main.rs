@@ -204,6 +204,7 @@ pub async fn cmd_login(args: LoginArgs) {
             bucket: String::new(),
             path: String::new(),
             custom_domain: None,
+            token_id: None,
         });
     }
 
@@ -246,7 +247,7 @@ async fn cmd_status(args: StatusArgs) {
     let connectivity = if let Some(ref name) = cfg.active_account {
         match credentials::get_token(name) {
             Ok(token) => match R2Client::validate_token(&token).await {
-                Ok(()) => "connected".to_string(),
+                Ok(_token_id) => "connected".to_string(),
                 Err(e) => format!("error ({e})"),
             },
             Err(_) => "no token in keychain".to_string(),

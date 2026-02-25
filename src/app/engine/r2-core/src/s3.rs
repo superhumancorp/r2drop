@@ -128,9 +128,11 @@ impl R2Client {
     /// Create a new R2Client for the given account.
     ///
     /// `account_id` is the Cloudflare account ID (hex string).
-    /// `token` is the Cloudflare API token with R2 permissions.
-    pub fn new(account_id: &str, token: &str) -> Self {
-        let s3 = build_s3_client(account_id, token);
+    /// `token` is the Cloudflare API token for REST API bearer auth.
+    /// `access_key_id` and `secret_access_key` are the S3-compatible credentials
+    /// for R2 uploads. For REST-only callers, these can be dummy values.
+    pub fn new(account_id: &str, token: &str, access_key_id: &str, secret_access_key: &str) -> Self {
+        let s3 = build_s3_client(account_id, access_key_id, secret_access_key);
         Self {
             http: reqwest::Client::new(),
             token: token.to_string(),
@@ -146,9 +148,10 @@ impl R2Client {
 
     // -- Cloudflare REST API -----------------------------------------------
 
-    /// Validate an API token against Cloudflare. Returns `Ok(())` on success.
+    /// Validate an API token against Cloudflare. Returns the token ID (UUID) on success.
+    /// The token ID is extracted from the verify response's `result.id` field.
     /// This is a static method — no account_id needed.
-    pub async fn validate_token(token: &str) -> Result<(), R2Error> {
+    pub async fn validate_token(token: &str) -> Result<String, R2Error> {
         let url = format!("{CF_API_BASE}/user/tokens/verify");
         let resp: CfResponse<serde_json::Value> = reqwest::Client::new()
             .get(&url)
@@ -159,7 +162,15 @@ impl R2Client {
             .await?;
 
         if resp.success {
-            Ok(())
+            // Extract the token ID from result.id
+            let token_id = resp
+                .result
+                .as_ref()
+                .and_then(|v| v.get("id"))
+                .and_then(|v| v.as_str())
+                .ok_or(R2Error::InvalidToken)?
+                .to_string();
+            Ok(token_id)
         } else {
             Err(R2Error::InvalidToken)
         }
@@ -459,12 +470,13 @@ impl R2Client {
 ///
 /// R2's S3-compatible endpoint is:
 ///   https://<account_id>.r2.cloudflarestorage.com
-fn build_s3_client(account_id: &str, token: &str) -> S3Client {
+///
+/// `access_key_id` is the token UUID (from /user/tokens/verify → result.id).
+/// `secret_access_key` is the SHA-256 hash of the API token.
+fn build_s3_client(account_id: &str, access_key_id: &str, secret_access_key: &str) -> S3Client {
     let endpoint = format!("https://{account_id}.r2.cloudflarestorage.com");
 
-    // R2 uses the API token as both access_key_id and secret_access_key.
-    // The token is the only credential — there's no separate secret key.
-    let creds = Credentials::new(token, token, None, None, "r2drop");
+    let creds = Credentials::new(access_key_id, secret_access_key, None, None, "r2drop");
 
     let config = aws_sdk_s3::Config::builder()
         .endpoint_url(endpoint)
@@ -516,7 +528,7 @@ mod tests {
     #[test]
     fn build_s3_client_creates_valid_client() {
         // Smoke test: building the client should not panic.
-        let _client = build_s3_client("abc123", "fake-token");
+        let _client = build_s3_client("abc123", "fake-access-key", "fake-secret-key");
     }
 
     #[test]
@@ -573,7 +585,7 @@ mod tests {
     #[test]
     fn r2_client_new_does_not_panic() {
         // Verifies the constructor wires up S3 client without network calls.
-        let client = R2Client::new("test-account", "test-token");
+        let client = R2Client::new("test-account", "test-token", "test-access-key", "test-secret");
         assert_eq!(client.account_id(), "test-account");
     }
 

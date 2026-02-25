@@ -48,7 +48,10 @@ pub async fn cmd_upload(args: UploadArgs) {
         std::process::exit(1);
     }
 
-    let client = R2Client::new(account_id, &token);
+    // CLI currently passes token as both S3 creds (legacy behavior).
+    // When the CLI gets proper S3 credential support, these should be
+    // replaced with the real access_key_id and secret_access_key.
+    let client = R2Client::new(account_id, &token, &token, &token);
     let upload_cfg = UploadConfig {
         chunk_size_bytes: cfg.preferences.chunk_size_mb as usize * 1024 * 1024,
         concurrency: cfg.preferences.concurrent_uploads as usize,

@@ -6,6 +6,7 @@
 // Polling interval: 3 seconds. Safety timeout: 60 seconds per cycle.
 
 import Foundation
+import CryptoKit
 import R2Core
 import R2Bridge
 
@@ -123,6 +124,12 @@ final class UploadProcessor {
             processingStartTime = nil
             return
         }
+        guard !account.tokenId.isEmpty else {
+            NSLog("R2Drop UploadProcessor: account '%@' has no tokenId (S3 Access Key ID). Re-run onboarding to fix.", activeName)
+            isProcessing = false
+            processingStartTime = nil
+            return
+        }
         guard let token = try? KeychainManager().getToken(account: activeName) else {
             NSLog("R2Drop UploadProcessor: no Keychain token for account '%@'", activeName)
             isProcessing = false
@@ -130,17 +137,23 @@ final class UploadProcessor {
             return
         }
 
-        // Run the Rust FFI call on a background thread to avoid blocking the main actor.
-        // The Rust engine internally uses block_on() which blocks the calling thread.
+        // Derive S3 credentials from the Cloudflare API token:
+        // - Access Key ID: token UUID from /user/tokens/verify (stored in config as tokenId)
+        // - Secret Access Key: SHA-256 hash of the raw API token
         let accountId = account.accountId
+        let accessKeyId = account.tokenId
+        let secretAccessKey = sha256Hex(token)
         let client = self.r2Client
+        NSLog("R2Drop UploadProcessor: invoking Rust processQueue (account=%@, accountId=%@)", activeName, accountId)
         Task.detached { [weak self] in
             do {
                 let completed = try client.processQueue(
                     accountId: accountId,
-                    token: token,
+                    accessKeyId: accessKeyId,
+                    secretAccessKey: secretAccessKey,
                     accountName: activeName
                 )
+                NSLog("R2Drop UploadProcessor: Rust returned completed=%d", completed)
                 #if DEBUG
                 if completed > 0 {
                     await MainActor.run {
@@ -161,5 +174,15 @@ final class UploadProcessor {
                 self?.processingStartTime = nil
             }
         }
+    }
+
+    // MARK: - Helpers
+
+    /// Compute SHA-256 hash of a string and return it as a lowercase hex string.
+    /// Used to derive the S3 secret_access_key from the Cloudflare API token.
+    private func sha256Hex(_ input: String) -> String {
+        let data = Data(input.utf8)
+        let hash = SHA256.hash(data: data)
+        return hash.map { String(format: "%02x", $0) }.joined()
     }
 }

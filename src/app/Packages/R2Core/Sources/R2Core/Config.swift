@@ -33,19 +33,24 @@ public struct ConfigAccount: Equatable {
     public var customDomain: String?
     /// Cloudflare account ID — used to construct dashboard URLs (FR-040).
     public var accountId: String
+    /// Cloudflare API token UUID — used as S3 Access Key ID for R2 uploads.
+    /// Retrieved from GET /user/tokens/verify response during onboarding.
+    public var tokenId: String
 
     public init(
         name: String = "",
         bucket: String = "",
         path: String = "",
         customDomain: String? = nil,
-        accountId: String = ""
+        accountId: String = "",
+        tokenId: String = ""
     ) {
         self.name = name
         self.bucket = bucket
         self.path = path
         self.customDomain = customDomain
         self.accountId = accountId
+        self.tokenId = tokenId
     }
 }
 
@@ -218,6 +223,7 @@ enum TOMLParser {
                 case "path": account?.path = str
                 case "custom_domain": account?.customDomain = str.isEmpty ? nil : str
                 case "account_id": account?.accountId = str
+                case "token_id": account?.tokenId = str
                 default: break
                 }
             } else if section == "preferences" {
@@ -268,6 +274,9 @@ enum TOMLWriter {
             }
             if !acct.accountId.isEmpty {
                 lines.append("account_id = \"\(acct.accountId)\"")
+            }
+            if !acct.tokenId.isEmpty {
+                lines.append("token_id = \"\(acct.tokenId)\"")
             }
         }
 

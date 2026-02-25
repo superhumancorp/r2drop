@@ -42,6 +42,10 @@ pub struct Account {
     /// Optional custom domain for public URLs (e.g. "cdn.example.com").
     #[serde(default)]
     pub custom_domain: Option<String>,
+    /// Cloudflare API token UUID — used as S3 Access Key ID for R2 uploads.
+    /// Written by Swift after calling /user/tokens/verify during onboarding.
+    #[serde(default)]
+    pub token_id: Option<String>,
 }
 
 /// Global upload and UI preferences.
@@ -288,6 +292,7 @@ mod tests {
                         bucket: "my-bucket".into(),
                         path: "uploads/".into(),
                         custom_domain: Some("cdn.example.com".into()),
+                        token_id: None,
                     },
                     Account {
                         name: "personal".into(),
@@ -295,6 +300,7 @@ mod tests {
                         bucket: "personal-bucket".into(),
                         path: String::new(),
                         custom_domain: None,
+                        token_id: None,
                     },
                 ],
                 preferences: Preferences {
@@ -394,6 +400,7 @@ bucket = "b"
                 bucket: "b1".into(),
                 path: String::new(),
                 custom_domain: None,
+                token_id: None,
             });
             cfg.active_account = Some("first".into());
             cfg.save_to(&path).unwrap();
@@ -407,6 +414,7 @@ bucket = "b"
                 bucket: "b2".into(),
                 path: "data/".into(),
                 custom_domain: Some("cdn.test.com".into()),
+                token_id: None,
             });
             cfg2.save_to(&path).unwrap();
 

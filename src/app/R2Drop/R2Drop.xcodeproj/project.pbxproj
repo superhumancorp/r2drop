@@ -27,7 +27,6 @@
 		51E14B44F7505EC41B3DE7F0 /* DeepLinkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B2C6A165C12FE42A21E70FA /* DeepLinkHandler.swift */; };
 		5D491FDE58B6688F64DDBE4F /* OnboardingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7579519F793101201BDE7A67 /* OnboardingViewModel.swift */; };
 		5D525698D7F5A279EAEE6DC8 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 895B4748BE8DA2F5A012B32C /* NotificationService.swift */; };
-		B2C3D4E5F6A7B8C9D0E1F2A3 /* PermissionChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2 /* PermissionChecker.swift */; };
 		6D192802A86754D240808B51 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29F4943E249176B6155BFF14 /* NetworkMonitor.swift */; };
 		721BD11D81B5D65412985497 /* AccountDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1706FFB21E4DD0D4C688812 /* AccountDetailView.swift */; };
 		80C6A5F627CC3567514E2A6D /* Background-1.png in Resources */ = {isa = PBXBuildFile; fileRef = 2F7747EEE426AC86E245F67C /* Background-1.png */; };
@@ -40,6 +39,7 @@
 		AA6E9523D29409C640C17CA0 /* MenuBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D37053996DA6608CA79C70D /* MenuBarController.swift */; };
 		AE5B487FADE44977751FBF31 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 31041CEEDF5650FA66389A3B /* Sparkle */; };
 		B28E190AD845661318810D52 /* OnboardingPasteTokenPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFB72034415C862EE50D4187 /* OnboardingPasteTokenPanel.swift */; };
+		B2C3D4E5F6A7B8C9D0E1F2A3 /* PermissionChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2 /* PermissionChecker.swift */; };
 		B392C49392BE6388F1689425 /* R2Core in Frameworks */ = {isa = PBXBuildFile; productRef = FEC26E9B8067944C2F872D0E /* R2Core */; };
 		B6B483AB04C5B4FE5ACF489F /* R2DropApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B224CAEF69D3828B9F742FC /* R2DropApp.swift */; };
 		BEA5130470E8F652BC311DDB /* FinderQueueBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 959609F94F0860F0DF282AE4 /* FinderQueueBridge.swift */; };
@@ -119,13 +119,13 @@
 		8787DED0FC77F0AD054CA323 /* Hero4.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Hero4.png; sourceTree = "<group>"; };
 		88961B41D4106631A1D5E7E2 /* Hero1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Hero1.png; sourceTree = "<group>"; };
 		895B4748BE8DA2F5A012B32C /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F6A7B8C9D0E1F2 /* PermissionChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionChecker.swift; sourceTree = "<group>"; };
 		8CF3A0ED4891B0AC8074417A /* HistoryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryViewModel.swift; sourceTree = "<group>"; };
 		8DF2E0FB70D7FA22051B5C4E /* QueueTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueTabView.swift; sourceTree = "<group>"; };
 		9027CF9993303E331BE21BDD /* UploadProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadProcessor.swift; sourceTree = "<group>"; };
 		941C20310D17AF3C8B50F712 /* R2Bridge */ = {isa = PBXFileReference; lastKnownFileType = folder; name = R2Bridge; path = ../Packages/R2Bridge; sourceTree = SOURCE_ROOT; };
 		959609F94F0860F0DF282AE4 /* FinderQueueBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderQueueBridge.swift; sourceTree = "<group>"; };
 		9E2EB54091718754465BE53F /* StatusBarDragView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarDragView.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6A7B8C9D0E1F2 /* PermissionChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionChecker.swift; sourceTree = "<group>"; };
 		A1D3B81C8C2E55DB0D042611 /* R2Drop.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = R2Drop.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A63723F38B23FCAF195B1F07 /* QueueJobRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueJobRow.swift; sourceTree = "<group>"; };
 		BE3A1795231F320C43031D96 /* Screenshot-2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Screenshot-2.png"; sourceTree = "<group>"; };
@@ -388,7 +388,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1620;
+				LastUpgradeCheck = 2620;
 			};
 			buildConfigurationList = E37EB5DBEA8C2800304EB6F4 /* Build configuration list for PBXProject "R2Drop" */;
 			compatibilityVersion = "Xcode 14.0";
@@ -506,7 +506,8 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = A89MU37ZLB;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = FinderExtension/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -518,6 +519,7 @@
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.superhumancorp.r2drop.FinderExtension;
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.9;
 			};
@@ -532,7 +534,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = A89MU37ZLB;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -557,6 +562,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.superhumancorp.r2drop;
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.9;
 			};
@@ -571,7 +577,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = A89MU37ZLB;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -596,6 +605,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.superhumancorp.r2drop;
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.9;
 			};
@@ -605,6 +615,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -635,9 +646,12 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = A89MU37ZLB;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -658,6 +672,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -672,7 +687,8 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = A89MU37ZLB;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = FinderExtension/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -684,6 +700,7 @@
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.superhumancorp.r2drop.FinderExtension;
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.9;
 			};
@@ -693,6 +710,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -723,9 +741,12 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = A89MU37ZLB;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -739,6 +760,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;

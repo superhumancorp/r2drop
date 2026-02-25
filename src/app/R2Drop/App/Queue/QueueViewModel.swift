@@ -173,7 +173,7 @@ final class QueueViewModel: ObservableObject {
         // Get exclusion patterns from config
         let exclusions = config.preferences.exclusionPatterns
 
-        guard let qm = try? QueueManager() else { return }
+
 
         // Check if the URL is a directory
         let isDirectory = (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false

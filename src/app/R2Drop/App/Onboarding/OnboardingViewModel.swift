@@ -57,6 +57,8 @@ final class OnboardingViewModel: ObservableObject {
     private(set) var accountId = ""
     private(set) var accountName = ""
     private(set) var token = ""
+    /// Token UUID returned by Cloudflare verify endpoint — used as S3 Access Key ID.
+    private(set) var tokenId = ""
 
     // MARK: - Bucket (Panel 5)
 
@@ -165,8 +167,8 @@ final class OnboardingViewModel: ObservableObject {
         tokenValid = false
 
         do {
-            // Step 1: Validate token
-            try await r2Client.validateToken(trimmed)
+            // Step 1: Validate token and get the token UUID (used as S3 Access Key ID)
+            let validatedTokenId = try await r2Client.validateToken(trimmed)
 
             // Step 2: Get account info
             let accounts = try await r2Client.listAccounts(token: trimmed)
@@ -180,6 +182,7 @@ final class OnboardingViewModel: ObservableObject {
 
             self.accountId = id
             self.token = trimmed
+            self.tokenId = validatedTokenId
 
             // Step 3: Store in Keychain — behavior depends on mode
             switch mode {
@@ -373,7 +376,8 @@ final class OnboardingViewModel: ObservableObject {
             bucket: selectedBucket,
             path: defaultPath,
             customDomain: customDomain.isEmpty ? nil : customDomain,
-            accountId: accountId
+            accountId: accountId,
+            tokenId: tokenId
         )
 
         do {

@@ -112,21 +112,23 @@ pub extern "C" fn r2_config_dir() -> *mut c_char {
 // ---------------------------------------------------------------------------
 
 /// Validate an API token against the Cloudflare API.
-/// Returns 0 on success, -1 on invalid/error (check r2_get_last_error).
+/// On success, returns a C string containing the token ID (UUID) from the
+/// Cloudflare verify response. Caller must free with `r2_free_string`.
+/// On failure, returns null (check r2_get_last_error).
 ///
 /// # Safety
 /// `token` must be a valid NUL-terminated C string.
 #[no_mangle]
-pub unsafe extern "C" fn r2_validate_token(token: *const c_char) -> i32 {
+pub unsafe extern "C" fn r2_validate_token(token: *const c_char) -> *mut c_char {
     let Some(token) = (unsafe { from_c_str(token) }) else {
         set_last_error("null or invalid token pointer".into());
-        return -1;
+        return std::ptr::null_mut();
     };
     match runtime().block_on(s3::R2Client::validate_token(token)) {
-        Ok(()) => 0,
+        Ok(token_id) => to_c_string(token_id),
         Err(e) => {
             set_last_error(e.to_string());
-            -1
+            std::ptr::null_mut()
         }
     }
 }
@@ -175,7 +177,7 @@ pub unsafe extern "C" fn r2_list_buckets(
         set_last_error("null or invalid account_id/token pointer".into());
         return std::ptr::null_mut();
     };
-    let client = s3::R2Client::new(account_id, token);
+    let client = s3::R2Client::new(account_id, token, token, token);
     match runtime().block_on(client.list_buckets()) {
         Ok(buckets) => to_c_string(serde_json::to_string(&buckets).unwrap_or_default()),
         Err(e) => {
@@ -204,7 +206,7 @@ pub unsafe extern "C" fn r2_create_bucket(
         set_last_error("null or invalid pointer argument".into());
         return -1;
     };
-    let client = s3::R2Client::new(account_id, token);
+    let client = s3::R2Client::new(account_id, token, token, token);
     match runtime().block_on(client.create_bucket(bucket_name)) {
         Ok(()) => 0,
         Err(e) => {
@@ -242,7 +244,7 @@ pub unsafe extern "C" fn r2_head_object(
         set_last_error("null or invalid pointer argument".into());
         return std::ptr::null_mut();
     };
-    let client = s3::R2Client::new(account_id, token);
+    let client = s3::R2Client::new(account_id, token, token, token);
     match runtime().block_on(client.head_object(bucket, key)) {
         Ok(Some(info)) => {
             let json = serde_json::json!({
@@ -318,15 +320,19 @@ pub unsafe extern "C" fn r2_queue_upload(
 ///
 /// # Safety
 /// All pointer params must be valid NUL-terminated C strings.
+/// `access_key_id` is the token UUID from validate_token.
+/// `secret_access_key` is the SHA-256 hash of the API token.
 #[no_mangle]
 pub unsafe extern "C" fn r2_process_queue(
     account_id: *const c_char,
-    token: *const c_char,
+    access_key_id: *const c_char,
+    secret_access_key: *const c_char,
     account_name: *const c_char,
 ) -> i32 {
-    let (Some(account_id), Some(token), Some(account_name)) = (
+    let (Some(account_id), Some(access_key_id), Some(secret_access_key), Some(account_name)) = (
         unsafe { from_c_str(account_id) },
-        unsafe { from_c_str(token) },
+        unsafe { from_c_str(access_key_id) },
+        unsafe { from_c_str(secret_access_key) },
         unsafe { from_c_str(account_name) },
     ) else {
         set_last_error("null or invalid pointer argument".into());
@@ -346,7 +352,9 @@ pub unsafe extern "C" fn r2_process_queue(
         tracing::warn!("failed to recover interrupted uploads: {e}");
     }
 
-    let client = s3::R2Client::new(account_id, token);
+    // REST API token is not needed for process_queue (only S3 ops).
+    // Pass empty string for the bearer token since uploads use S3 creds only.
+    let client = s3::R2Client::new(account_id, "", access_key_id, secret_access_key);
     // Load user preferences from config.toml (FR-006: respect chunk_size_mb, concurrent_uploads)
     let user_config = config::Config::load().unwrap_or_default();
     let config = upload::UploadConfig {
@@ -558,8 +566,9 @@ mod tests {
     }
 
     #[test]
-    fn validate_token_null_returns_error() {
-        assert_eq!(unsafe { r2_validate_token(std::ptr::null()) }, -1);
+    fn validate_token_null_returns_null() {
+        let ptr = unsafe { r2_validate_token(std::ptr::null()) };
+        assert!(ptr.is_null());
         assert!(take_last_error().is_some());
     }
 

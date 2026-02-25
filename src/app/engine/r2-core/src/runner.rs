@@ -538,6 +538,7 @@ mod tests {
                 bucket: "my-bucket".into(),
                 path: String::new(),
                 custom_domain: Some("cdn.example.com".into()),
+                token_id: None,
             }],
             preferences: Default::default(),
         };
@@ -555,6 +556,7 @@ mod tests {
                 bucket: "my-bucket".into(),
                 path: String::new(),
                 custom_domain: None,
+                token_id: None,
             }],
             preferences: Default::default(),
         };

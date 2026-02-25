@@ -59,12 +59,14 @@ char *r2_config_dir(void);
 
 /**
  * Validate an API token against the Cloudflare API.
- * Returns 0 on success, -1 on invalid/error (check r2_get_last_error).
+ * On success, returns a C string containing the token ID (UUID) from the
+ * Cloudflare verify response. Caller must free with `r2_free_string`.
+ * On failure, returns null (check r2_get_last_error).
  *
  * # Safety
  * `token` must be a valid NUL-terminated C string.
  */
-int32_t r2_validate_token(const char *token);
+char *r2_validate_token(const char *token);
 
 /**
  * List Cloudflare accounts accessible with the given token.
@@ -129,8 +131,13 @@ int64_t r2_queue_upload(const char *file_path,
  *
  * # Safety
  * All pointer params must be valid NUL-terminated C strings.
+ * `access_key_id` is the token UUID from validate_token.
+ * `secret_access_key` is the SHA-256 hash of the API token.
  */
-int32_t r2_process_queue(const char *account_id, const char *token, const char *account_name);
+int32_t r2_process_queue(const char *account_id,
+                        const char *access_key_id,
+                        const char *secret_access_key,
+                        const char *account_name);
 
 /**
  * Pause an upload job. Returns 0 on success, -1 on error.
