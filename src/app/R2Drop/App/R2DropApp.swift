@@ -10,6 +10,13 @@
 import SwiftUI
 import R2Core
 
+// MARK: - Notification Names
+
+extension Notification.Name {
+    /// Fired when accounts are added, updated, or removed.
+    /// AccountsViewModel observes this to refresh its data.
+    static let r2dropAccountsDidChange = Notification.Name("r2dropAccountsDidChange")
+}
 @main
 struct R2DropApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
@@ -280,6 +287,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if accountsExist() {
             tokenValidationService.start()
         }
+
+        // Notify all observers that accounts have changed (e.g., AccountsViewModel)
+        // so the Settings window refreshes without needing to close and reopen.
+        NotificationCenter.default.post(name: .r2dropAccountsDidChange, object: nil)
 
         // Show the Settings window so user sees the main app after onboarding
         Self.openSettingsWindow()

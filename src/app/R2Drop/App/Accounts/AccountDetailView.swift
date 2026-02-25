@@ -163,15 +163,6 @@ struct AccountDetailView: View {
             .onChange(of: viewModel.editCustomDomain) { _ in
                 viewModel.markEdited()
             }
-
-            // Manual entry fallback
-            TextField("Or type a domain: cdn.example.com", text: $viewModel.editCustomDomain)
-                .textFieldStyle(.roundedBorder)
-                .font(.callout)
-                .onChange(of: viewModel.editCustomDomain) { _ in
-                    viewModel.markEdited()
-                }
-
             Text("Used for public URL generation. Leave empty to use default R2 URL.")
                 .font(.caption)
                 .foregroundColor(.secondary)

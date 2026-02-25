@@ -20,7 +20,6 @@ struct SettingsTabView: View {
                 performanceCard
                 exclusionCard
                 cliCard
-                cliCard
                 configCard
             }
             .padding(20)

@@ -1,14 +1,17 @@
 // R2Drop/App/Queue/QueueTabView.swift
 // Uploads tab with liquid glass styling (FR-037, FR-038).
-// Aggregate status bar in a frosted glass header. Scrollable job list below.
-// Each job shows progress, speed, and controls (FR-039).
-// Supports drag-and-drop file uploads directly into the tab.
-// Empty state uses GlassEmptyState component with drag-drop target.
+// Aggregate status bar in a frosted glass header with status indicator.
+// Scrollable job list below with improved spacing and hover animations.
+// Supports drag-and-drop file uploads with visual feedback.
+// Empty state uses GlassEmptyState component with unified drag-drop target.
 import SwiftUI
 import R2Core
 
 struct QueueTabView: View {
     @StateObject private var viewModel = QueueViewModel()
+
+    /// Tracks whether user is hovering a file over the drop zone.
+    @State private var isDropTargeted = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -29,6 +32,11 @@ struct QueueTabView: View {
         }
         .onAppear { viewModel.start() }
         .onDisappear { viewModel.stop() }
+        // Full-view drop target for when jobs exist
+        .onDrop(of: [.fileURL], isTargeted: $isDropTargeted) { providers in
+            handleDrop(providers)
+            return true
+        }
     }
 
     // MARK: - Aggregate Status Bar (FR-038)
@@ -40,6 +48,11 @@ struct QueueTabView: View {
                 .font(.headline)
 
             Spacer()
+
+            // Status label — subtle indicator of what's happening
+            statusLabel
+                .font(.callout)
+                .foregroundColor(.secondary)
 
             // Average upload rate (only when actively uploading)
             if viewModel.hasActiveUploads {
@@ -57,11 +70,40 @@ struct QueueTabView: View {
         }
     }
 
+    /// Status label showing current queue state.
+    @ViewBuilder
+    private var statusLabel: some View {
+        let uploading = viewModel.jobs.filter { $0.status == .uploading }.count
+        let pending = viewModel.jobs.filter { $0.status == .pending }.count
+        let paused = viewModel.jobs.filter { $0.status == .paused }.count
+        let failed = viewModel.jobs.filter { $0.status == .failed }.count
+
+        if uploading > 0 {
+            HStack(spacing: 4) {
+                ProgressView()
+                    .controlSize(.mini)
+                Text("Uploading \(uploading) file\(uploading == 1 ? "" : "s")...")
+            }
+        } else if pending > 0 {
+            Text("Waiting...")
+        } else if paused > 0 && failed == 0 {
+            Text("All paused")
+        } else if failed > 0 {
+            Text("\(failed) failed")
+                .foregroundColor(.red)
+        } else if viewModel.jobs.isEmpty {
+            Text("Idle")
+        } else {
+            Text("Complete")
+                .foregroundColor(.green)
+        }
+    }
+
     // MARK: - Job List (FR-037)
 
     private var jobList: some View {
         ScrollView {
-            LazyVStack(spacing: 8) {
+            LazyVStack(spacing: 12) {
                 ForEach(viewModel.jobs) { job in
                     QueueJobRow(
                         job: job,
@@ -73,42 +115,55 @@ struct QueueTabView: View {
                     )
                 }
             }
-            .padding(16)
+            .padding(20)
         }
+        // Visual feedback when dragging files over the job list
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(Color.accentColor.opacity(isDropTargeted ? 0.6 : 0), lineWidth: 2)
+                .animation(.easeInOut(duration: 0.2), value: isDropTargeted)
+        )
     }
 
     // MARK: - Empty State
 
     private var emptyState: some View {
-        VStack(spacing: 16) {
-            GlassEmptyState(
-                icon: "arrow.up.circle",
-                title: "No uploads in queue",
-                subtitle: "Drag files here, right-click in Finder, or drop them on the menu bar icon."
-            )
+        VStack(spacing: 0) {
+            // Unified empty state with integrated drop zone
+            VStack(spacing: 16) {
+                Spacer()
 
-            // Drag-and-drop target area
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [8]))
-                .foregroundColor(.secondary.opacity(0.4))
-                .frame(height: 100)
-                .overlay {
-                    VStack(spacing: 8) {
-                        Image(systemName: "arrow.down.doc")
-                            .font(.title2)
-                            .foregroundColor(.secondary)
-                        Text("Drop files to upload")
-                            .font(.callout)
-                            .foregroundColor(.secondary)
-                    }
-                }
-                .onDrop(of: [.fileURL], isTargeted: nil) { providers in
-                    handleDrop(providers)
-                    return true
-                }
-                .padding(.horizontal, 20)
+                Image(systemName: isDropTargeted ? "arrow.down.circle.fill" : "arrow.up.circle")
+                    .font(.system(size: 48))
+                    .foregroundColor(isDropTargeted ? .accentColor : .secondary.opacity(0.5))
+                    .scaleEffect(isDropTargeted ? 1.15 : 1.0)
+                    .animation(.easeInOut(duration: 0.2), value: isDropTargeted)
+
+                Text(isDropTargeted ? "Drop to upload" : "No uploads in queue")
+                    .font(.title3)
+                    .fontWeight(.medium)
+                    .foregroundColor(isDropTargeted ? .primary : .secondary)
+                    .animation(.easeInOut(duration: 0.15), value: isDropTargeted)
+
+                Text("Drag files here, right-click in Finder, or drop them on the menu bar icon.")
+                    .font(.callout)
+                    .foregroundColor(.secondary.opacity(0.7))
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: 340)
+
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(
+                        isDropTargeted ? Color.accentColor : Color.secondary.opacity(0.15),
+                        style: StrokeStyle(lineWidth: isDropTargeted ? 2.5 : 1.5, dash: isDropTargeted ? [] : [10])
+                    )
+                    .animation(.easeInOut(duration: 0.2), value: isDropTargeted)
+            )
+            .padding(20)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     // MARK: - Helpers

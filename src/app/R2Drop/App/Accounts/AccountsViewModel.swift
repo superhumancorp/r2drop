@@ -10,6 +10,9 @@ import R2Bridge
 @MainActor
 final class AccountsViewModel: ObservableObject {
 
+    /// Observer for account change notifications (from onboarding, add account, etc.)
+    private var accountChangeObserver: NSObjectProtocol?
+
     // MARK: - Published State
 
     /// All configured accounts, loaded from config.toml.
@@ -47,6 +50,26 @@ final class AccountsViewModel: ObservableObject {
     private let r2Client = R2Client()
     private let keychainManager = KeychainManager()
 
+    // MARK: - Init / Deinit
+
+    init() {
+        // Listen for account changes from onboarding/add-account flows
+        accountChangeObserver = NotificationCenter.default.addObserver(
+            forName: .r2dropAccountsDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.load()
+            }
+        }
+    }
+
+    deinit {
+        if let observer = accountChangeObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+    }
     // MARK: - Load
 
     /// Reload accounts from config.toml and select the first if none selected.

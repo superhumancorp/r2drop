@@ -15,19 +15,13 @@ struct AboutTabView: View {
                 heroBanner
 
                 VStack(spacing: 16) {
-                    // Website link at top
-                    websiteCard
-
                     // App icon + title + version (FR-055)
                     appInfoCard
 
-                    // Developer info
-                    developerCard
-
-                    // Links: Privacy, Terms, Report Issue (FR-056)
+                    // Links: Website, Privacy, Terms, Report Issue (FR-056)
                     linksCard
 
-                    // Copyright & trademark (FR-057)
+                    // Copyright & developer info (FR-057)
                     copyrightCard
 
                     // Auto-update controls (FR-058)
@@ -63,47 +57,6 @@ struct AboutTabView: View {
         }
     }
 
-    // MARK: - Website Link
-
-    private var websiteCard: some View {
-        GlassCard(spacing: 0) {
-            linkRow(title: "r2drop.com", icon: "globe") {
-                viewModel.openWebsite()
-            }
-        }
-    }
-
-    // MARK: - Developer Info
-
-    private var developerCard: some View {
-        GlassCard {
-            HStack(spacing: 12) {
-                Text("Developed by Paul Pierre")
-                    .font(.callout)
-                    .foregroundColor(.secondary)
-
-                Spacer()
-
-                // X (Twitter) link
-                Button(action: { viewModel.openDeveloperX() }) {
-                    Image(systemName: "link")
-                        .font(.body)
-                        .foregroundColor(.accentColor)
-                }
-                .buttonStyle(.borderless)
-                .help("@paulpierre on X")
-
-                // GitHub link
-                Button(action: { viewModel.openDeveloperGitHub() }) {
-                    Image(systemName: "chevron.left.forwardslash.chevron.right")
-                        .font(.body)
-                        .foregroundColor(.accentColor)
-                }
-                .buttonStyle(.borderless)
-                .help("paulpierre on GitHub")
-            }
-        }
-    }
 
     // MARK: - App Info (FR-055)
 
@@ -134,6 +87,10 @@ struct AboutTabView: View {
 
     private var linksCard: some View {
         GlassCard(spacing: 0) {
+            linkRow(title: "r2drop.com", icon: "globe") {
+                viewModel.openWebsite()
+            }
+            Divider().opacity(0.3)
             linkRow(title: "Privacy Policy", icon: "lock.shield") {
                 viewModel.openPrivacyPolicy()
             }
@@ -174,7 +131,37 @@ struct AboutTabView: View {
 
     private var copyrightCard: some View {
         GlassCard {
-            VStack(spacing: 4) {
+            VStack(spacing: 8) {
+                // Developer info with social icons
+                HStack(spacing: 8) {
+                    Text("Developed by Paul Pierre")
+                        .font(.callout)
+                        .foregroundColor(.secondary)
+
+                    Spacer()
+
+                    // X (Twitter) icon button
+                    Button(action: { viewModel.openDeveloperX() }) {
+                        Image(systemName: "link")
+                            .font(.body)
+                            .foregroundColor(.accentColor)
+                    }
+                    .buttonStyle(.borderless)
+                    .help("@paulpierre on X")
+
+                    // GitHub icon button
+                    Button(action: { viewModel.openDeveloperGitHub() }) {
+                        Image(systemName: "chevron.left.forwardslash.chevron.right")
+                            .font(.body)
+                            .foregroundColor(.accentColor)
+                    }
+                    .buttonStyle(.borderless)
+                    .help("paulpierre on GitHub")
+                }
+
+                Divider().opacity(0.3)
+
+                // Copyright text
                 Text("\u{00A9} 2026 Superhuman Corp. All rights reserved.")
                     .font(.callout)
                     .foregroundColor(.secondary)

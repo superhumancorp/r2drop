@@ -185,9 +185,15 @@ struct OnboardingChooseBucketPanel: View {
                 .font(.body)
 
             if viewModel.isLoadingDomains {
-                ProgressView()
-                    .controlSize(.small)
-                Spacer()
+                HStack {
+                    Spacer()
+                    ProgressView()
+                        .controlSize(.small)
+                    Text("Loading domains...")
+                        .font(.callout)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                }
             } else {
                 // Always show Picker — "Default" first, plus any fetched domains.
                 Picker("", selection: $viewModel.customDomain) {
