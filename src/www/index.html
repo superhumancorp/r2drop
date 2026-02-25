@@ -968,8 +968,11 @@ if (container) {
   pivot.scale.set(sc, sc, sc);
   scene.add(pivot);
 
-  // FTL Sci-Fi Zooming Icons Effect
+  // Accelerating Black Hole Orbiting Icons Effect
   const particles = new THREE.Group();
+  // Move the particle group backward to sit behind the logo and tilt it to look like an accretion disk
+  particles.position.z = -5;
+  particles.rotation.x = Math.PI * 0.15;
   scene.add(particles);
 
   const icons = ['image.svg', 'mail.svg', 'music.svg', 'ppt.svg', 'psd.svg', 'record.svg', 'sql.svg', 'ttf.svg', 'vector.svg', 'video.svg', 'word.svg', 'xls.svg', 'zip.svg', 'pdf.png'];
@@ -1004,28 +1007,28 @@ if (container) {
     // Load texture once per icon via absolute remote URL
     const texture = loadIconTexture('https://r2drop.com/filetypes/' + icon);
     
-    // 4 instances of each icon for a scattered FTL field
+    // 4 instances of each icon to create a dense, swirling cloud
     for(let j=0; j<4; j++) {
+      // Give them some transparency so they are a subtle background element
       const material = new THREE.SpriteMaterial({ map: texture, transparent: true, opacity: 0.0, depthWrite: false });
       const sprite = new THREE.Sprite(material);
       
-      const posX = (Math.random() - 0.5) * 16;
-      const posY = (Math.random() - 0.5) * 16;
-      const posZ = -30 - Math.random() * 20; // Start far in the background
+      const radius = 6 + Math.random() * 8; // Spread out from radius 6 to 14
+      const theta = Math.random() * Math.PI * 2;
+      const yOffset = (Math.random() - 0.5) * 1.5;
       
-      sprite.position.set(posX, posY, posZ);
-      
-      const scale = 0.15 + Math.random() * 0.2; // Keep them tiny
+      // Make them much larger
+      const scale = 0.8 + Math.random() * 0.8; 
       sprite.scale.set(scale, scale, scale);
       
       particles.add(sprite);
       particleData.push({
         sprite,
-        x: posX,
-        y: posY,
-        z: posZ,
-        speedZ: 4 + Math.random() * 8, // Zoom speed towards camera
-        maxOpacity: 0.1 + Math.random() * 0.3 // Random max opacity so some are fainter
+        radius,
+        theta,
+        baseSpeed: 0.02 + Math.random() * 0.05, // Base orbit speed
+        yOffset,
+        baseSinkSpeed: 0.01 + Math.random() * 0.05 // Base speed falling toward the center
       });
     }
   });
@@ -1050,33 +1053,42 @@ if (container) {
     const dt = Math.min(t - lastT, 0.1); // Cap dt to prevent huge jumps
     lastT = t;
 
-    // Update Particles (FTL Sci-Fi Effect)
+    // Update Particles (Accelerating Black Hole Effect)
     particleData.forEach(p => {
-      // Move forward towards the camera
-      p.z += dt * p.speedZ;
+      // Acceleration factor: gets exponentially larger as radius gets smaller
+      // Adding 1 prevents division by zero. Max acceleration at radius 0.
+      const accel = 1 + (15 / Math.max(p.radius, 0.5)); 
+
+      // Orbit around the center faster as they get closer
+      p.theta += dt * p.baseSpeed * accel;
       
-      // If it flies past the camera, reset it back into the deep background
-      if (p.z > 5) {
-        p.z = -30 - Math.random() * 10;
-        p.x = (Math.random() - 0.5) * 16;
-        p.y = (Math.random() - 0.5) * 16;
+      // Fall towards the center faster as they get closer
+      p.radius -= dt * p.baseSinkSpeed * accel;
+      
+      // If it falls past the event horizon, reset to the outer edge
+      if (p.radius < 0.5) {
+        p.radius = 14;
+        p.theta = Math.random() * Math.PI * 2;
       }
       
-      p.sprite.position.set(p.x, p.y, p.z);
+      // Calculate 3D position in the disk
+      p.sprite.position.x = Math.cos(p.theta) * p.radius;
+      p.sprite.position.z = Math.sin(p.theta) * p.radius;
+      p.sprite.position.y = p.yOffset * (p.radius / 14); 
       
-      // Fade in from deep space, and fade out as it flies past the focal point
-      if (p.z < -20) {
-        p.sprite.material.opacity = p.maxOpacity * Math.max(0, (p.z + 30) / 10);
-      } else if (p.z > 0) {
-        p.sprite.material.opacity = p.maxOpacity * Math.max(0, (5 - p.z) / 5);
+      // Fade out as it gets sucked in or when it spawns at the very edge
+      if (p.radius < 2.0) {
+        p.sprite.material.opacity = 0.5 * Math.max(0, (p.radius - 0.5) / 1.5);
+      } else if (p.radius > 11.0) {
+        p.sprite.material.opacity = 0.5 * Math.max(0, (14.0 - p.radius) / 3.0);
       } else {
-        p.sprite.material.opacity = p.maxOpacity;
+        p.sprite.material.opacity = 0.5;
       }
     });
 
     // Slight parallax for the particle background based on mouse
-    particles.position.x = mx * -0.5;
-    particles.position.y = my * 0.5;
+    particles.rotation.y = mx * -0.15;
+    particles.rotation.x = Math.PI * 0.15 + my * 0.15;
 
     // Dynamic speed based on current angle for a one-sided snapping/dwelling effect
     // We want it to slow down only once per full rotation (every 2*PI).
