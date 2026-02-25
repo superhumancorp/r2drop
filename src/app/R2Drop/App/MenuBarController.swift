@@ -12,6 +12,9 @@ import R2Core
 @MainActor
 final class MenuBarController: NSObject, NSMenuDelegate {
 
+    /// Direct reference to AppDelegate — avoids fragile NSApp.delegate cast
+    /// which can fail with SwiftUI's @NSApplicationDelegateAdaptor wrapper.
+    private weak var appDelegateRef: AppDelegate?
     private var statusItem: NSStatusItem!
     private var animationTimer: Timer?
     private var uploadCheckTimer: Timer?
@@ -41,7 +44,8 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     // MARK: - Init
 
-    override init() {
+    init(appDelegate: AppDelegate) {
+        self.appDelegateRef = appDelegate
         super.init()
         #if DEBUG
         R2Log.menubar.debug("MenuBarController.init")
@@ -181,10 +185,11 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         menu.addItem(headerItem)
         menu.addItem(.separator())
 
-        // 2. Account section
+        // 2. Account section — deduplicate by name to handle legacy config dupes
         let config = (try? ConfigManager.load()) ?? R2Config()
-        if !config.accounts.isEmpty {
-            addAccountItems(to: menu, accounts: config.accounts, active: config.activeAccount)
+        let uniqueAccounts = deduplicateAccounts(config.accounts)
+        if !uniqueAccounts.isEmpty {
+            addAccountItems(to: menu, accounts: uniqueAccounts, active: config.activeAccount)
             menu.addItem(.separator())
         }
 
@@ -209,7 +214,8 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         menu.addItem(quitItem)
     }
 
-    /// Add per-account submenu items with Set Active / Update Token / Log Out.
+    /// Add per-account submenu items. Tailscale-style: only the active account
+    /// gets a checkmark; others are shown as selectable options.
     private func addAccountItems(to menu: NSMenu, accounts: [ConfigAccount], active: String?) {
         for account in accounts {
             let submenu = NSMenu()
@@ -232,13 +238,27 @@ final class MenuBarController: NSObject, NSMenuDelegate {
             logout.representedObject = account.name
             submenu.addItem(logout)
 
-            // Account item with checkmark if active, bucket name in parentheses
+            // Tailscale-style: checkmark on active, plain for others
             let title = account.bucket.isEmpty ? account.name : "\(account.name) (\(account.bucket))"
             let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
             item.submenu = submenu
             if account.name == active { item.state = .on }
             menu.addItem(item)
         }
+    }
+
+    /// Remove duplicate accounts by name, keeping the last occurrence.
+    /// Handles legacy config files that accumulated duplicates.
+    private func deduplicateAccounts(_ accounts: [ConfigAccount]) -> [ConfigAccount] {
+        var seen = Set<String>()
+        var result: [ConfigAccount] = []
+        for account in accounts.reversed() {
+            if !seen.contains(account.name) {
+                seen.insert(account.name)
+                result.append(account)
+            }
+        }
+        return result.reversed()
     }
 
     /// Show "X of Y uploaded" if there are active/completed jobs in the queue.
@@ -283,7 +303,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     @objc private func quitApp() { NSApplication.shared.terminate(nil) }
 
-    private var appDelegate: AppDelegate? { NSApp.delegate as? AppDelegate }
+    private var appDelegate: AppDelegate? { appDelegateRef }
 
     // MARK: - Drag-and-Drop Setup (FR-066)
 

@@ -47,10 +47,17 @@ public final class AccountManager {
 
     // MARK: - Write
 
-    /// Add a new account. Sets it as active if it's the first account.
+    /// Add a new account. If an account with the same name already exists,
+    /// updates it instead of creating a duplicate. Sets as active if it's the first.
     public func addAccount(_ account: ConfigAccount) throws {
-        config.accounts.append(account)
-        if config.accounts.count == 1 {
+        if let idx = config.accounts.firstIndex(where: { $0.name == account.name }) {
+            // Account already exists — update instead of duplicating
+            config.accounts[idx] = account
+        } else {
+            config.accounts.append(account)
+        }
+        // Set as active if it's the only account
+        if config.accounts.count == 1 || config.activeAccount == nil {
             config.activeAccount = account.name
         }
         try save()

@@ -245,7 +245,8 @@ final class OnboardingViewModel: ObservableObject {
     // MARK: - Custom Domain Fetching
 
     /// Fetch custom domains for a bucket from the Cloudflare API.
-    /// Uses direct URLSession since this isn't in the Rust FFI layer.
+    /// Endpoint: GET /accounts/{id}/r2/buckets/{name}/domains/custom
+    /// Response: { result: { domains: [{ domain: "...", enabled: true, status: { ownership: "active" } }] } }
     /// Falls back gracefully — if the API call fails, domains list stays empty.
     func fetchCustomDomains(bucket: String) async {
         guard !accountId.isEmpty, !token.isEmpty else { return }
@@ -255,8 +256,8 @@ final class OnboardingViewModel: ObservableObject {
         R2Log.ui.debug("OnboardingViewModel: fetchCustomDomains bucket=\(bucket)")
         #endif
 
-        // Cloudflare API: list custom domains for an R2 bucket
-        let urlString = "https://api.cloudflare.com/client/v4/accounts/\(accountId)/r2/buckets/\(bucket)/custom_domains"
+        // Correct Cloudflare API path: /domains/custom (not /custom_domains)
+        let urlString = "https://api.cloudflare.com/client/v4/accounts/\(accountId)/r2/buckets/\(bucket)/domains/custom"
         guard let url = URL(string: urlString) else {
             isLoadingDomains = false
             return
@@ -274,16 +275,25 @@ final class OnboardingViewModel: ObservableObject {
             R2Log.ui.debug("OnboardingViewModel: fetchCustomDomains status=\(httpStatus)")
             #endif
 
-            // Parse Cloudflare API response: { result: [{ hostname: "..." }] }
+            // Parse Cloudflare API response:
+            // { result: { domains: [{ domain: "cdn.example.com", enabled: true, status: { ownership: "active" } }] } }
             if httpStatus == 200,
                let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let results = json["result"] as? [[String: Any]] {
-                let domains = results.compactMap { $0["hostname"] as? String }
-                self.customDomains = domains
-                // Auto-select first domain if custom domain field is empty
-                if customDomain.isEmpty, let first = domains.first {
-                    customDomain = first
+               let result = json["result"] as? [String: Any],
+               let domainEntries = result["domains"] as? [[String: Any]] {
+                // Only show domains that are enabled and have active ownership
+                let activeDomains = domainEntries.compactMap { entry -> String? in
+                    guard let domain = entry["domain"] as? String,
+                          let enabled = entry["enabled"] as? Bool, enabled,
+                          let status = entry["status"] as? [String: Any],
+                          let ownership = status["ownership"] as? String,
+                          ownership == "active" else {
+                        return nil
+                    }
+                    return domain
                 }
+                self.customDomains = activeDomains
+                // Don't auto-select — Default (R2 URL) stays selected unless user picks one
             }
         } catch {
             #if DEBUG
@@ -352,14 +362,11 @@ final class OnboardingViewModel: ObservableObject {
         // FR-005: Wipe plaintext token from memory now that it's in Keychain
         token = ""
 
-        // Show celebration with confetti and play bell sound
+        // Show celebration with confetti and play bell sound.
+        // User dismisses manually via the Done button — no auto-dismiss.
         showCelebration = true
         showFinalConfetti = true
         playBellSound()
-
-        // Give time for celebration animation, then dismiss
-        try? await Task.sleep(nanoseconds: 2_500_000_000) // 2.5 seconds
-        dismissed = true
     }
 
     // MARK: - Sound

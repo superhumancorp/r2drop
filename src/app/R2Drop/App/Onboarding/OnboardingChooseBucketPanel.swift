@@ -152,7 +152,8 @@ struct OnboardingChooseBucketPanel: View {
 
     // MARK: - Custom Domain
 
-    /// Custom domain picker — shows domains fetched from API, or "Default" if none available.
+    /// Custom domain picker — always a dropdown. "Default (R2 URL)" first,
+    /// then any active custom domains fetched from Cloudflare API.
     private var customDomainSection: some View {
         HStack {
             Text("Custom domain:")
@@ -161,13 +162,9 @@ struct OnboardingChooseBucketPanel: View {
             if viewModel.isLoadingDomains {
                 ProgressView()
                     .controlSize(.small)
-            } else if viewModel.customDomains.isEmpty {
-                // No domains available — show text field for manual entry with "Default" hint
-                TextField("Default (R2 URL)", text: $viewModel.customDomain)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(maxWidth: 220)
+                Spacer()
             } else {
-                // Domains available — show Picker
+                // Always show Picker — "Default" first, plus any fetched domains.
                 Picker("", selection: $viewModel.customDomain) {
                     Text("Default (R2 URL)").tag("")
                     ForEach(viewModel.customDomains, id: \.self) { domain in
@@ -198,6 +195,18 @@ struct OnboardingChooseBucketPanel: View {
             Text("R2Drop is ready to upload files.")
                 .font(.title3)
                 .foregroundColor(.secondary)
+
+            Spacer().frame(height: 4)
+
+            // User must click Done to dismiss — no auto-dismiss.
+            Button(action: { viewModel.skip() }) {
+                Text("Done")
+                    .frame(maxWidth: 220)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .keyboardShortcut(.defaultAction)
+            .padding(.vertical, 6)
 
             Spacer()
         }

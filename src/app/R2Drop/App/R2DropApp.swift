@@ -52,7 +52,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         R2Log.app.debug("applicationDidFinishLaunching")
         #endif
         // Create the persistent menu bar icon (FR-034)
-        menuBarController = MenuBarController()
+        // Pass self so MenuBarController has a direct AppDelegate reference
+        // instead of relying on NSApp.delegate cast (which can fail with SwiftUI).
+        menuBarController = MenuBarController(appDelegate: self)
         #if DEBUG
         R2Log.app.debug("MenuBarController created")
         #endif
@@ -228,9 +230,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             backing: .buffered,
             defer: false
         )
-        // Transparent background so SwiftUI's .ultraThinMaterial shows as glass
-        window.backgroundColor = .clear
-        window.isOpaque = false
+        // Keep window opaque so the Settings window doesn't bleed through.
+        // The SwiftUI .ultraThinMaterial inside the view blurs our own Background-1.png
+        // texture layer — not the windows behind the app. This gives frosted glass
+        // appearance without transparency artifacts.
         window.titlebarAppearsTransparent = true
         window.contentView = hostingView
         window.title = title
