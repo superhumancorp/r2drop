@@ -148,7 +148,7 @@
                            <div gradient="true" class="light"></div>
                         </div>
                         <div class="_3d-spline" data-w-id="006eaeb9-40d7-0d9a-a28b-aacc845f2e31" style="width:100%;height:100%;position:relative;">
-                           <canvas id="r2drop-3d" style="width:100%;height:100%;display:block;"></canvas>
+                           <canvas id="r2drop-3d" style="width:100%;height:100%;display:block;position:relative;z-index:10;"></canvas>
                            <script src="https://cdn.jsdelivr.net/npm/three@0.137.0/build/three.min.js"></script>
                            <script src="https://cdn.jsdelivr.net/npm/three@0.137.0/examples/js/loaders/SVGLoader.js"></script>
                            <script>
@@ -211,10 +211,14 @@
                               var size = box.getSize(new THREE.Vector3());
                               var maxDim = Math.max(size.x, size.y, size.z);
                               var s = 3.0 / maxDim;
-                              group.scale.set(s, -s, s);
-                              group.position.sub(center.multiplyScalar(s));
-                              group.position.y *= -1;
-                              scene.add(group);
+
+                              // Wrap in pivot for clean centering
+                              var pivot = new THREE.Group();
+                              group.position.set(-center.x, -center.y, -center.z);
+                              pivot.add(group);
+                              pivot.scale.set(s, -s, s); // flip Y for SVG coords
+                              scene.add(pivot);
+                              var groupRef = pivot;
 
                               // Environment map
                               var pmrem = new THREE.PMREMGenerator(renderer);
@@ -238,9 +242,9 @@
                               function animate() {
                                  requestAnimationFrame(animate);
                                  var t = clock.getElapsedTime();
-                                 group.position.y = Math.sin(t * 0.8) * 0.15;
-                                 group.rotation.y = t * 0.15 + mouseX * 0.3;
-                                 group.rotation.x = Math.sin(t * 0.5) * 0.06 + mouseY * 0.15;
+                                 groupRef.position.y = Math.sin(t * 0.8) * 0.15;
+                                 groupRef.rotation.y = t * 0.15 + mouseX * 0.3;
+                                 groupRef.rotation.x = Math.sin(t * 0.5) * 0.06 + mouseY * 0.15;
                                  renderer.render(scene, camera);
                               }
                               animate();
