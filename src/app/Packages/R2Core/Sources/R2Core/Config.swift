@@ -68,7 +68,7 @@ public struct R2Preferences: Equatable {
     public var maxLogFiles: Int
     /// Maximum log file size in MB before rotation cleanup (FR-067).
     public var maxLogFileSizeMb: Int
-    /// Allow anonymous telemetry via PostHog (default: false, user must opt in).
+    /// Allow anonymous telemetry via PostHog (default: true, user can opt out).
     public var allowAnonymousTelemetry: Bool
 
     public static let defaultExclusions = [
@@ -86,7 +86,7 @@ public struct R2Preferences: Equatable {
         followSymlinks: Bool = false,
         maxLogFiles: Int = 5,
         maxLogFileSizeMb: Int = 10,
-        allowAnonymousTelemetry: Bool = false
+        allowAnonymousTelemetry: Bool = true
     ) {
         self.concurrentUploads = concurrentUploads
         self.chunkSizeMb = chunkSizeMb

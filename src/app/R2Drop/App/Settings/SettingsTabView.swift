@@ -83,7 +83,7 @@ struct SettingsTabView: View {
 
             GlassToggleRow(
                 title: "Share anonymous usage data",
-                subtitle: "Opt in to send anonymous telemetry that helps improve R2Drop. Off by default. No personal data or file contents are ever sent.",
+                subtitle: "Send anonymous usage data to help improve R2Drop. No personal data or file contents are ever sent. You can opt out at any time.",
                 isOn: Binding(
                     get: { viewModel.allowAnonymousTelemetry },
                     set: { viewModel.toggleAllowAnonymousTelemetry($0) }

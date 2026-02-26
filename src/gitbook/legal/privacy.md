@@ -6,22 +6,22 @@
 ---
 
 {% hint style="success" %}
-**TL;DR:** Telemetry is off by default and opt-in only. Your credentials and files never leave your Mac.
+**TL;DR:** Telemetry is on by default and fully anonymous. You can opt out any time in Settings. Your credentials and files never leave your Mac.
 {% endhint %}
 
 ---
 
 ## What the App Collects
 
-### Core App — No Data Collected by Default
+### Core App
 
-The R2Drop macOS app and CLI collect **no personal data by default**. The only network requests R2Drop makes are directly to Cloudflare's API endpoints on your behalf.
+The R2Drop macOS app and CLI collect no personal data. The only network requests R2Drop makes are directly to Cloudflare's API endpoints on your behalf.
 
-### Optional Anonymous Telemetry (Opt-In)
+### Anonymous Telemetry (On by Default, Opt-Out)
 
-If you choose to enable it in **Settings → Share anonymous usage data**, R2Drop sends anonymous usage events to [PostHog](https://posthog.com) — a third-party product analytics service. This toggle is **off by default**.
+R2Drop sends anonymous usage events to [PostHog](https://posthog.com) — a third-party product analytics service. This is **on by default** and can be disabled at any time in **Settings → Share anonymous usage data**.
 
-**What is sent when opt-in is enabled:**
+**What is sent:**
 
 - App lifecycle events (launch, quit, session duration)
 - Feature usage (which upload methods are used, tab interactions)
