@@ -55,7 +55,7 @@ testflight: rust-release fastlane-check
 	echo "Submitting to TestFlight"; \
 	echo "  MARKETING_VERSION=$$marketing_version"; \
 	echo "  BUILD_NUMBER=$$build_number"; \
-	MARKETING_VERSION="$$marketing_version" BUILD_NUMBER="$$build_number" $(FASTLANE) testflight
+	MARKETING_VERSION="$$marketing_version" BUILD_NUMBER="$$build_number" $(FASTLANE) upload_testflight
 
 release: rust-release fastlane-check
 	@set -euo pipefail; \

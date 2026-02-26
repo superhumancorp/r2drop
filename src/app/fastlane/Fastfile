@@ -12,42 +12,101 @@
 #   APPLE_TEAM_ID             — Apple team ID (A89MU37ZLB)
 #   BUILD_NUMBER              — Build number (e.g. GITHUB_RUN_NUMBER)
 #   MARKETING_VERSION         — e.g. "0.1.0"
-#   PROVISIONING_PROFILE_UUID — UUID of the installed App Store provisioning profile
+#   PROVISIONING_PROFILE_UUID — UUID of the installed App Store provisioning profile (app target)
+#   PROVISIONING_PROFILE_FINDER_EXTENSION_UUID — UUID for FinderExtension profile (App Groups enabled)
+#   PROVISIONING_PROFILE_QUICKACTION_EXTENSION_UUID — UUID for QuickActionExtension profile (App Groups enabled)
 #
 # NOTE: The FinderExtension (com.superhumancorp.r2drop.FinderExtension) needs its own
-# App Store provisioning profile. Set PROVISIONING_PROFILE_EXTENSION_UUID once that
-# profile is created in App Store Connect and add it to the PROVISIONING_PROFILE_DIST_EXTENSION
-# GitHub secret.
+# App Store provisioning profile. `PROVISIONING_PROFILE_EXTENSION_UUID` is still
+# accepted as a backward-compatible fallback for the FinderExtension profile only.
 
 require "shellwords"
 
 default_platform(:mac)
 
 BUNDLE_ID         = "com.superhumancorp.r2drop"
-BUNDLE_ID_EXT     = "com.superhumancorp.r2drop.FinderExtension"
+BUNDLE_ID_FINDER  = "com.superhumancorp.r2drop.FinderExtension"
+BUNDLE_ID_QUICK   = "com.superhumancorp.r2drop.QuickActionExtension"
 TEAM_ID           = ENV.fetch("APPLE_TEAM_ID", "A89MU37ZLB")
 XCODEWORKSPACE    = "R2Drop.xcworkspace"
 PRODUCTION_SCHEME = ENV.fetch("XCODE_SCHEME", "R2Drop Production")
 OUTPUT_DIR        = "build/fastlane"
 
 platform :mac do
+  def env_present?(key)
+    !ENV.fetch(key, "").strip.empty?
+  end
+
+  # Local developers often don't have explicit provisioning UUIDs exported in .env.
+  # In that case, use automatic signing and let Xcode resolve installed profiles.
+  # CI / scripted releases should provide explicit UUIDs and use manual signing.
+  def use_automatic_signing_for_local?
+    return false if ENV.fetch("CI", "").downcase == "true"
+    return false if ENV.fetch("FORCE_MANUAL_SIGNING", "") == "1"
+
+    profile_keys = [
+      "PROVISIONING_PROFILE_UUID",
+      "PROVISIONING_PROFILE_EXTENSION_UUID", # legacy FinderExtension fallback
+      "PROVISIONING_PROFILE_FINDER_EXTENSION_UUID",
+      "PROVISIONING_PROFILE_QUICKACTION_EXTENSION_UUID",
+      "PROVISIONING_PROFILE_QUICK_ACTION_EXTENSION_UUID" # tolerated alias
+    ]
+
+    profile_keys.none? { |k| env_present?(k) }
+  end
+
+  def manual_provisioning_profiles!
+    app_profile = ENV.fetch("PROVISIONING_PROFILE_UUID", "").strip
+    finder_profile = ENV.fetch("PROVISIONING_PROFILE_FINDER_EXTENSION_UUID", "").strip
+    finder_profile = ENV.fetch("PROVISIONING_PROFILE_EXTENSION_UUID", "").strip if finder_profile.empty?
+    quick_profile = ENV.fetch("PROVISIONING_PROFILE_QUICKACTION_EXTENSION_UUID", "").strip
+    quick_profile = ENV.fetch("PROVISIONING_PROFILE_QUICK_ACTION_EXTENSION_UUID", "").strip if quick_profile.empty?
+
+    missing = []
+    missing << "PROVISIONING_PROFILE_UUID (#{BUNDLE_ID})" if app_profile.empty?
+    missing << "PROVISIONING_PROFILE_FINDER_EXTENSION_UUID or PROVISIONING_PROFILE_EXTENSION_UUID (#{BUNDLE_ID_FINDER})" if finder_profile.empty?
+    missing << "PROVISIONING_PROFILE_QUICKACTION_EXTENSION_UUID (#{BUNDLE_ID_QUICK})" if quick_profile.empty?
+
+    unless missing.empty?
+      UI.user_error!(
+        "Missing provisioning profile UUID env var(s) for manual signing:\n" \
+        "  - #{missing.join("\n  - ")}\n" \
+        "All three profiles must exist and include the App Groups capability."
+      )
+    end
+
+    {
+      BUNDLE_ID => app_profile,
+      BUNDLE_ID_FINDER => finder_profile,
+      BUNDLE_ID_QUICK => quick_profile
+    }
+  end
+
   # ---------------------------------------------------------------------------
   # Shared build helper — archives and exports a signed .pkg for App Store
   # ---------------------------------------------------------------------------
   def build_for_appstore(build_number, marketing_version)
-    profile_uuid     = ENV.fetch("PROVISIONING_PROFILE_UUID", "")
-    profile_ext_uuid = ENV.fetch("PROVISIONING_PROFILE_EXTENSION_UUID", profile_uuid)
-
-    provisioning_profiles = { BUNDLE_ID => profile_uuid }
-    provisioning_profiles[BUNDLE_ID_EXT] = profile_ext_uuid unless profile_ext_uuid.empty?
-
     xcargs_list = [
       "CURRENT_PROJECT_VERSION=#{build_number}",
       "MARKETING_VERSION=#{marketing_version}",
-      "CODE_SIGN_STYLE=Manual",
       "DEVELOPMENT_TEAM=#{TEAM_ID}",
       "CODE_SIGN_IDENTITY='Apple Distribution'"
     ]
+
+    export_options = {
+      method: "app-store",
+      teamID: TEAM_ID
+    }
+
+    if use_automatic_signing_for_local?
+      UI.important("No provisioning profile UUIDs supplied; using automatic signing for local archive/export.")
+      export_options[:signingStyle] = "automatic"
+      xcargs_list << "CODE_SIGN_STYLE=Automatic"
+    else
+      export_options[:signingStyle] = "manual"
+      export_options[:provisioningProfiles] = manual_provisioning_profiles!
+      xcargs_list << "CODE_SIGN_STYLE=Manual"
+    end
 
     gym(
       workspace: XCODEWORKSPACE,
@@ -57,12 +116,7 @@ platform :mac do
       clean: true,
       output_directory: OUTPUT_DIR,
       output_name: "R2Drop",
-      export_options: {
-        method: "app-store",
-        teamID: TEAM_ID,
-        signingStyle: "manual",
-        provisioningProfiles: provisioning_profiles
-      },
+      export_options: export_options,
       # Shell-escape build settings so values with spaces (e.g. signing identities)
       # do not get split and misparsed as xcodebuild actions.
       xcargs: Shellwords.join(xcargs_list)
