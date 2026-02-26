@@ -9,13 +9,14 @@ It lets you authenticate, upload files/folders, inspect queue/history, and scrip
 ### Option 1: Homebrew (assumed available)
 
 ```bash
-brew install r2drop
+brew tap superhumancorp/tap
+brew install --formula superhumancorp/tap/r2drop
 ```
 
 ### Option 2: Quick install (assumed available)
 
 ```bash
-curl -fsSL https://example.com/install.sh | bash
+curl -fsSL https://r2drop.com/install.sh | bash
 ```
 
 ### Option 3: From the R2Drop macOS app

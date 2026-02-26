@@ -22,4 +22,5 @@ jobs:
       - name: Lint and audit
         run: |
           brew style --fix Casks/ Formula/ || true
-          brew audit --strict Casks/r2drop.rb Formula/r2-cli.rb
+          brew audit --strict --cask r2drop
+          brew audit --strict --formula r2drop

@@ -8,7 +8,7 @@ The `r2drop` CLI is a standalone binary. It works on macOS and Linux (x86_64 and
 
 ```bash
 brew tap superhumancorp/tap
-brew install superhumancorp/tap/r2-cli
+brew install --formula superhumancorp/tap/r2drop
 ```
 
 This is the easiest method and handles updates automatically via `brew upgrade`.

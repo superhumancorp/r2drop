@@ -78,7 +78,7 @@ fi
 
 # --- Build --------------------------------------------------------------------
 
-echo "Building r2-cli (release)..."
+echo "Building r2drop CLI (release)..."
 cargo build --manifest-path "$ENGINE_DIR/Cargo.toml" \
     -p r2-cli --release
 

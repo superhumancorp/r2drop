@@ -1,5 +1,5 @@
 # .github/workflows/bump.yml
-# Auto-bumps Cask and Formula versions when a new r2drop release is published.
+# Auto-bumps Cask and Formula versions when new app/CLI releases are published.
 # Triggered by repository_dispatch from the main r2drop release workflow,
 # or daily as a fallback.
 name: Bump Tap
@@ -30,11 +30,12 @@ jobs:
           HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Bump the cask (downloads new .dmg, computes SHA256 automatically)
+          # Bump the cask (app releases: vX.Y.Z)
           brew bump-cask-pr --no-fork --write-only r2drop || true
 
-          # Bump the formula
-          brew bump-formula-pr --no-fork --write-only r2-cli || true
+          # Bump the CLI formula (CLI releases: cli-vX.Y.Z)
+          # Using the formula command disambiguates from the cask with the same token.
+          brew bump-formula-pr --no-fork --write-only r2drop || true
 
           # Commit if anything changed
           git diff --quiet || (

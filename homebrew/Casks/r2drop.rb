@@ -8,10 +8,12 @@ cask "r2drop" do
   arch arm: "aarch64", intel: "x86_64"
 
   version "0.1.0"
-  sha256 arm:   "REPLACE_WITH_ARM64_SHA256",
-         intel: "REPLACE_WITH_X86_64_SHA256"
+  # Replace with real SHA256 values when publishing a new app release.
+  sha256 arm:   "0000000000000000000000000000000000000000000000000000000000000000",
+         intel: "0000000000000000000000000000000000000000000000000000000000000000"
 
-  url "https://github.com/superhumancorp/r2drop/releases/download/v#{version}/R2Drop-#{version}-#{arch}.dmg"
+  url "https://github.com/superhumancorp/r2drop/releases/download/v#{version}/R2Drop-#{version}-#{arch}.dmg",
+      verified: "github.com/superhumancorp/r2drop/"
   name "R2Drop"
   desc "Menu bar app for uploading files to Cloudflare R2"
   homepage "https://r2drop.com"

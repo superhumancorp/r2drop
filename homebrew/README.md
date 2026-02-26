@@ -15,7 +15,7 @@ brew tap superhumancorp/tap
 brew install --cask superhumancorp/tap/r2drop
 
 # CLI (macOS + Linux)
-brew install superhumancorp/tap/r2-cli
+brew install --formula superhumancorp/tap/r2drop
 ```
 
 ## curl installer (CLI only)
@@ -29,4 +29,8 @@ curl -fsSL https://r2drop.com/install.sh | bash
 | Package | Type | Description |
 |---------|------|-------------|
 | `r2drop` | Cask | macOS menu bar app (.dmg) |
-| `r2-cli` | Formula | CLI binary (macOS + Linux, arm64 + x86_64) |
+| `r2drop` | Formula | CLI binary (macOS + Linux, arm64 + x86_64) |
+
+Notes:
+- Use `brew install --cask superhumancorp/tap/r2drop` for the macOS app.
+- Use `brew install --formula superhumancorp/tap/r2drop` for the CLI.

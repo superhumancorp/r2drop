@@ -1,7 +1,10 @@
 name: CLI Release
 on:
   push:
-    tags: ['v*']
+    tags: ['cli-v*']
+
+permissions:
+  contents: write
 
 jobs:
   build-cli:
@@ -10,16 +13,20 @@ jobs:
         include:
           - os: macos-14
             target: aarch64-apple-darwin
-            arch_flag: arm64
+            os_slug: macos
+            asset_arch: arm64
           - os: macos-13
             target: x86_64-apple-darwin
-            arch_flag: x86_64
+            os_slug: macos
+            asset_arch: x86_64
           - os: ubuntu-latest
             target: x86_64-unknown-linux-musl
-            arch_flag: x86_64
+            os_slug: linux
+            asset_arch: x86_64
           - os: ubuntu-latest
             target: aarch64-unknown-linux-musl
-            arch_flag: aarch64
+            os_slug: linux
+            asset_arch: arm64
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -40,7 +47,7 @@ jobs:
 
       - name: Build CLI
         run: |
-          cd src/cli
+          cd src/app/engine/r2-cli
           if [ "${{ matrix.target }}" = "aarch64-unknown-linux-musl" ]; then
             cross build --release --target ${{ matrix.target }}
           else
@@ -49,19 +56,26 @@ jobs:
 
       - name: Package
         run: |
-          BINARY="src/cli/target/${{ matrix.target }}/release/r2-cli"
+          BINARY="src/app/engine/r2-cli/target/${{ matrix.target }}/release/r2drop"
           [ -f "$BINARY.exe" ] && BINARY="$BINARY.exe"
-          TARBALL="r2-cli-${{ matrix.target }}.tar.gz"
+          TARBALL="r2drop-${{ matrix.os_slug }}-${{ matrix.asset_arch }}.tar.gz"
           tar czf "$TARBALL" -C "$(dirname $BINARY)" "$(basename $BINARY)"
           echo "TARBALL=$TARBALL" >> "$GITHUB_ENV"
+
+      - name: Ensure CLI release exists
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+          gh release view "$VERSION" >/dev/null 2>&1 || \
+            gh release create "$VERSION" \
+              --title "R2Drop CLI ${VERSION#cli-v}" \
+              --notes "R2Drop CLI release ${VERSION#cli-v}" || \
+            gh release view "$VERSION" >/dev/null 2>&1
 
       - name: Upload to release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${GITHUB_REF_NAME}"
-          # Wait for release to exist (created by release.yml)
-          for i in $(seq 1 30); do
-            gh release view "$VERSION" && break || sleep 10
-          done
           gh release upload "$VERSION" "$TARBALL" --clobber

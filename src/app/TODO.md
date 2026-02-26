@@ -60,7 +60,7 @@
 ### curl|bash Installer (CLI)
 - [x] Created `scripts/install.sh` (detects OS/arch, downloads from GitHub Releases, installs to `~/.local/bin`)
 - [x] Hosted at `https://r2drop.com/install.sh`
-- [ ] Create first GitHub Release with CLI binaries (install script expects `r2-cli-{target}.tar.gz` assets)
+- [ ] Create first CLI GitHub Release with binaries (install script expects `cli-v*` tags and `r2drop-{os}-{arch}.tar.gz` assets)
 
 ### 🍺 Homebrew Tap
 - [x] Created `superhumancorp/homebrew-tap` repo with Cask + Formula + CI workflows
@@ -70,7 +70,7 @@
   ```bash
   brew tap superhumancorp/tap
   brew install --cask superhumancorp/tap/r2drop
-  brew install superhumancorp/tap/r2-cli
+  brew install --formula superhumancorp/tap/r2drop
   ```
 
 ### ⚙️ GitHub Actions Workflows

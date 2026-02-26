@@ -5,7 +5,7 @@
 # Usage:
 #   curl -fsSL https://r2drop.com/install.sh | bash
 #   curl -fsSL https://r2drop.com/install.sh | bash -s -- --bin-dir ~/.local/bin
-#   curl -fsSL https://r2drop.com/install.sh | bash -s -- --version v0.1.0
+#   curl -fsSL https://r2drop.com/install.sh | bash -s -- --version cli-v0.1.0
 
 set -eu
 
@@ -145,7 +145,7 @@ while [ "$#" -gt 0 ]; do
     -b=* | --bin-dir=*)   BIN_DIR="${1#*=}"; shift 1 ;;
     -v=* | --version=*)   VERSION="${1#*=}"; shift 1 ;;
     -h | --help)
-      printf 'Usage: install.sh [--bin-dir DIR] [--version vX.Y.Z]\n'
+      printf 'Usage: install.sh [--bin-dir DIR] [--version cli-vX.Y.Z]\n'
       printf '\n'
       printf '  --bin-dir DIR    Install to DIR (default: ~/.local/bin or /usr/local/bin)\n'
       printf '  --version TAG    Install specific version (default: latest)\n'
@@ -177,7 +177,7 @@ info "Install:  ${BLUE}${BIN_DIR}${NO_COLOR}"
 printf '\n'
 
 # Download to a temp file
-TMPFILE="$(mktemp /tmp/r2-cli-XXXXXX.tar.gz)"
+TMPFILE="$(mktemp /tmp/r2drop-XXXXXX.tar.gz)"
 trap 'rm -f "$TMPFILE"' EXIT
 
 info "Downloading ${URL}..."

@@ -34,7 +34,7 @@ The CLI lets you upload files from your terminal, automate uploads in scripts, a
 
 ```bash
 brew tap superhumancorp/tap
-brew install superhumancorp/tap/r2-cli
+brew install --formula superhumancorp/tap/r2drop
 ```
 
 ### Option 2: Quick Install Script

@@ -58,7 +58,7 @@ Download the latest `.dmg` from [GitHub Releases](https://github.com/superhumanc
 **Homebrew:**
 ```bash
 brew tap superhumancorp/tap
-brew install superhumancorp/tap/r2-cli
+brew install --formula superhumancorp/tap/r2drop
 ```
 
 **Quick install:**
@@ -99,7 +99,7 @@ Full CLI reference: [`src/app/CLI.md`](src/app/CLI.md)
 │   │   ├── R2Drop/        # Main app target
 │   │   ├── FinderExtension/  # Finder Sync extension
 │   │   └── Packages/      # Local Swift packages (R2Core, R2Bridge)
-│   ├── cli/               # CLI companion (Rust)
+│   ├── app/engine/r2-cli/ # CLI companion (Rust crate + binary target)
 │   └── www/               # Marketing website (r2drop.com)
 ├── homebrew/              # Homebrew tap templates
 ├── scripts/               # Install scripts
@@ -118,7 +118,7 @@ cd src/app
 xcodebuild build -scheme R2Drop -destination 'platform=macOS'
 
 # Build the CLI
-cd src/cli
+cd src/app/engine/r2-cli
 cargo build --release
 ```
 
@@ -137,7 +137,7 @@ See [`src/app/INSTRUMENTATION.md`](src/app/INSTRUMENTATION.md) for the event cat
 |----------|---------|--------------|
 | `ci.yml` | Push/PR to `main` | Build + lint |
 | `release.yml` | Tag `v*` | Sign, notarize, publish DMGs, bump Homebrew tap |
-| `cli-release.yml` | Tag `v*` | Cross-compile CLI (macOS + Linux) |
+| `cli-release.yml` | Tag `cli-v*` | Cross-compile CLI (macOS + Linux) |
 | `deploy-www.yml` | Push to `src/www/` | Deploy website to Cloudflare R2 |
 
 ## 🐛 Troubleshooting
