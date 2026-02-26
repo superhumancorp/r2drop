@@ -92,16 +92,21 @@ download() {
 }
 
 # ── Resolve "latest" to a concrete version tag ───────────────────────────────
+# Uses the GitHub API (more reliable than following the /releases/latest redirect).
 resolve_version() {
   if [ "$VERSION" = "latest" ]; then
-    resolved="$(curl --fail --silent --location --head \
-      "https://github.com/${REPO}/releases/latest" \
-      | grep -i '^location:' \
-      | sed 's|.*/tag/||' \
+    api_url="https://api.github.com/repos/${REPO}/releases/latest"
+    response="$(curl --fail --silent --location "$api_url" 2>/dev/null || true)"
+
+    # Extract tag_name from JSON response.
+    resolved="$(printf '%s' "$response" | grep '"tag_name"' | head -1 \
+      | sed 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/' \
       | tr -d '[:space:]')"
 
     if [ -z "$resolved" ]; then
-      error "Could not resolve latest version. Check your internet connection."
+      error "No published releases found for ${REPO}."
+      error "Check https://github.com/${REPO}/releases for available versions."
+      error "To install a specific version: curl ... | bash -s -- --version v0.1.0"
       exit 1
     fi
     printf '%s' "$resolved"

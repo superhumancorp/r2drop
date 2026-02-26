@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'src/www/**'
+      - 'scripts/install.sh'
   workflow_dispatch:
 
 jobs:
@@ -48,3 +49,15 @@ jobs:
               --data-binary @"$file" > /dev/null
           done
           echo "✅ Deployed $(find . -type f | wc -l) files to R2"
+
+      - name: Deploy install.sh to R2 root
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+        run: |
+          curl -sf -X PUT \
+            "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/r2/buckets/r2drop/objects/install.sh" \
+            -H "Authorization: Bearer $CF_API_TOKEN" \
+            -H "Content-Type: text/plain" \
+            --data-binary @scripts/install.sh
+          echo "✅ Deployed install.sh"
