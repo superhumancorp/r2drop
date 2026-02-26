@@ -33,6 +33,7 @@ gtag('config', 'G-KVJJSZKTX2');
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png"/>
 <link rel="manifest" href="../site.webmanifest"/>
 <style>
+  .footer-social .social-icon-link svg{fill:#ff8a1f!important;color:#ff8a1f!important;}
   .w-webflow-badge{display:none!important;}
   body { background: #0a0a0a; color: #e8e8e8; font-family: 'DM Sans', sans-serif; }
   .blog-article { max-width: 740px; margin: 0 auto; padding: 80px 24px 120px; }
@@ -85,17 +86,17 @@ gtag('config', 'G-KVJJSZKTX2');
 <body>
 <div class="page-wrapper">
   <nav class="nav-simple">
-    <a href="../index.html" class="nav-logo"><span>R2</span><span>Drop</span></a>
+    <a href="../" class="nav-logo"><span>R2</span><span>Drop</span></a>
     <div style="display:flex;gap:24px;align-items:center;">
-      <a href="../index.html">Home</a>
+      <a href="../">Home</a>
       <a href="https://docs.r2drop.com" target="_blank">Docs</a>
-      <a href="../about.html">About</a>
+      <a href="../about">About</a>
       <a href="https://github.com/superhumancorp/r2drop" target="_blank">GitHub</a>
       <a href="https://github.com/superhumancorp/r2drop/releases" style="background:#a78bfa;color:#0a0a0a;padding:8px 20px;border-radius:6px;font-weight:700;">Download for macOS</a>
     </div>
   </nav>
   <main class="blog-article">
-    <a href="../index.html" class="back-link">← Back to R2Drop</a>
+    <a href="../" class="back-link">← Back to R2Drop</a>
     <div class="blog-meta">
       <span class="blog-tag">CI/CD</span>
       <span>February 26, 2026</span>
@@ -332,9 +333,9 @@ echo "Upload complete: $(echo "$RESULT" | jq -r '.url')"</code></pre>
     <p>The <code>id: r2_upload</code> on the upload step lets subsequent steps reference its outputs using <code>steps.r2_upload.outputs.url</code>. This is standard GitHub Actions step output syntax — the <code>--json</code> flag is what makes it easy to extract clean values from the upload result.</p>
 
     <h2>Local Development: Use the R2Drop macOS App</h2>
-    <p>The CLI is designed for headless, automated use. But when you're actively developing — iterating on a build, testing assets, or manually pushing files — the <a href="upload-files-cloudflare-r2-macos.html" style="color:#a78bfa;">R2Drop macOS app</a> is significantly faster.</p>
+    <p>The CLI is designed for headless, automated use. But when you're actively developing — iterating on a build, testing assets, or manually pushing files — the <a href="upload-files-cloudflare-r2-macos" style="color:#a78bfa;">R2Drop macOS app</a> is significantly faster.</p>
     <p>Right-click any file or folder in Finder, choose <strong>Send to R2</strong>, and the upload starts immediately. The public URL is copied to your clipboard automatically when it finishes. There's nothing to type, no config to write at the terminal. It uses the same <code>~/.r2drop/config.toml</code> as the CLI, so any account you configure in the app is instantly available from the command line — and vice versa.</p>
-    <p>Think of the macOS app and CLI as complementary tools: the app for fast, interactive uploads during development, and the CLI for automated deploys in CI. Read the <a href="r2drop-cli-guide.html" style="color:#a78bfa;">full CLI guide</a> for a complete reference of all flags and configuration options.</p>
+    <p>Think of the macOS app and CLI as complementary tools: the app for fast, interactive uploads during development, and the CLI for automated deploys in CI. Read the <a href="r2drop-cli-guide" style="color:#a78bfa;">full CLI guide</a> for a complete reference of all flags and configuration options.</p>
 
     <div class="cta-block">
       <h3>Uploads in your menu bar — for free</h3>
@@ -345,8 +346,8 @@ echo "Upload complete: $(echo "$RESULT" | jq -r '.url')"</code></pre>
 
     <div class="related-posts">
       <h3>Related Articles</h3>
-      <a href="r2drop-cli-guide.html" class="related-link">R2Drop CLI: Terminal Uploads to Cloudflare R2</a>
-      <a href="upload-files-cloudflare-r2-macos.html" class="related-link">Upload Files to Cloudflare R2 on macOS with R2Drop</a>
+      <a href="r2drop-cli-guide" class="related-link">R2Drop CLI: Terminal Uploads to Cloudflare R2</a>
+      <a href="upload-files-cloudflare-r2-macos" class="related-link">Upload Files to Cloudflare R2 on macOS with R2Drop</a>
     </div>
   </main>
 </div>
