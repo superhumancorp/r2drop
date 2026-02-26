@@ -2,7 +2,7 @@
 
 The **Settings tab** has three sections: Upload Performance, File Exclusion Patterns, Command Line Interface, and Configuration.
 
-<video src="https://cdn.r2drop.com/r2drop-3.mp4" controls preload="metadata" style="width:100%;border-radius:8px"></video>
+<iframe src="https://cdn.r2drop.com/embed/r2drop-3.html" width="100%" height="400" frameborder="0" allowfullscreen style="border-radius:8px;display:block"></iframe>
 
 ---
 
