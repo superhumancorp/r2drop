@@ -1,0 +1,111 @@
+# fastlane/Fastfile
+# Lanes for R2Drop macOS app — TestFlight and Mac App Store distribution.
+#
+# Run from src/app/:
+#   bundle exec fastlane testflight
+#   bundle exec fastlane release_appstore
+#
+# Required env vars (set by CI or .env.local):
+#   APP_STORE_CONNECT_API_KEY_ID      — App Store Connect API Key ID (349AL5RGAF)
+#   APP_STORE_CONNECT_API_ISSUER_ID   — Issuer ID from App Store Connect
+#   APP_STORE_CONNECT_API_KEY_CONTENT — Base64-encoded .p8 private key
+#   APPLE_TEAM_ID             — Apple team ID (A89MU37ZLB)
+#   BUILD_NUMBER              — Build number (e.g. GITHUB_RUN_NUMBER)
+#   MARKETING_VERSION         — e.g. "0.1.0"
+#   PROVISIONING_PROFILE_UUID — UUID of the installed App Store provisioning profile
+#
+# NOTE: The FinderExtension (com.superhumancorp.r2drop.FinderExtension) needs its own
+# App Store provisioning profile. Set PROVISIONING_PROFILE_EXTENSION_UUID once that
+# profile is created in App Store Connect and add it to the PROVISIONING_PROFILE_DIST_EXTENSION
+# GitHub secret.
+
+default_platform(:mac)
+
+BUNDLE_ID       = "com.superhumancorp.r2drop"
+BUNDLE_ID_EXT   = "com.superhumancorp.r2drop.FinderExtension"
+TEAM_ID         = ENV.fetch("APPLE_TEAM_ID", "A89MU37ZLB")
+XCODEPROJ       = "R2Drop/R2Drop.xcodeproj"
+SCHEME          = "R2Drop"
+OUTPUT_DIR      = "build/fastlane"
+
+platform :mac do
+  # ---------------------------------------------------------------------------
+  # Shared build helper — archives and exports a signed .pkg for App Store
+  # ---------------------------------------------------------------------------
+  def build_for_appstore(build_number, marketing_version)
+    profile_uuid     = ENV.fetch("PROVISIONING_PROFILE_UUID", "")
+    profile_ext_uuid = ENV.fetch("PROVISIONING_PROFILE_EXTENSION_UUID", profile_uuid)
+
+    provisioning_profiles = { BUNDLE_ID => profile_uuid }
+    provisioning_profiles[BUNDLE_ID_EXT] = profile_ext_uuid unless profile_ext_uuid.empty?
+
+    gym(
+      project: XCODEPROJ,
+      scheme: SCHEME,
+      configuration: "Release",
+      export_method: "app-store",
+      clean: true,
+      output_directory: OUTPUT_DIR,
+      output_name: "R2Drop",
+      export_options: {
+        method: "app-store",
+        teamID: TEAM_ID,
+        signingStyle: "manual",
+        provisioningProfiles: provisioning_profiles
+      },
+      xcargs: [
+        "CURRENT_PROJECT_VERSION=#{build_number}",
+        "MARKETING_VERSION=#{marketing_version}",
+        "CODE_SIGN_STYLE=Manual",
+        "DEVELOPMENT_TEAM=#{TEAM_ID}",
+        "CODE_SIGN_IDENTITY=Apple Distribution"
+      ].join(" ")
+    )
+  end
+
+  # ---------------------------------------------------------------------------
+  # testflight — build and upload to TestFlight
+  # ---------------------------------------------------------------------------
+  desc "Build R2Drop and upload to TestFlight"
+  lane :testflight do
+    build_number     = ENV.fetch("BUILD_NUMBER", Time.now.strftime("%Y%m%d%H%M"))
+    marketing_version = ENV.fetch("MARKETING_VERSION", "0.1.0")
+
+    UI.message "Building #{BUNDLE_ID} v#{marketing_version} (#{build_number}) for TestFlight…"
+
+    build_for_appstore(build_number, marketing_version)
+
+    upload_to_testflight(
+      app_identifier: BUNDLE_ID,
+      pkg: "#{OUTPUT_DIR}/R2Drop.pkg",
+      skip_waiting_for_build_processing: true
+    )
+
+    UI.success "Uploaded v#{marketing_version} (#{build_number}) to TestFlight."
+  end
+
+  # ---------------------------------------------------------------------------
+  # release_appstore — build and submit to Mac App Store review
+  # ---------------------------------------------------------------------------
+  desc "Build R2Drop and submit to Mac App Store"
+  lane :release_appstore do
+    build_number      = ENV.fetch("BUILD_NUMBER", Time.now.strftime("%Y%m%d%H%M"))
+    marketing_version = ENV.fetch("MARKETING_VERSION", "0.1.0")
+
+    UI.message "Building #{BUNDLE_ID} v#{marketing_version} (#{build_number}) for App Store…"
+
+    build_for_appstore(build_number, marketing_version)
+
+    upload_to_app_store(
+      app_identifier: BUNDLE_ID,
+      pkg: "#{OUTPUT_DIR}/R2Drop.pkg",
+      submit_for_review: true,
+      automatic_release: false,
+      force: true,
+      skip_screenshots: true,
+      skip_metadata: true
+    )
+
+    UI.success "Submitted v#{marketing_version} (#{build_number}) to App Store review."
+  end
+end
