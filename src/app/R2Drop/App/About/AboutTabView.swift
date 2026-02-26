@@ -18,7 +18,7 @@ struct AboutTabView: View {
                     // App icon + title + version (FR-055)
                     appInfoCard
 
-                    // Links: Website, Privacy, Terms, Report Issue (FR-056)
+                    // Links: Website, Documentation, Privacy, Terms, Report Issue (FR-056)
                     linksCard
 
                     // Copyright & developer info (FR-057)
@@ -89,6 +89,10 @@ struct AboutTabView: View {
         GlassCard(spacing: 0) {
             linkRow(title: "r2drop.com", icon: "globe") {
                 viewModel.openWebsite()
+            }
+            Divider().opacity(0.3)
+            linkRow(title: "Documentation", icon: "book") {
+                viewModel.openDocumentation()
             }
             Divider().opacity(0.3)
             linkRow(title: "Privacy Policy", icon: "lock.shield") {

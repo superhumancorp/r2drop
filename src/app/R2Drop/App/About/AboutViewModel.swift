@@ -99,6 +99,10 @@ final class AboutViewModel: ObservableObject {
         openURL("https://github.com/superhumancorp/r2drop/issues")
     }
 
+    func openDocumentation() {
+        openURL("https://r2drop.com/docs")
+    }
+
     func openWebsite() {
         openURL("https://r2drop.com")
     }
