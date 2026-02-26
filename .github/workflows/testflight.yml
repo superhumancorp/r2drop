@@ -19,6 +19,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode_16.2.app
 
@@ -44,6 +49,12 @@ jobs:
         run: |
           bundle install
 
+      - name: Build Rust FFI (release, universal)
+        run: |
+          ./scripts/build-rust.sh --release
+          test -f engine/target/release/libr2_ffi.a
+          lipo -info engine/target/release/libr2_ffi.a
+
       - name: Run Fastlane TestFlight
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
@@ -52,6 +63,5 @@ jobs:
           APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
           BUILD_NUMBER: ${{ github.run_number }}
           MARKETING_VERSION: ${{ inputs.marketing_version }}
-          FORCE_AUTOMATIC_SIGNING: "1"
         run: |
           bundle exec fastlane upload_testflight
