@@ -234,16 +234,19 @@ final class UploadProcessor {
                     ])
                 }
             }
-            await MainActor.run {
-                self?.processingTask = nil
-                self?.isProcessing = false
-                self?.processingStartTime = nil
-            }
+            await self?.finishProcessingCycle()
         }
         processingTask = task
     }
 
     // MARK: - Helpers
+
+    @MainActor
+    private func finishProcessingCycle() {
+        processingTask = nil
+        isProcessing = false
+        processingStartTime = nil
+    }
 
     /// Compute SHA-256 hash of a string and return it as a lowercase hex string.
     /// Used to derive the S3 secret_access_key from the Cloudflare API token.

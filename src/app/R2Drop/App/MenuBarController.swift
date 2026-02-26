@@ -322,7 +322,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     @objc private func setActiveAccount(_ sender: NSMenuItem) {
         guard let name = sender.representedObject as? String else { return }
         let manager = try? AccountManager()
-        try? manager?.switchAccount(to: name)
+        _ = try? manager?.switchAccount(to: name)
     }
 
     @objc private func updateToken(_ sender: NSMenuItem) {
@@ -597,12 +597,15 @@ private enum MenuBarUploadQueueWorker {
         }
 
         // P0: upload_jobs_enqueued
+        let jobsEnqueuedSnapshot = jobsEnqueued
+        let filesSkippedExcludedSnapshot = filesSkippedExcluded
+        let containsDirectorySnapshot = containsDirectory
         await MainActor.run {
             TelemetryService.shared.track("upload_jobs_enqueued", properties: [
                 "entrypoint": "menu_bar",
-                "jobs_enqueued": jobsEnqueued,
-                "files_skipped_excluded": filesSkippedExcluded,
-                "contains_directory": containsDirectory
+                "jobs_enqueued": jobsEnqueuedSnapshot,
+                "files_skipped_excluded": filesSkippedExcludedSnapshot,
+                "contains_directory": containsDirectorySnapshot
             ])
         }
 

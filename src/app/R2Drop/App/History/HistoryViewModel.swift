@@ -56,7 +56,7 @@ final class HistoryViewModel: ObservableObject {
         R2Log.ui.debug("HistoryViewModel: clearHistory")
         #endif
         guard let hm = try? HistoryManager() else { return }
-        try? hm.clear()
+        _ = try? hm.clear()
         entries = []
     }
 

@@ -15,7 +15,7 @@ import Foundation
 final class TelemetryRateLimiter {
 
     /// Default suppression window: 5 minutes.
-    static let defaultWindowSeconds: TimeInterval = 300
+    nonisolated static let defaultWindowSeconds: TimeInterval = 300
 
     /// Tracks when each dedupe key was last emitted.
     private var lastEmitted: [String: Date] = [:]

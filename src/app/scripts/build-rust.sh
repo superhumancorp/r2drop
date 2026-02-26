@@ -24,6 +24,7 @@ BRIDGE_HEADER_DIR="$APP_DIR/Packages/R2Bridge/Sources/R2BridgeC/include"
 
 ARM_TARGET="aarch64-apple-darwin"
 X86_TARGET="x86_64-apple-darwin"
+DEPLOYMENT_TARGET_DEFAULT="13.0"
 
 # --- Parse arguments ----------------------------------------------------------
 
@@ -84,8 +85,19 @@ done
 
 # --- Build --------------------------------------------------------------------
 
+export MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-$DEPLOYMENT_TARGET_DEFAULT}"
+MIN_VERSION_FLAG="-mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET"
+
+# Ensure Rust and any C/ASM dependencies (via cc crate) inherit the same min macOS target.
+export RUSTFLAGS="${RUSTFLAGS:-} -C link-arg=$MIN_VERSION_FLAG"
+export CFLAGS_aarch64_apple_darwin="${CFLAGS_aarch64_apple_darwin:-} $MIN_VERSION_FLAG"
+export CFLAGS_x86_64_apple_darwin="${CFLAGS_x86_64_apple_darwin:-} $MIN_VERSION_FLAG"
+export CXXFLAGS_aarch64_apple_darwin="${CXXFLAGS_aarch64_apple_darwin:-} $MIN_VERSION_FLAG"
+export CXXFLAGS_x86_64_apple_darwin="${CXXFLAGS_x86_64_apple_darwin:-} $MIN_VERSION_FLAG"
+
 echo "Building Rust workspace ($PROFILE)..."
 echo "  Engine dir: $ENGINE_DIR"
+echo "  macOS deployment target: $MACOSX_DEPLOYMENT_TARGET"
 
 # Build for ARM (Apple Silicon)
 echo "  -> $ARM_TARGET"

@@ -197,7 +197,7 @@ final class QueueViewModel: ObservableObject {
             return
         }
         pendingCancelDeletes.remove(job.id)
-        try? qm.deleteJob(id: job.id)
+        _ = try? qm.deleteJob(id: job.id)
         poll()
     }
 
