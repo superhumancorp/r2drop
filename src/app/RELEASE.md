@@ -68,6 +68,14 @@ If no provisioning profile UUID env vars are set and `CI` is not true, Fastlane 
 
 This is the easiest local path if Xcode can resolve your signing setup.
 
+Prerequisites for local automatic signing to fully submit to TestFlight/App Store:
+
+- A valid, non-expired Apple Developer session in Xcode (`Xcode > Settings > Accounts`), or
+- `APP_STORE_CONNECT_API_KEY_*` env vars so `xcodebuild` can authenticate non-interactively
+- A Mac App Store installer certificate in Keychain Access:
+  - `3rd Party Mac Developer Installer: ...`
+  - or `Mac Installer Distribution: ...`
+
 ### 2) Manual Signing (CI / reproducible local runs)
 
 If any provisioning profile UUID env vars are set (or `FORCE_MANUAL_SIGNING=1`), Fastlane switches to manual signing and requires profile UUIDs for all three targets:
@@ -106,6 +114,7 @@ App Store Connect upload auth (depending on your local Fastlane setup):
 - `APP_STORE_CONNECT_API_KEY_ID`
 - `APP_STORE_CONNECT_API_ISSUER_ID`
 - `APP_STORE_CONNECT_API_KEY_CONTENT` (base64 `.p8`)
+- or `APP_STORE_CONNECT_API_KEY_PATH` (path to `.p8`, alternative to `..._CONTENT`)
 
 Local convenience:
 
@@ -191,6 +200,32 @@ Fix:
    - `com.superhumancorp.r2drop.QuickActionExtension`
 2. Ensure each profile includes App Groups entitlement support
 3. Export UUID env vars (manual mode), or run local Fastlane without those vars to use automatic signing
+
+### `No Mac App Store installer certificate was found in your keychain`
+
+Cause:
+
+- TestFlight/App Store uploads for macOS require a signed `.pkg`, which must be signed with a Mac installer certificate.
+
+Fix:
+
+1. Install one of these certificates in Keychain Access for team `A89MU37ZLB`:
+   - `3rd Party Mac Developer Installer: <Name> (A89MU37ZLB)`
+   - `Mac Installer Distribution: <Name> (A89MU37ZLB)`
+2. Re-run `make testflight` or `bundle exec fastlane testflight`
+
+### `Your session has expired. Please log in.` during package export
+
+Cause:
+
+- Local automatic signing is trying to fetch signing assets via Xcode, but the Apple Developer account session in Xcode has expired.
+
+Fix (either option):
+
+1. Re-authenticate in `Xcode > Settings > Accounts`, or
+2. Set `APP_STORE_CONNECT_API_KEY_ID`, `APP_STORE_CONNECT_API_ISSUER_ID`, and one of:
+   - `APP_STORE_CONNECT_API_KEY_CONTENT` (base64 `.p8`)
+   - `APP_STORE_CONNECT_API_KEY_PATH` (path to `.p8`)
 
 ### `Couldn't find specified scheme 'R2Drop'`
 
