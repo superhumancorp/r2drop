@@ -48,3 +48,6 @@ src/app/.env
 
 # --- Claude Code local config ---
 .claude/
+
+# --- Replit project (separate repo with own git history) ---
+src/replit/
