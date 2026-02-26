@@ -1,0 +1,9 @@
+# .gitbook.yaml
+# GitBook sync configuration for R2Drop documentation.
+# This file tells GitBook where to find the table of contents and root page.
+
+root: .
+
+structure:
+  readme: README.md
+  summary: SUMMARY.md
