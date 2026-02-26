@@ -2,6 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-KVJJSZKTX2"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-KVJJSZKTX2');
+</script>
 <title>Deploy Build Artifacts to Cloudflare R2 with GitHub Actions</title>
 <meta name="description" content="Learn how to upload build artifacts, static sites, and release binaries to Cloudflare R2 from a GitHub Actions workflow using the R2Drop CLI. Full working YAML included."/>
 <link rel="canonical" href="https://r2drop.com/blog/cloudflare-r2-github-actions-deploy"/>
@@ -76,6 +84,9 @@
     <a href="../index.html" class="nav-logo"><span>R2</span><span>Drop</span></a>
     <div style="display:flex;gap:24px;align-items:center;">
       <a href="../index.html">Home</a>
+      <a href="https://docs.r2drop.com" target="_blank">Docs</a>
+      <a href="../about.html">About</a>
+      <a href="https://github.com/superhumancorp/r2drop" target="_blank">GitHub</a>
       <a href="https://github.com/superhumancorp/r2drop/releases" style="background:#a78bfa;color:#0a0a0a;padding:8px 20px;border-radius:6px;font-weight:700;">Download for macOS</a>
     </div>
   </nav>

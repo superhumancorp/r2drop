@@ -12,10 +12,6 @@ function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 gtag('config', 'G-KVJJSZKTX2');
 </script>
-<script>
-!function(t,e){var o,n,p,r;e.__SV||(window.posthog&&window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init ls vs Ce hs cs ns us capture calculateEventProperties gs register register_once register_for_session unregister unregister_for_session xs getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty ys createPersonProfile setInternalOrTestUser ws rs $s opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing fs debug M bs getPageViewId captureTraceFeedback captureTraceMetric Zr".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
-posthog.init('phc_tyaFmZbyRb9RMbinKc16kWLNmQRwZUlUUIcnvQCdCyU',{api_host:'https://us.i.posthog.com',defaults:'2026-01-30',person_profiles:'identified_only'})
-</script>
 
 
       <meta charset="utf-8"/>
@@ -92,7 +88,7 @@ posthog.init('phc_tyaFmZbyRb9RMbinKc16kWLNmQRwZUlUUIcnvQCdCyU',{api_host:'https:
             "name": "How do I install R2Drop?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Download the .dmg from GitHub Releases and drag to Applications, or install via Homebrew: brew tap superhumancorp/tap && brew install --cask r2drop. The CLI companion is available separately: brew install superhumancorp/tap/r2-cli."
+              "text": "Download the .dmg from GitHub Releases and drag to Applications, or install via Homebrew: brew tap superhumancorp/tap && brew install --cask r2drop. The CLI companion is available separately: brew install --formula superhumancorp/tap/r2drop."
             }
           },
           {
@@ -100,7 +96,7 @@ posthog.init('phc_tyaFmZbyRb9RMbinKc16kWLNmQRwZUlUUIcnvQCdCyU',{api_host:'https:
             "name": "Does R2Drop work headlessly or in CI/CD?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Yes — the r2-cli companion supports all the same upload features as the macOS app. Use it in shell scripts, CI/CD pipelines, or with JSON output for automation: r2drop upload file.png --json"
+              "text": "Yes — the r2drop CLI companion supports all the same upload features as the macOS app. Use it in shell scripts, CI/CD pipelines, or with JSON output for automation: r2drop upload file.png --json"
             }
           }
         ]
@@ -427,20 +423,20 @@ Natively.</h1>
                   <div class="w-dyn-list">
                      <div reveal-content="true" role="list" class="blog-list-featured w-dyn-items">
                         <div id="w-node-_9bc8ae46-be28-10ea-3a05-072ac9fc6616-22bda93d" role="listitem" class="blog-item-featured featured w-dyn-item">
-                           <a fade-in="true" aria-label="read more" no-events="true" href="blog/the-future-of-workflow-automation-with-ai.html" class="blog-list-img-wrapper blog-v1 featured w-inline-block"><img src="https://cdn.prod.website-files.com/69383496538f3c3da700a56e/693934e70995d1778cf1edbd_jimmy-chang-ACt8ycSzpdE-unsplash.avif" loading="lazy" img-hover="true" parallax="true" alt="" class="blog-img parallax"/></a>
+                           <a fade-in="true" aria-label="read more" no-events="true" href="blog/getting-started-with-r2drop.html" class="blog-list-img-wrapper blog-v1 featured w-inline-block"><img src="https://cdn.prod.website-files.com/69383496538f3c3da700a56e/693934e70995d1778cf1edbd_jimmy-chang-ACt8ycSzpdE-unsplash.avif" loading="lazy" img-hover="true" parallax="true" alt="Getting Started with R2Drop" class="blog-img parallax"/></a>
                            <div class="blog-list-content">
                               <div class="blog-category-wrapper">
                                  <div line-split="true" class="blog-category-title featured">Guide</div>
                               </div>
-                              <a aria-label="read more" href="blog/the-future-of-workflow-automation-with-ai.html" class="blog-title-wrapper w-inline-block">
+                              <a aria-label="read more" href="blog/getting-started-with-r2drop.html" class="blog-title-wrapper w-inline-block">
                                  <div line-split="true" class="blog-title-text featured">Getting Started with R2Drop</div>
                               </a>
                               <div class="summary-wrapper">
-                                 <p line-split="true" class="summary-text featured">How to set up your first Cloudflare R2 bucket and start uploading</p>
+                                 <p line-split="true" class="summary-text featured">Install R2Drop and upload your first file to Cloudflare R2 in under 60 seconds.</p>
                               </div>
                               <div fade-in="true" class="date-wrapper">
                                  <div class="date">—</div>
-                                 <div class="date">December 26, 2025</div>
+                                 <div class="date">February 25, 2026</div>
                               </div>
                            </div>
                         </div>
@@ -449,56 +445,56 @@ Natively.</h1>
                   <div class="w-dyn-list">
                      <div role="list" class="blog-list-home1 w-dyn-items">
                         <div id="w-node-_9bc8ae46-be28-10ea-3a05-072ac9fc6629-22bda93d" role="listitem" class="blog-item w-dyn-item">
-                           <a no-events="true" aria-label="read more" href="blog/how-startups-scale-faster-with-ai-automation.html" class="blog-list-img-wrapper blog-v1 w-inline-block"><img src="https://cdn.prod.website-files.com/69383496538f3c3da700a56e/693939b6497441ceb33405f3_daniil-komov-WhcfAUy8uKg-unsplash.avif" loading="lazy" img-hover="true" parallax="true" alt="" class="blog-img parallax"/></a>
+                           <a no-events="true" aria-label="read more" href="blog/upload-files-cloudflare-r2-macos.html" class="blog-list-img-wrapper blog-v1 w-inline-block"><img src="https://cdn.prod.website-files.com/69383496538f3c3da700a56e/693939b6497441ceb33405f3_daniil-komov-WhcfAUy8uKg-unsplash.avif" loading="lazy" img-hover="true" parallax="true" alt="Upload to R2 from macOS" class="blog-img parallax"/></a>
                            <div class="blog-list-content">
                               <div class="blog-category-wrapper">
-                                 <div class="blog-category-title">Tutorial</div>
+                                 <div class="blog-category-title">Workflow</div>
                               </div>
-                              <a aria-label="read more" href="blog/how-startups-scale-faster-with-ai-automation.html" class="blog-title-wrapper w-inline-block">
-                                 <div class="blog-title-text">Using the CLI for Automation</div>
+                              <a aria-label="read more" href="blog/upload-files-cloudflare-r2-macos.html" class="blog-title-wrapper w-inline-block">
+                                 <div class="blog-title-text">Upload to Cloudflare R2 from macOS</div>
                               </a>
                               <div class="summary-wrapper">
-                                 <p class="summary-text">Integrate r2drop into your CI/CD pipeline, shell scripts, and automation workflows.</p>
+                                 <p class="summary-text">Skip the dashboard. Upload files via Finder right-click, menu bar, or terminal.</p>
                               </div>
                               <div class="date-wrapper">
                                  <div class="date">—</div>
-                                 <div class="date">December 26, 2025</div>
+                                 <div class="date">February 26, 2026</div>
                               </div>
                            </div>
                         </div>
                         <div id="w-node-_9bc8ae46-be28-10ea-3a05-072ac9fc6629-22bda93d" role="listitem" class="blog-item w-dyn-item">
-                           <a no-events="true" aria-label="read more" href="blog/building-better-operations-with-no-code-automation.html" class="blog-list-img-wrapper blog-v1 w-inline-block"><img src="https://cdn.prod.website-files.com/69383496538f3c3da700a56e/69393a447db46aaa909fe6d4_homa-appliances-pWUyHVJgLhg-unsplash.avif" loading="lazy" img-hover="true" parallax="true" alt="" class="blog-img parallax"/></a>
+                           <a no-events="true" aria-label="read more" href="blog/cloudflare-r2-vs-aws-s3-cost-comparison.html" class="blog-list-img-wrapper blog-v1 w-inline-block"><img src="https://cdn.prod.website-files.com/69383496538f3c3da700a56e/69393a447db46aaa909fe6d4_homa-appliances-pWUyHVJgLhg-unsplash.avif" loading="lazy" img-hover="true" parallax="true" alt="Cloudflare R2 vs AWS S3" class="blog-img parallax"/></a>
                            <div class="blog-list-content">
                               <div class="blog-category-wrapper">
-                                 <div class="blog-category-title">Setup</div>
+                                 <div class="blog-category-title">Comparison</div>
                               </div>
-                              <a aria-label="read more" href="blog/building-better-operations-with-no-code-automation.html" class="blog-title-wrapper w-inline-block">
-                                 <div class="blog-title-text">Multi-Account Setup Guide</div>
+                              <a aria-label="read more" href="blog/cloudflare-r2-vs-aws-s3-cost-comparison.html" class="blog-title-wrapper w-inline-block">
+                                 <div class="blog-title-text">Cloudflare R2 vs AWS S3: Cost Comparison</div>
                               </a>
                               <div class="summary-wrapper">
-                                 <p class="summary-text">Set up multiple Cloudflare accounts with different buckets, domains, and path prefixes.</p>
+                                 <p class="summary-text">R2 charges $0 for egress. See how pricing compares to S3 at every scale.</p>
                               </div>
                               <div class="date-wrapper">
                                  <div class="date">—</div>
-                                 <div class="date">December 26, 2025</div>
+                                 <div class="date">February 26, 2026</div>
                               </div>
                            </div>
                         </div>
                         <div id="w-node-_9bc8ae46-be28-10ea-3a05-072ac9fc6629-22bda93d" role="listitem" class="blog-item w-dyn-item">
-                           <a no-events="true" aria-label="read more" href="blog/how-ai-automation-supports-greener-operations.html" class="blog-list-img-wrapper blog-v1 w-inline-block"><img src="https://cdn.prod.website-files.com/69383496538f3c3da700a56e/693939f6f6dda0fc21949f22_olena-bohovyk-3BlVILvh9hM-unsplash.avif" loading="lazy" img-hover="true" parallax="true" alt="" class="blog-img parallax"/></a>
+                           <a no-events="true" aria-label="read more" href="blog/cloudflare-r2-github-actions-deploy.html" class="blog-list-img-wrapper blog-v1 w-inline-block"><img src="https://cdn.prod.website-files.com/69383496538f3c3da700a56e/693939f6f6dda0fc21949f22_olena-bohovyk-3BlVILvh9hM-unsplash.avif" loading="lazy" img-hover="true" parallax="true" alt="Deploy to R2 with GitHub Actions" class="blog-img parallax"/></a>
                            <div class="blog-list-content">
                               <div class="blog-category-wrapper">
-                                 <div class="blog-category-title">Energy</div>
+                                 <div class="blog-category-title">CI/CD</div>
                               </div>
-                              <a aria-label="read more" href="blog/how-ai-automation-supports-greener-operations.html" class="blog-title-wrapper w-inline-block">
-                                 <div class="blog-title-text">CLI Deep-Dive: Scripting &amp; CI/CD</div>
+                              <a aria-label="read more" href="blog/cloudflare-r2-github-actions-deploy.html" class="blog-title-wrapper w-inline-block">
+                                 <div class="blog-title-text">Deploy to R2 with GitHub Actions</div>
                               </a>
                               <div class="summary-wrapper">
-                                 <p class="summary-text">Explore the R2Drop CLI for scripting, CI/CD pipelines, and power-user terminal workflows.</p>
+                                 <p class="summary-text">Full workflow YAML for uploading build artifacts to Cloudflare R2 on every push.</p>
                               </div>
                               <div class="date-wrapper">
                                  <div class="date">—</div>
-                                 <div class="date">December 26, 2025</div>
+                                 <div class="date">February 26, 2026</div>
                               </div>
                            </div>
                         </div>
@@ -556,7 +552,7 @@ Natively.</h1>
                            </div>
                         </div>
                         <div class="accordion-content">
-                           <p class="accordion-content-text">Download the .dmg from GitHub Releases and drag to Applications, or install via Homebrew: brew tap superhumancorp/tap &amp;&amp; brew install --cask r2drop. The CLI companion is available separately: brew install superhumancorp/tap/r2-cli.</p>
+                           <p class="accordion-content-text">Download the .dmg from GitHub Releases and drag to Applications, or install via Homebrew: brew tap superhumancorp/tap &amp;&amp; brew install --cask r2drop. The CLI companion is available separately: brew install --formula superhumancorp/tap/r2drop.</p>
                         </div>
                      </div>
                      <div class="accordion-item">
@@ -568,7 +564,7 @@ Natively.</h1>
                            </div>
                         </div>
                         <div class="accordion-content">
-                           <p class="accordion-content-text">Yes — the r2-cli companion supports all the same upload features as the macOS app. Use it in shell scripts, CI/CD pipelines, or with JSON output for automation: r2drop upload file.png --json</p>
+                           <p class="accordion-content-text">Yes — the r2drop CLI companion supports all the same upload features as the macOS app. Use it in shell scripts, CI/CD pipelines, or with JSON output for automation: r2drop upload file.png --json</p>
                         </div>
                      </div>
                   </div>

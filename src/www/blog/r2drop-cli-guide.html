@@ -2,6 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-KVJJSZKTX2"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-KVJJSZKTX2');
+</script>
 <title>R2Drop CLI: Terminal Uploads to Cloudflare R2</title>
 <meta name="description" content="The R2Drop CLI lets you upload files to Cloudflare R2 from the terminal, shell scripts, and CI/CD pipelines. Complete guide with examples, flags, and JSON output."/>
 <link rel="canonical" href="https://r2drop.com/blog/r2drop-cli-guide"/>
@@ -76,6 +84,9 @@
     <a href="../index.html" class="nav-logo"><span>R2</span><span>Drop</span></a>
     <div style="display:flex;gap:24px;align-items:center;">
       <a href="../index.html">Home</a>
+      <a href="https://docs.r2drop.com" target="_blank">Docs</a>
+      <a href="../about.html">About</a>
+      <a href="https://github.com/superhumancorp/r2drop" target="_blank">GitHub</a>
       <a href="https://github.com/superhumancorp/r2drop/releases" style="background:#a78bfa;color:#0a0a0a;padding:8px 20px;border-radius:6px;font-weight:700;">Download for macOS</a>
     </div>
   </nav>
@@ -87,10 +98,10 @@
       <span>7 min read</span>
     </div>
     <h1>R2Drop CLI: Terminal Uploads to Cloudflare R2</h1>
-    <p>R2Drop ships with a companion command-line tool called <code>r2-cli</code> that brings the same fast, reliable Cloudflare R2 upload experience to the terminal. Whether you're writing a deployment script, automating asset uploads in CI/CD, or just prefer the command line, r2-cli gives you a single command to upload files to any R2 bucket from macOS, Linux, or Windows.</p>
+    <p>R2Drop ships with a companion command-line tool called <code>r2drop</code> that brings the same fast, reliable Cloudflare R2 upload experience to the terminal. Whether you're writing a deployment script, automating asset uploads in CI/CD, or just prefer the command line, r2drop gives you a single command to upload files to any R2 bucket from macOS, Linux, or Windows.</p>
 
     <h2>What is the R2Drop CLI?</h2>
-    <p>The R2Drop CLI (<code>r2-cli</code>) is a standalone binary built on the same Rust upload engine as the macOS app. It shares the same configuration file (<code>~/.r2drop/config.toml</code>), so any accounts you've already configured in the R2Drop macOS app are immediately available from the terminal — no duplicate setup required.</p>
+    <p>The R2Drop CLI (<code>r2drop</code>) is a standalone binary built on the same Rust upload engine as the macOS app. It shares the same configuration file (<code>~/.r2drop/config.toml</code>), so any accounts you've already configured in the R2Drop macOS app are immediately available from the terminal — no duplicate setup required.</p>
     <p>Key features of the R2Drop CLI include:</p>
     <ul>
       <li>Multipart, parallel uploads for large files</li>
@@ -104,9 +115,9 @@
     <h2>Installing the R2Drop CLI</h2>
 
     <h3>Via Homebrew (macOS &amp; Linux)</h3>
-    <p>The easiest way to install r2-cli on macOS or Linux is via Homebrew:</p>
+    <p>The easiest way to install r2drop on macOS or Linux is via Homebrew:</p>
     <pre><code>brew tap superhumancorp/tap
-brew install superhumancorp/tap/r2-cli</code></pre>
+brew install --formula superhumancorp/tap/r2drop</code></pre>
 
     <h3>Via the install script</h3>
     <p>You can also install directly using the install script:</p>
@@ -144,7 +155,7 @@ brew install superhumancorp/tap/r2-cli</code></pre>
     </table>
 
     <h2>JSON Output for Automation</h2>
-    <p>One of the most useful features for scripting is the <code>--json</code> flag, which makes r2-cli output structured JSON instead of human-readable text:</p>
+    <p>One of the most useful features for scripting is the <code>--json</code> flag, which makes r2drop output structured JSON instead of human-readable text:</p>
     <pre><code>r2drop upload build/app.tar.gz --json</code></pre>
     <p>Output:</p>
     <pre><code>{
@@ -182,7 +193,7 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Install r2-cli
+      - name: Install r2drop
         run: curl -sf https://r2drop.com/install.sh | sh
 
       - name: Configure R2Drop
@@ -199,7 +210,7 @@ jobs:
       - name: Upload to R2
         run: |
           r2drop upload ./dist --recursive --account production --json</code></pre>
-    <p>This workflow installs r2-cli on the CI runner, writes a minimal config.toml from GitHub Actions secrets, and uploads the <code>dist</code> folder to Cloudflare R2.</p>
+    <p>This workflow installs r2drop on the CI runner, writes a minimal config.toml from GitHub Actions secrets, and uploads the <code>dist</code> folder to Cloudflare R2.</p>
 
     <h2>Configuration File Format</h2>
     <p>The R2Drop CLI reads its configuration from <code>~/.r2drop/config.toml</code>. Here's an example with two accounts:</p>
