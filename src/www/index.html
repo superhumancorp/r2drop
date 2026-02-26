@@ -516,55 +516,67 @@ Natively.</h1>
                            </div>
                         </div>
                         <div class="accordion-content">
-                           <p class="accordion-content-text">Yes — R2Drop is completely free during beta. You only pay for your Cloudflare R2 storage and egress, which is already some of the cheapest object storage available. No per-upload fees, no subscriptions required.</p>
+                           <p class="accordion-content-text">Yes — R2Drop is free and open source under the MIT license. No subscriptions, no per-upload fees, no account with us required. The only cost is your Cloudflare R2 storage, which starts at $0.015/GB/month with a free tier of 10 GB — and R2 charges zero egress fees, ever.</p>
                         </div>
                      </div>
                      <div class="accordion-item">
                         <div class="accordion-title-toggle">
-                           <div>Does R2Drop store my files?</div>
+                           <div>Do I need a Cloudflare account?</div>
                            <div class="accordion-toggle">
                               <div class="cross-h"></div>
                               <div class="cross-v"></div>
                            </div>
                         </div>
                         <div class="accordion-content">
-                           <p class="accordion-content-text">No. R2Drop uploads files directly from your Mac to your Cloudflare R2 bucket. Files never pass through our servers. Your API credentials are stored securely in the macOS Keychain — never in any cloud service or configuration file.</p>
+                           <p class="accordion-content-text">Yes. You need a Cloudflare account with R2 enabled and at least one bucket. Creating an account is free, and R2's free tier (10 GB storage, 1 million write operations, 10 million read operations per month) is enough to get started without a credit card. You'll also need an API token scoped to R2 — R2Drop walks you through creating one during setup.</p>
                         </div>
                      </div>
                      <div class="accordion-item">
                         <div class="accordion-title-toggle">
-                           <div>Can I add multiple Cloudflare accounts?</div>
+                           <div>Does R2Drop store or see my files?</div>
                            <div class="accordion-toggle">
                               <div class="cross-h"></div>
                               <div class="cross-v"></div>
                            </div>
                         </div>
                         <div class="accordion-content">
-                           <p class="accordion-content-text">Yes. R2Drop supports unlimited accounts. Each account has its own bucket, path prefix, and optional custom domain. Switch the active account from the menu bar in a single click.</p>
+                           <p class="accordion-content-text">No. Files travel directly from your Mac to your Cloudflare R2 bucket over HTTPS. There is no R2Drop server in the data path — we never see, proxy, or store your files. Your Cloudflare API credentials are stored exclusively in macOS Keychain and are never written to disk or transmitted to us. The app is fully open source so you can <a href="https://github.com/superhumancorp/r2drop" target="_blank" style="color:rgba(255,138,31,0.9);">audit every network call on GitHub</a>.</p>
                         </div>
                      </div>
                      <div class="accordion-item">
                         <div class="accordion-title-toggle">
-                           <div>How do I install R2Drop?</div>
+                           <div>What macOS version do I need? Is there a Windows or Linux version?</div>
                            <div class="accordion-toggle">
                               <div class="cross-h"></div>
                               <div class="cross-v"></div>
                            </div>
                         </div>
                         <div class="accordion-content">
-                           <p class="accordion-content-text">Download the .dmg from GitHub Releases and drag to Applications, or install via Homebrew: brew tap superhumancorp/tap &amp;&amp; brew install --cask r2drop. The CLI companion is available separately: brew install --formula superhumancorp/tap/r2drop.</p>
+                           <p class="accordion-content-text">The desktop app requires macOS 13 Ventura or later. The companion CLI (r2drop) runs on macOS, Linux, and Windows — install it with: curl -sf https://r2drop.com/install.sh | sh. The CLI shares the same config and upload engine, so it works in shell scripts, CI/CD pipelines, and headless servers.</p>
                         </div>
                      </div>
                      <div class="accordion-item">
                         <div class="accordion-title-toggle">
-                           <div>Does R2Drop work headlessly or in CI/CD?</div>
+                           <div>Is there a file size limit?</div>
                            <div class="accordion-toggle">
                               <div class="cross-h"></div>
                               <div class="cross-v"></div>
                            </div>
                         </div>
                         <div class="accordion-content">
-                           <p class="accordion-content-text">Yes — the r2drop CLI companion supports all the same upload features as the macOS app. Use it in shell scripts, CI/CD pipelines, or with JSON output for automation: r2drop upload file.png --json</p>
+                           <p class="accordion-content-text">No practical limit. R2Drop automatically switches to multipart uploads for large files, splitting them into parallel chunks (configurable from 5 to 100 MB) across up to 16 concurrent streams. Uploads are resumable — if your connection drops, R2Drop picks up where it left off. Cloudflare R2 itself supports objects up to 5 TB.</p>
+                        </div>
+                     </div>
+                     <div class="accordion-item">
+                        <div class="accordion-title-toggle">
+                           <div>Does R2Drop collect any data about me?</div>
+                           <div class="accordion-toggle">
+                              <div class="cross-h"></div>
+                              <div class="cross-v"></div>
+                           </div>
+                        </div>
+                        <div class="accordion-content">
+                           <p class="accordion-content-text">R2Drop sends anonymous usage telemetry (feature usage, error types, app version) to help improve the app. This is on by default and can be turned off anytime in Settings. No file names, file contents, credentials, bucket names, or personal information is ever sent. IP addresses are not captured. Full details in our <a href="privacy/" style="color:rgba(255,138,31,0.9);">Privacy Policy</a>.</p>
                         </div>
                      </div>
                   </div>
