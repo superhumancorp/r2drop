@@ -51,3 +51,6 @@ src/app/.env
 
 # --- Replit project (separate repo with own git history) ---
 src/replit/
+
+# --- YouTube upload metadata (local reference only) ---
+YOUTUBE.md

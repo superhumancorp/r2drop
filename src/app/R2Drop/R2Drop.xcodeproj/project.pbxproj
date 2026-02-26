@@ -55,7 +55,7 @@
 		DF9B9EC06267434ED3CA2E5A /* OnboardingWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE544A156394A0F0F04B0E9F /* OnboardingWindow.swift */; };
 		E1FF5846E7E10C58D50D3A0C /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43DCFEC6696401ADDAB01C97 /* SettingsViewModel.swift */; };
 		E32124B7C40A7C6332AB24A8 /* ConflictDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66AA868AD68E0206A57BD8EC /* ConflictDialog.swift */; };
-		E38064E51BA89F759CB6E2C6 /* QuickActionExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2A96FAE99719CF9B79058699 /* QuickActionExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		E38064E51BA89F759CB6E2C6 /* R2DropQuickAction.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2A96FAE99719CF9B79058699 /* R2DropQuickAction.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E8A30AECF68CDB36EB5129ED /* QueueViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D7D3E1104FE5EF77D9A051C /* QueueViewModel.swift */; };
 		EA02C3E3AAD8D5FC353FE46D /* AccountsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 124CA1A97D09E4B5B83AB2BC /* AccountsTabView.swift */; };
 		EA12E51672881552C5293739 /* Hero1.png in Resources */ = {isa = PBXBuildFile; fileRef = 88961B41D4106631A1D5E7E2 /* Hero1.png */; };
@@ -94,7 +94,7 @@
 			dstSubfolderSpec = 13;
 			files = (
 				2784836E9879CDDFDE35AC9E /* FinderExtension.appex in Embed Foundation Extensions */,
-				E38064E51BA89F759CB6E2C6 /* QuickActionExtension.appex in Embed Foundation Extensions */,
+				E38064E51BA89F759CB6E2C6 /* R2DropQuickAction.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -114,7 +114,7 @@
 		1C64368FB058666531A0DB21 /* OnboardingChooseBucketPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingChooseBucketPanel.swift; sourceTree = "<group>"; };
 		2852450707AACFDA81A1D672 /* Screenshot-3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Screenshot-3.png"; sourceTree = "<group>"; };
 		299D9D5E713C277B14FF8174 /* AboutViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutViewModel.swift; sourceTree = "<group>"; };
-		2A96FAE99719CF9B79058699 /* QuickActionExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = QuickActionExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		2A96FAE99719CF9B79058699 /* R2DropQuickAction.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = R2DropQuickAction.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		2AC0D57F8DBDEB7C72FBBCC8 /* TelemetryRateLimiter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryRateLimiter.swift; sourceTree = "<group>"; };
 		2D193ADB7405EB5DEEBCCD0A /* Hero3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Hero3.png; sourceTree = "<group>"; };
 		2D37053996DA6608CA79C70D /* MenuBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarController.swift; sourceTree = "<group>"; };
@@ -323,7 +323,7 @@
 			isa = PBXGroup;
 			children = (
 				FF1ABF73310B6C8543ECFE9A /* FinderExtension.appex */,
-				2A96FAE99719CF9B79058699 /* QuickActionExtension.appex */,
+				2A96FAE99719CF9B79058699 /* R2DropQuickAction.appex */,
 				A1D3B81C8C2E55DB0D042611 /* R2Drop.app */,
 			);
 			name = Products;
@@ -424,7 +424,7 @@
 				0655B0C2DF0053D85C194E67 /* R2Core */,
 			);
 			productName = QuickActionExtension;
-			productReference = 2A96FAE99719CF9B79058699 /* QuickActionExtension.appex */;
+			productReference = 2A96FAE99719CF9B79058699 /* R2DropQuickAction.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 		FEB9D304B597761540AAC05C /* R2Drop */ = {
@@ -599,6 +599,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = A89MU37ZLB;
+				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = FinderExtension/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -628,6 +629,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = A89MU37ZLB;
 				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
@@ -671,6 +673,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = A89MU37ZLB;
 				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
@@ -779,6 +782,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = A89MU37ZLB;
+				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = FinderExtension/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -800,8 +804,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = QuickActionExtension/QuickActionExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = A89MU37ZLB;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = QuickActionExtension/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -813,6 +820,8 @@
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.superhumancorp.r2drop.QuickActionExtension;
 				PRODUCT_NAME = R2DropQuickAction;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.9;
 			};
@@ -822,8 +831,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = QuickActionExtension/QuickActionExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = A89MU37ZLB;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = QuickActionExtension/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -835,6 +847,8 @@
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.superhumancorp.r2drop.QuickActionExtension;
 				PRODUCT_NAME = R2DropQuickAction;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.9;
 			};
