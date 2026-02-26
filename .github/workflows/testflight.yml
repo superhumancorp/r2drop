@@ -36,16 +36,24 @@ jobs:
           security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" "$KEYCHAIN_PATH"
 
-      - name: Install provisioning profile
+      - name: Install provisioning profiles
         env:
-          PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_DIST }}
+          PROFILE_APP: ${{ secrets.PROVISIONING_PROFILE_DIST }}
+          PROFILE_FINDER: ${{ secrets.PROVISIONING_PROFILE_FINDER_EXT }}
+          PROFILE_QUICK: ${{ secrets.PROVISIONING_PROFILE_QUICKACTION_EXT }}
         run: |
-          PROFILE_PATH=$RUNNER_TEMP/dist.provisionprofile
-          echo "$PROFILE_BASE64" | base64 --decode > "$PROFILE_PATH"
-          PROFILE_UUID=$(security cms -D -i "$PROFILE_PATH" | plutil -extract UUID raw -)
           mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
-          cp "$PROFILE_PATH" "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.provisionprofile"
-          echo "PROVISIONING_PROFILE_UUID=$PROFILE_UUID" >> "$GITHUB_ENV"
+          install_profile() {
+            local b64="$1" varname="$2"
+            local path="$RUNNER_TEMP/${varname}.provisionprofile"
+            echo "$b64" | base64 --decode > "$path"
+            local uuid=$(security cms -D -i "$path" | plutil -extract UUID raw -)
+            cp "$path" "$HOME/Library/MobileDevice/Provisioning Profiles/$uuid.provisionprofile"
+            echo "${varname}=$uuid" >> "$GITHUB_ENV"
+          }
+          install_profile "$PROFILE_APP" "PROVISIONING_PROFILE_UUID"
+          install_profile "$PROFILE_FINDER" "PROVISIONING_PROFILE_FINDER_EXTENSION_UUID"
+          install_profile "$PROFILE_QUICK" "PROVISIONING_PROFILE_QUICKACTION_EXTENSION_UUID"
 
       - name: Set up Ruby & Fastlane
         run: |
