@@ -6,6 +6,8 @@
 
 No browser dashboards, no copy-pasting URLs, no context switching. Right-click a file in Finder, drag it to the menu bar, or run a single CLI command — and get a public URL instantly.
 
+<figure><img src="https://cdn.r2drop.com/screenshot-2.png" alt="R2Drop upload queue showing files uploading in parallel"></figure>
+
 ---
 
 ## What R2Drop Does

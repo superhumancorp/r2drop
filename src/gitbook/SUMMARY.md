@@ -8,6 +8,7 @@
 
 * [Installation](getting-started/installation.md)
 * [First Upload](getting-started/first-upload.md)
+* [Troubleshooting](getting-started/troubleshooting.md)
 
 ## Desktop App
 
@@ -28,6 +29,7 @@
 ## Reference
 
 * [Configuration (config.toml)](reference/config.md)
+* [Deep Links](reference/deep-links.md)
 * [Architecture](reference/architecture.md)
 
 ## Legal

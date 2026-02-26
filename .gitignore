@@ -45,3 +45,6 @@ src/app/.env
 # --- Misc ---
 *.log
 .r2drop-local/
+
+# --- Claude Code local config ---
+.claude/
