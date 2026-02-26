@@ -40,25 +40,6 @@ jobs:
           security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" "$KEYCHAIN_PATH"
 
-      - name: Install provisioning profiles
-        env:
-          PROFILE_APP: ${{ secrets.PROVISIONING_PROFILE_DIST }}
-          PROFILE_FINDER: ${{ secrets.PROVISIONING_PROFILE_FINDER_EXT }}
-          PROFILE_QUICK: ${{ secrets.PROVISIONING_PROFILE_QUICKACTION_EXT }}
-        run: |
-          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
-          install_profile() {
-            local b64="$1" varname="$2"
-            local path="$RUNNER_TEMP/${varname}.provisionprofile"
-            echo "$b64" | base64 --decode > "$path"
-            local uuid=$(security cms -D -i "$path" | plutil -extract UUID raw -)
-            cp "$path" "$HOME/Library/MobileDevice/Provisioning Profiles/$uuid.provisionprofile"
-            echo "${varname}=$uuid" >> "$GITHUB_ENV"
-          }
-          install_profile "$PROFILE_APP" "PROVISIONING_PROFILE_UUID"
-          install_profile "$PROFILE_FINDER" "PROVISIONING_PROFILE_FINDER_EXTENSION_UUID"
-          install_profile "$PROFILE_QUICK" "PROVISIONING_PROFILE_QUICKACTION_EXTENSION_UUID"
-
       - name: Set up Ruby & Fastlane
         run: |
           bundle install
@@ -66,10 +47,9 @@ jobs:
       - name: Run Fastlane TestFlight
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
-          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-          APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
-          APP_STORE_CONNECT_API_KEY_IS_KEY_CONTENT_BASE64: "true"
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
           BUILD_NUMBER: ${{ github.run_number }}
           MARKETING_VERSION: ${{ inputs.marketing_version }}
         run: |
