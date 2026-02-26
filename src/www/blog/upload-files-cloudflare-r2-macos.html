@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>How to Upload Files to Cloudflare R2 from macOS (Without the Dashboard)</title>
+<meta name="description" content="Skip the Cloudflare dashboard. Upload files to Cloudflare R2 directly from macOS Finder, your menu bar, or the terminal using R2Drop — the native Mac app for R2."/>
+<link rel="canonical" href="https://r2drop.com/blog/upload-files-cloudflare-r2-macos"/>
+<meta property="og:title" content="How to Upload Files to Cloudflare R2 from macOS (Without the Dashboard)"/>
+<meta property="og:description" content="Skip the Cloudflare dashboard. Upload files to Cloudflare R2 directly from macOS Finder, your menu bar, or the terminal using R2Drop — the native Mac app for R2."/>
+<meta property="og:image" content="https://r2drop.com/r2-logo.png"/>
+<meta property="og:url" content="https://r2drop.com/blog/upload-files-cloudflare-r2-macos"/>
+<meta property="og:type" content="article"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:site" content="@superhumancorp"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<link href="https://cdn.prod.website-files.com/69383496538f3c3da700a557/css/orvimo.webflow.shared.4ccc8b082.min.css" rel="stylesheet" type="text/css" integrity="sha384-TMyLCCqRf402eL9Xa141g9lhk+tJWCTwPtAHheUrmRVyE66GCRAZ+zpBk6WoX6Bl" crossorigin="anonymous"/>
+<link href="https://fonts.googleapis.com/" rel="preconnect"/>
+<link href="https://fonts.gstatic.com/" rel="preconnect" crossorigin="anonymous"/>
+<link href="https://cdn.prod.website-files.com/" rel="preconnect" crossorigin="anonymous"/>
+<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js" type="text/javascript"></script>
+<script type="text/javascript">WebFont.load({ google: { families: ["DM Sans:300,400,500,600,700","Inter:300,400,500,600,700","Poppins:500,500italic,900,900italic"] } });</script>
+<link href="https://cdn.prod.website-files.com/69383496538f3c3da700a557/693834d0fbef503fe40926ec_Favicon.png" rel="shortcut icon" type="image/x-icon"/>
+<style>
+  .w-webflow-badge{display:none!important;}
+  body { background: #0a0a0a; color: #e8e8e8; font-family: 'DM Sans', sans-serif; }
+  .blog-article { max-width: 740px; margin: 0 auto; padding: 80px 24px 120px; }
+  .blog-article h1 { font-family: 'Poppins', sans-serif; font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 700; line-height: 1.2; margin-bottom: 24px; }
+  .blog-article h2 { font-size: 1.4rem; font-weight: 600; margin-top: 48px; margin-bottom: 16px; }
+  .blog-article h3 { font-size: 1.15rem; font-weight: 600; margin-top: 32px; margin-bottom: 12px; }
+  .blog-article p { font-size: 1.05rem; line-height: 1.75; margin-bottom: 20px; color: #c8c8c8; }
+  .blog-article ul, .blog-article ol { padding-left: 24px; margin-bottom: 20px; }
+  .blog-article li { font-size: 1.05rem; line-height: 1.75; color: #c8c8c8; margin-bottom: 8px; }
+  .blog-article code { background: #1a1a2e; padding: 2px 8px; border-radius: 4px; font-family: monospace; font-size: 0.9rem; color: #a78bfa; }
+  .blog-article pre { background: #1a1a2e; padding: 20px; border-radius: 8px; overflow-x: auto; margin-bottom: 24px; }
+  .blog-article pre code { background: none; padding: 0; color: #a78bfa; }
+  .blog-meta { font-size: 0.85rem; color: #666; margin-bottom: 40px; display: flex; gap: 16px; }
+  .blog-tag { background: #1a1a2e; color: #a78bfa; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .back-link { display: inline-block; color: #a78bfa; text-decoration: none; font-size: 0.9rem; margin-bottom: 40px; }
+  .back-link:hover { text-decoration: underline; }
+  .cta-block { background: linear-gradient(135deg, #1a1a2e, #16213e); border: 1px solid #2a2a4e; border-radius: 12px; padding: 40px; margin-top: 60px; text-align: center; }
+  .cta-block h3 { color: #fff; margin-top: 0; }
+  .cta-block p { color: #aaa; margin-bottom: 24px; }
+  .btn-primary { display: inline-block; background: #a78bfa; color: #0a0a0a; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 1rem; margin-right: 12px; }
+  .btn-secondary { display: inline-block; border: 1px solid #a78bfa; color: #a78bfa; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 1rem; }
+  .nav-simple { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid #1a1a1a; }
+  .nav-simple a { color: #e8e8e8; text-decoration: none; font-size: 0.95rem; }
+  .nav-logo { font-family: 'Poppins', sans-serif; font-style: italic; font-size: 1.4rem; }
+  .nav-logo span:first-child { font-weight: 500; }
+  .nav-logo span:last-child { font-weight: 900; }
+  .related-posts { margin-top: 60px; border-top: 1px solid #1a1a1a; padding-top: 40px; }
+  .related-posts h3 { color: #fff; margin-bottom: 20px; }
+  .related-link { display: block; color: #a78bfa; text-decoration: none; margin-bottom: 12px; font-size: 1rem; }
+  .related-link:hover { text-decoration: underline; }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "How to Upload Files to Cloudflare R2 from macOS (Without the Dashboard)",
+  "description": "Skip the Cloudflare dashboard. Upload files to Cloudflare R2 directly from macOS Finder, your menu bar, or the terminal using R2Drop — the native Mac app for R2.",
+  "image": "https://r2drop.com/r2-logo.png",
+  "author": { "@type": "Organization", "name": "Superhuman Intelligence LLC" },
+  "publisher": { "@type": "Organization", "name": "R2Drop", "url": "https://r2drop.com" },
+  "datePublished": "2026-02-26",
+  "url": "https://r2drop.com/blog/upload-files-cloudflare-r2-macos",
+  "mainEntityOfPage": "https://r2drop.com/blog/upload-files-cloudflare-r2-macos"
+}
+</script>
+</head>
+<body>
+<div class="page-wrapper">
+  <nav class="nav-simple">
+    <a href="../index.html" class="nav-logo"><span>R2</span><span>Drop</span></a>
+    <div style="display:flex;gap:24px;align-items:center;">
+      <a href="../index.html">Home</a>
+      <a href="https://github.com/superhumancorp/r2drop/releases" style="background:#a78bfa;color:#0a0a0a;padding:8px 20px;border-radius:6px;font-weight:700;">Download for macOS</a>
+    </div>
+  </nav>
+  <main class="blog-article">
+    <a href="../index.html" class="back-link">← Back to R2Drop</a>
+    <div class="blog-meta">
+      <span class="blog-tag">Workflow</span>
+      <span>February 26, 2026</span>
+      <span>8 min read</span>
+    </div>
+    <h1>How to Upload Files to Cloudflare R2 from macOS (Without the Dashboard)</h1>
+    <p>The Cloudflare dashboard works. But if you're uploading files to R2 more than a few times a week, the dashboard gets in your way fast. You open a browser tab, navigate to the R2 section, select your bucket, click Upload, find the file, wait for the progress bar, then manually copy the URL. Every single time.</p>
+    <p>For developers who treat R2 as their primary file store — for build artifacts, design assets, client deliverables, or media — that friction adds up. R2Drop is a native macOS application that eliminates the dashboard entirely. It puts R2 uploads into your Finder right-click menu, your menu bar, and your terminal. This guide covers all three methods, plus how to get set up in minutes.</p>
+
+    <h2>Why the Cloudflare Dashboard Slows You Down</h2>
+    <p>The dashboard is built for configuration, not for rapid file publishing. When you use it for routine uploads, you run into a handful of specific problems.</p>
+
+    <h3>Context switching kills momentum</h3>
+    <p>Every upload requires leaving your current application, switching to a browser, and navigating at least three pages inside the Cloudflare UI. If you're uploading assets mid-design review or shipping a hotfix, that interruption breaks your flow completely.</p>
+
+    <h3>No automatic URL copy</h3>
+    <p>After uploading a file, the dashboard does not copy its public URL to your clipboard. You have to find the file in the bucket list, click it, then manually copy the URL — and if your bucket uses a custom domain, the URL shown in the dashboard may not even reflect it.</p>
+
+    <h3>No real batch support</h3>
+    <p>The dashboard's multi-file upload is functional but clunky. You cannot upload a folder with subfolders while preserving the directory structure. There's no queue, no progress tracking per file, and if your upload fails midway, you start over from scratch.</p>
+
+    <h3>No CLI for scripting</h3>
+    <p>Cloudflare's official CLI tool, <code>wrangler</code>, supports R2 operations but it is not designed as a fast, scriptable upload utility. There's no built-in way to pipe <code>wrangler</code> into a deploy script that also copies the resulting URL back to your terminal or clipboard.</p>
+
+    <h2>What R2Drop Does Differently</h2>
+    <p>R2Drop is a native macOS app built around one job: getting files into Cloudflare R2 as fast as possible and giving you a shareable URL immediately. It runs as a menu bar app, so it's always available without being in your face.</p>
+    <p>Here's what makes it different from the dashboard:</p>
+    <ul>
+      <li><strong>Six upload methods</strong> — Finder right-click, menu bar drag-and-drop, menu bar file picker, the CLI, a URL upload, and a screenshot capture shortcut</li>
+      <li><strong>Auto-copies URL to clipboard</strong> — the moment an upload finishes, the public URL lands in your clipboard, ready to paste</li>
+      <li><strong>Multi-account support</strong> — manage multiple R2 buckets or Cloudflare accounts and switch between them instantly</li>
+      <li><strong>Rust-powered upload engine</strong> — multipart uploads, parallel chunk transfers, and resumable sessions built on the same async engine used in production infrastructure</li>
+      <li><strong>Keychain-only credential storage</strong> — your API tokens never touch disk or any external server</li>
+      <li><strong>Free and open source</strong> — MIT license, source available at <a href="https://github.com/superhumancorp/r2drop" style="color:#a78bfa;">github.com/superhumancorp/r2drop</a></li>
+    </ul>
+
+    <h2>Method 1: Right-Click in Finder ("Send to R2")</h2>
+    <p>This is the fastest path for files you're already browsing in Finder. R2Drop installs a Finder Sync Extension that adds a "Send to R2" item to the right-click context menu for any file or folder.</p>
+    <p>Here's how it works step by step:</p>
+    <ol>
+      <li>Open Finder and navigate to the file or folder you want to upload</li>
+      <li>Right-click (or Control-click) the item</li>
+      <li>Hover over the <strong>Quick Actions</strong> submenu, or look directly for <strong>"Send to R2"</strong> in the context menu</li>
+      <li>Click <strong>Send to R2</strong> — if you have multiple accounts configured, a small picker appears so you can choose which bucket to use</li>
+      <li>The upload starts immediately in the background; a progress indicator appears in the menu bar icon</li>
+      <li>When the upload completes, macOS shows a brief notification and the public URL is automatically copied to your clipboard</li>
+    </ol>
+    <p>For folders, R2Drop preserves the directory structure inside your R2 bucket. A folder named <code>campaign-assets/</code> containing subfolders will upload exactly as structured, making it easy to organize content by project or date.</p>
+    <p>The Finder extension requires macOS 13 Ventura or later. If you do not see "Send to R2" in the right-click menu after installing, go to <strong>System Settings → Privacy &amp; Security → Extensions → Finder Extensions</strong> and make sure R2Drop is checked.</p>
+
+    <h2>Method 2: Menu Bar Drag and Drop</h2>
+    <p>If you have files on your Desktop or in a Finder window and want to upload without right-clicking at all, the menu bar icon works as a drop target.</p>
+    <ol>
+      <li>Select one or more files in Finder (hold Shift or Command to select multiple)</li>
+      <li>Drag them toward your macOS menu bar</li>
+      <li>Drop them directly onto the R2Drop icon in the menu bar</li>
+      <li>R2Drop begins uploading all dropped files in parallel</li>
+      <li>Each file's URL is copied to the clipboard as it finishes; if multiple files are uploaded, the URLs are placed on the clipboard as a newline-separated list</li>
+    </ol>
+    <p>This method is especially useful when you're working in full-screen apps and need to quickly publish something without switching contexts. The drag target is small, but macOS makes it easy once you know the icon's position.</p>
+    <p>You can also click the menu bar icon to open the R2Drop panel, which shows active upload progress, a history of recent uploads, and quick access to account settings.</p>
+
+    <h2>Method 3: The CLI (<code>r2drop upload</code>)</h2>
+    <p>R2Drop ships a companion CLI binary called <code>r2drop</code>. It shares the same Rust upload engine and reads from the same config file (<code>~/.r2drop/config.toml</code>) as the macOS app. This means whatever accounts you've configured in the GUI are immediately available in the terminal — no separate CLI setup required.</p>
+
+    <h3>Install the CLI</h3>
+    <p>If you've installed the macOS app, the CLI binary is bundled inside the app and can be symlinked to your path with a single command:</p>
+    <pre><code>sudo ln -s /Applications/R2Drop.app/Contents/MacOS/r2drop /usr/local/bin/r2drop</code></pre>
+    <p>Alternatively, you can download standalone CLI binaries for macOS, Linux, and Windows from the <a href="https://github.com/superhumancorp/r2drop/releases" style="color:#a78bfa;">GitHub Releases page</a>. Linux and Windows support makes the CLI useful for CI/CD pipelines running on those platforms.</p>
+
+    <h3>Basic upload</h3>
+    <p>Upload a single file to your default account and bucket:</p>
+    <pre><code>r2drop upload ./screenshot.png</code></pre>
+    <p>The CLI prints the public URL to stdout as soon as the upload completes. You can pipe it directly into your clipboard:</p>
+    <pre><code>r2drop upload ./screenshot.png | pbcopy</code></pre>
+
+    <h3>Upload to a specific account</h3>
+    <p>If you have multiple accounts configured, pass the account name with the <code>--account</code> flag:</p>
+    <pre><code>r2drop upload ./build.zip --account work-bucket</code></pre>
+
+    <h3>Upload a folder</h3>
+    <p>Upload an entire directory and preserve its structure inside the bucket:</p>
+    <pre><code>r2drop upload ./dist/ --prefix releases/v2.1.0/</code></pre>
+    <p>The <code>--prefix</code> flag sets a path prefix inside the bucket. In this example, every file in <code>dist/</code> lands under <code>releases/v2.1.0/</code> in your bucket.</p>
+
+    <h3>Scripting example</h3>
+    <p>Here's a simple shell script that builds a static site, uploads the output, and echoes the base URL:</p>
+    <pre><code>#!/bin/bash
+npm run build
+r2drop upload ./out/ --prefix "deploy/$(date +%Y-%m-%d)/"
+echo "Deploy complete."</code></pre>
+    <p>Because <code>r2drop upload</code> exits with code 0 on success and a non-zero code on failure, it integrates cleanly with CI pipelines that check exit codes.</p>
+
+    <h2>Setup Guide: Installing R2Drop and Adding Your Cloudflare Account</h2>
+    <p>Everything above assumes you've already installed R2Drop and connected a Cloudflare account. Here's how to do that from scratch.</p>
+
+    <h3>Step 1: Download and install R2Drop</h3>
+    <p>Go to the <a href="https://github.com/superhumancorp/r2drop/releases" style="color:#a78bfa;">R2Drop GitHub Releases page</a> and download the latest <code>.dmg</code> file. Open the dmg, drag R2Drop to your Applications folder, then launch it from Applications or Spotlight.</p>
+    <p>On first launch, macOS may show a warning that the app is from an identified developer outside the App Store. Click <strong>Open</strong> to proceed. R2Drop is notarized by Apple, so this warning is just the standard Gatekeeper prompt for non-App-Store apps.</p>
+    <p>Once launched, the R2Drop icon appears in your menu bar. Click it to open the onboarding panel.</p>
+
+    <h3>Step 2: Create a Cloudflare R2 API token</h3>
+    <p>R2Drop needs a Cloudflare API token with R2 read and write permissions. Here's how to create one:</p>
+    <ol>
+      <li>Log in to <a href="https://dash.cloudflare.com" style="color:#a78bfa;">dash.cloudflare.com</a></li>
+      <li>In the left sidebar, click <strong>R2 Object Storage</strong></li>
+      <li>Click <strong>Manage R2 API Tokens</strong> in the top-right area of the R2 overview page</li>
+      <li>Click <strong>Create API Token</strong></li>
+      <li>Give the token a name (e.g., "R2Drop Mac")</li>
+      <li>Under <strong>Permissions</strong>, select <strong>Object Read &amp; Write</strong></li>
+      <li>Optionally, restrict the token to a specific bucket under <strong>Specify bucket(s)</strong></li>
+      <li>Click <strong>Create API Token</strong></li>
+      <li>Copy both the <strong>Access Key ID</strong> and the <strong>Secret Access Key</strong> — the secret key is only shown once, so save it somewhere safe before closing the page</li>
+    </ol>
+    <p>You'll also need your <strong>R2 endpoint URL</strong>. It follows the format <code>https://&lt;account-id&gt;.r2.cloudflarestorage.com</code> and is visible on your R2 bucket's settings page in the dashboard.</p>
+    <p>For a detailed walkthrough of the token creation flow, see the <a href="https://developers.cloudflare.com/r2/api/s3/tokens/" style="color:#a78bfa;">official Cloudflare R2 token documentation</a>.</p>
+
+    <h3>Step 3: Add your account in R2Drop</h3>
+    <p>Back in R2Drop, click <strong>Add Account</strong> in the onboarding panel and fill in the following:</p>
+    <ul>
+      <li><strong>Account Name</strong> — a friendly label, e.g., "Personal" or "Client Assets"</li>
+      <li><strong>Access Key ID</strong> — from the token you just created</li>
+      <li><strong>Secret Access Key</strong> — from the token you just created</li>
+      <li><strong>Bucket Name</strong> — the exact name of your R2 bucket</li>
+      <li><strong>Endpoint URL</strong> — your account-specific R2 endpoint</li>
+      <li><strong>Public URL / Custom Domain</strong> (optional) — if your bucket has a custom domain or a Cloudflare public access URL, enter it here so shareable links use your domain instead of the raw storage URL</li>
+    </ul>
+    <p>Click <strong>Save</strong>. R2Drop writes account metadata to <code>~/.r2drop/config.toml</code> and stores your credentials exclusively in the macOS Keychain under the service name <code>com.superhumancorp.r2drop</code>. Nothing is sent to any R2Drop server.</p>
+
+    <h3>Step 4: Your first upload</h3>
+    <p>Find any file in Finder, right-click it, and choose <strong>Send to R2</strong>. Within seconds, the file is live on your R2 bucket and the URL is in your clipboard. Paste it anywhere.</p>
+    <p>That's the complete setup. From this point forward, uploading to Cloudflare R2 from macOS is a single right-click — or a single terminal command.</p>
+
+    <h2>Frequently Asked Questions</h2>
+
+    <h3>Does R2Drop work with private buckets?</h3>
+    <p>Yes. R2Drop uses the S3-compatible API to upload files regardless of whether your bucket is public or private. If your bucket is private, R2Drop will still upload successfully — but the URL it copies to your clipboard will only be accessible if you have public access or a signed URL configured. For most developer use cases, setting up a Cloudflare public bucket or a custom domain with public access gives you shareable links automatically.</p>
+
+    <h3>Can I use R2Drop with multiple Cloudflare accounts?</h3>
+    <p>Yes. R2Drop supports an unlimited number of accounts. Each account maps to a specific bucket and set of credentials. You can switch between accounts from the menu bar panel or specify one per-upload using the <code>--account</code> flag in the CLI. See the <a href="multi-account-setup.html" style="color:#a78bfa;">multi-account setup guide</a> for a detailed walkthrough.</p>
+
+    <h3>Is R2Drop safe? Where do my credentials go?</h3>
+    <p>Your Cloudflare API credentials are stored only in the macOS Keychain. They are never written to a plain-text file, never transmitted to R2Drop's servers, and never included in logs. Files you upload go directly from your Mac to Cloudflare's servers over HTTPS — they do not pass through any R2Drop infrastructure. The source code is fully open and auditable at <a href="https://github.com/superhumancorp/r2drop" style="color:#a78bfa;">github.com/superhumancorp/r2drop</a>.</p>
+
+    <h3>What macOS version is required?</h3>
+    <p>R2Drop requires macOS 13 Ventura or later. The Finder extension specifically uses the Finder Sync Extension API introduced in macOS 10.10, but the app targets macOS 13 as its minimum deployment target to ensure full SwiftUI support and modern system APIs.</p>
+
+    <div class="cta-block">
+      <h3>Stop opening the dashboard just to upload a file.</h3>
+      <p>R2Drop is free, open source, and takes two minutes to set up. Upload to Cloudflare R2 from anywhere on your Mac.</p>
+      <a href="https://github.com/superhumancorp/r2drop/releases" class="btn-primary">Download for macOS</a>
+      <a href="https://github.com/superhumancorp/r2drop" class="btn-secondary">View on GitHub</a>
+    </div>
+
+    <div class="related-posts">
+      <h3>Related Articles</h3>
+      <a href="getting-started-with-r2drop.html" class="related-link">Getting Started with R2Drop: Your First Upload in 60 Seconds</a>
+      <a href="multi-account-setup.html" class="related-link">Managing Multiple Cloudflare R2 Accounts with R2Drop</a>
+    </div>
+  </main>
+</div>
+</body>
+</html>

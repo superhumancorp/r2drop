@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Cloudflare R2 vs AWS S3: Cost Comparison for Developers in 2026</title>
+<meta name="description" content="A detailed cost comparison of Cloudflare R2 vs AWS S3 in 2026. We break down storage pricing, egress fees, free tiers, and when each service wins for developers."/>
+<link rel="canonical" href="https://r2drop.com/blog/cloudflare-r2-vs-aws-s3-cost-comparison"/>
+<meta property="og:title" content="Cloudflare R2 vs AWS S3: Cost Comparison for Developers in 2026"/>
+<meta property="og:description" content="A detailed cost comparison of Cloudflare R2 vs AWS S3 in 2026. We break down storage pricing, egress fees, free tiers, and when each service wins for developers."/>
+<meta property="og:image" content="https://r2drop.com/r2-logo.png"/>
+<meta property="og:url" content="https://r2drop.com/blog/cloudflare-r2-vs-aws-s3-cost-comparison"/>
+<meta property="og:type" content="article"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:site" content="@superhumancorp"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<link href="https://cdn.prod.website-files.com/69383496538f3c3da700a557/css/orvimo.webflow.shared.4ccc8b082.min.css" rel="stylesheet" type="text/css" integrity="sha384-TMyLCCqRf402eL9Xa141g9lhk+tJWCTwPtAHheUrmRVyE66GCRAZ+zpBk6WoX6Bl" crossorigin="anonymous"/>
+<link href="https://fonts.googleapis.com/" rel="preconnect"/>
+<link href="https://fonts.gstatic.com/" rel="preconnect" crossorigin="anonymous"/>
+<link href="https://cdn.prod.website-files.com/" rel="preconnect" crossorigin="anonymous"/>
+<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js" type="text/javascript"></script>
+<script type="text/javascript">WebFont.load({ google: { families: ["DM Sans:300,400,500,600,700","Inter:300,400,500,600,700","Poppins:500,500italic,900,900italic"] } });</script>
+<link href="https://cdn.prod.website-files.com/69383496538f3c3da700a557/693834d0fbef503fe40926ec_Favicon.png" rel="shortcut icon" type="image/x-icon"/>
+<style>
+  .w-webflow-badge{display:none!important;}
+  body { background: #0a0a0a; color: #e8e8e8; font-family: 'DM Sans', sans-serif; }
+  .blog-article { max-width: 740px; margin: 0 auto; padding: 80px 24px 120px; }
+  .blog-article h1 { font-family: 'Poppins', sans-serif; font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 700; line-height: 1.2; margin-bottom: 24px; }
+  .blog-article h2 { font-size: 1.4rem; font-weight: 600; margin-top: 48px; margin-bottom: 16px; }
+  .blog-article h3 { font-size: 1.15rem; font-weight: 600; margin-top: 32px; margin-bottom: 12px; }
+  .blog-article p { font-size: 1.05rem; line-height: 1.75; margin-bottom: 20px; color: #c8c8c8; }
+  .blog-article ul, .blog-article ol { padding-left: 24px; margin-bottom: 20px; }
+  .blog-article li { font-size: 1.05rem; line-height: 1.75; color: #c8c8c8; margin-bottom: 8px; }
+  .blog-article code { background: #1a1a2e; padding: 2px 8px; border-radius: 4px; font-family: monospace; font-size: 0.9rem; color: #a78bfa; }
+  .blog-article pre { background: #1a1a2e; padding: 20px; border-radius: 8px; overflow-x: auto; margin-bottom: 24px; }
+  .blog-article pre code { background: none; padding: 0; color: #a78bfa; }
+  .blog-meta { font-size: 0.85rem; color: #666; margin-bottom: 40px; display: flex; gap: 16px; }
+  .blog-tag { background: #1a1a2e; color: #a78bfa; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .back-link { display: inline-block; color: #a78bfa; text-decoration: none; font-size: 0.9rem; margin-bottom: 40px; }
+  .back-link:hover { text-decoration: underline; }
+  .cta-block { background: linear-gradient(135deg, #1a1a2e, #16213e); border: 1px solid #2a2a4e; border-radius: 12px; padding: 40px; margin-top: 60px; text-align: center; }
+  .cta-block h3 { color: #fff; margin-top: 0; }
+  .cta-block p { color: #aaa; margin-bottom: 24px; }
+  .btn-primary { display: inline-block; background: #a78bfa; color: #0a0a0a; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 1rem; margin-right: 12px; }
+  .btn-secondary { display: inline-block; border: 1px solid #a78bfa; color: #a78bfa; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 1rem; }
+  .nav-simple { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid #1a1a1a; }
+  .nav-simple a { color: #e8e8e8; text-decoration: none; font-size: 0.95rem; }
+  .nav-logo { font-family: 'Poppins', sans-serif; font-style: italic; font-size: 1.4rem; }
+  .nav-logo span:first-child { font-weight: 500; }
+  .nav-logo span:last-child { font-weight: 900; }
+  .related-posts { margin-top: 60px; border-top: 1px solid #1a1a1a; padding-top: 40px; }
+  .related-posts h3 { color: #fff; margin-bottom: 20px; }
+  .related-link { display: block; color: #a78bfa; text-decoration: none; margin-bottom: 12px; font-size: 1rem; }
+  .related-link:hover { text-decoration: underline; }
+  /* Pricing table styles */
+  .pricing-table { width: 100%; border-collapse: collapse; margin-bottom: 32px; font-size: 0.95rem; }
+  .pricing-table th { background: #1a1a2e; color: #a78bfa; text-align: left; padding: 12px 16px; font-weight: 600; border-bottom: 1px solid #2a2a4e; }
+  .pricing-table td { padding: 12px 16px; border-bottom: 1px solid #1a1a1a; color: #c8c8c8; vertical-align: top; }
+  .pricing-table tr:last-child td { border-bottom: none; }
+  .pricing-table .winner { color: #a78bfa; font-weight: 600; }
+  .pricing-table .highlight-row td { background: #111122; }
+  /* Callout box */
+  .callout { background: #0f0f1e; border-left: 3px solid #a78bfa; padding: 16px 20px; border-radius: 0 8px 8px 0; margin-bottom: 24px; }
+  .callout p { margin-bottom: 0; color: #c8c8c8; }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Cloudflare R2 vs AWS S3: Cost Comparison for Developers in 2026",
+  "description": "A detailed cost comparison of Cloudflare R2 vs AWS S3 in 2026. We break down storage pricing, egress fees, free tiers, and when each service wins for developers.",
+  "image": "https://r2drop.com/r2-logo.png",
+  "author": { "@type": "Organization", "name": "Superhuman Intelligence LLC" },
+  "publisher": { "@type": "Organization", "name": "R2Drop", "url": "https://r2drop.com" },
+  "datePublished": "2026-02-26",
+  "url": "https://r2drop.com/blog/cloudflare-r2-vs-aws-s3-cost-comparison",
+  "mainEntityOfPage": "https://r2drop.com/blog/cloudflare-r2-vs-aws-s3-cost-comparison"
+}
+</script>
+</head>
+<body>
+<div class="page-wrapper">
+  <nav class="nav-simple">
+    <a href="../index.html" class="nav-logo"><span>R2</span><span>Drop</span></a>
+    <div style="display:flex;gap:24px;align-items:center;">
+      <a href="../index.html">Home</a>
+      <a href="https://github.com/superhumancorp/r2drop/releases" style="background:#a78bfa;color:#0a0a0a;padding:8px 20px;border-radius:6px;font-weight:700;">Download for macOS</a>
+    </div>
+  </nav>
+  <main class="blog-article">
+    <a href="../index.html" class="back-link">← Back to R2Drop</a>
+    <div class="blog-meta">
+      <span class="blog-tag">Cloud Storage</span>
+      <span>February 26, 2026</span>
+      <span>8 min read</span>
+    </div>
+    <h1>Cloudflare R2 vs AWS S3: Cost Comparison for Developers in 2026</h1>
+    <p>AWS S3 is the default choice for object storage. It's mature, well-documented, and deeply integrated with the rest of AWS. But it has one major cost that catches many developers off guard: egress fees. Every gigabyte you read out of S3 to the public internet costs money. Cloudflare R2 was built specifically to eliminate that line item. Understanding the difference — and when it matters — can save you hundreds or thousands of dollars per month depending on your workload.</p>
+    <p>This guide breaks down the real pricing numbers for both services in 2026, shows you where each one wins, and helps you decide which is the right choice for your specific use case.</p>
+
+    <h2>The Core Difference: Egress Fees</h2>
+    <p>Before getting into the full pricing table, it's worth understanding the single biggest structural difference between R2 and S3.</p>
+    <p>AWS charges <strong>$0.09 per GB</strong> for data transferred out of S3 to the internet (after the first 100 GB free per month). This is called an egress fee, or data transfer fee. If you store a 1 GB video and 10,000 people stream it in a month, you've transferred roughly 10 TB — and AWS charges you approximately <strong>$921</strong> just for that traffic, before any storage or API costs.</p>
+    <p>Cloudflare R2 charges <strong>$0.00 for egress</strong>. Always. There is no egress fee, no threshold, no fine print. Data flowing out of R2 to the internet is free by design. This is Cloudflare's deliberate challenge to what they call "egress lock-in" — the practice of making it expensive to move data out of a cloud provider.</p>
+
+    <div class="callout">
+      <p><strong>The one-sentence summary:</strong> If your files are read frequently by users or downstream services, R2 is almost always cheaper than S3. If your data rarely leaves AWS's internal network, the gap narrows significantly.</p>
+    </div>
+
+    <h2>Full Pricing Breakdown: R2 vs S3 in 2026</h2>
+    <p>Here is a side-by-side comparison of the current published pricing for both services. All S3 prices are for the <code>us-east-1</code> region, which is the cheapest AWS region. Other regions are more expensive.</p>
+
+    <table class="pricing-table">
+      <thead>
+        <tr>
+          <th>Cost Category</th>
+          <th>Cloudflare R2</th>
+          <th>AWS S3 (us-east-1)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="highlight-row">
+          <td>Storage (first 50 TB/mo)</td>
+          <td class="winner">$0.015 / GB</td>
+          <td>$0.023 / GB</td>
+        </tr>
+        <tr>
+          <td>Storage (next 450 TB/mo)</td>
+          <td class="winner">$0.015 / GB</td>
+          <td>$0.022 / GB</td>
+        </tr>
+        <tr class="highlight-row">
+          <td>Egress to internet</td>
+          <td class="winner">$0.00 / GB</td>
+          <td>$0.09 / GB (after 100 GB free)</td>
+        </tr>
+        <tr>
+          <td>Class A operations (writes: PUT, POST, COPY, LIST)</td>
+          <td>$4.50 / million</td>
+          <td class="winner">$5.00 / million</td>
+        </tr>
+        <tr class="highlight-row">
+          <td>Class B operations (reads: GET, HEAD)</td>
+          <td class="winner">$0.36 / million</td>
+          <td>$0.40 / million</td>
+        </tr>
+        <tr>
+          <td>Data transfer in (ingress)</td>
+          <td class="winner">Free</td>
+          <td class="winner">Free</td>
+        </tr>
+        <tr class="highlight-row">
+          <td>Minimum storage duration</td>
+          <td class="winner">None</td>
+          <td>None (Standard tier)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>A few things stand out here. R2 is cheaper on storage, cheaper on reads, and dramatically cheaper on egress. S3's write operations are marginally more expensive than R2's, but the gap is small enough that it rarely matters in practice.</p>
+    <p>The egress column is where the real story lives. For any workload where data is served to end users — images, videos, software downloads, documentation assets, build artifacts — the difference is not marginal. It is categorical.</p>
+
+    <h2>R2 Free Tier</h2>
+    <p>Cloudflare R2 includes a permanent free tier that resets each calendar month. It does not expire and does not require a credit card to use. The limits are:</p>
+    <ul>
+      <li><strong>10 GB storage</strong> — enough for a small media library, a static site's assets, or a set of build artifacts</li>
+      <li><strong>1 million Class A operations per month</strong> — write and list operations (PUT, POST, COPY, LIST)</li>
+      <li><strong>10 million Class B operations per month</strong> — read operations (GET, HEAD)</li>
+      <li><strong>Egress: always free</strong> — even within the free tier, you are never charged for data transferred out</li>
+    </ul>
+    <p>AWS S3 also has a free tier, but it is time-limited: 5 GB storage, 20,000 GET requests, and 2,000 PUT requests — free only for the first 12 months of a new AWS account. After that, every request and every gigabyte costs money. R2's free tier has no expiration date.</p>
+    <p>For side projects, small tools, and personal media backups, R2's free tier is genuinely useful for the long term in a way that S3's is not.</p>
+
+    <h2>Real-World Cost Example</h2>
+    <p>Let's make this concrete. Suppose you run a developer tool that stores 100 GB of user-uploaded files and serves them publicly. In a typical month, users download 500 GB total.</p>
+
+    <table class="pricing-table">
+      <thead>
+        <tr>
+          <th>Cost Item</th>
+          <th>Cloudflare R2</th>
+          <th>AWS S3 (us-east-1)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="highlight-row">
+          <td>Storage (100 GB)</td>
+          <td>$1.50</td>
+          <td>$2.30</td>
+        </tr>
+        <tr>
+          <td>Egress (500 GB out)</td>
+          <td class="winner">$0.00</td>
+          <td>$36.00</td>
+        </tr>
+        <tr class="highlight-row">
+          <td>API operations (est.)</td>
+          <td>~$0.50</td>
+          <td>~$0.60</td>
+        </tr>
+        <tr>
+          <td><strong>Monthly total</strong></td>
+          <td class="winner"><strong>~$2.00</strong></td>
+          <td><strong>~$38.90</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>That is a roughly 95% cost reduction for this specific workload. The exact numbers shift depending on your egress-to-storage ratio, but the pattern holds: the more you serve data to end users, the more R2 saves compared to S3.</p>
+
+    <h2>When R2 Wins</h2>
+    <p>R2 is the stronger choice in these situations:</p>
+    <ul>
+      <li><strong>Public-facing media assets</strong> — images, videos, audio files, or any content served directly to users via a CDN or custom domain. Zero egress means zero surprise bills as traffic grows.</li>
+      <li><strong>Software distribution</strong> — hosting release binaries, installer packages, or CLI downloads. A popular open-source project can generate terabytes of download traffic. With R2, that traffic is free.</li>
+      <li><strong>Build artifact caching</strong> — CI/CD pipelines that cache dependencies or artifacts and restore them on every build. These workloads read heavily from storage, making egress costs significant at scale.</li>
+      <li><strong>Static site assets</strong> — fonts, JavaScript bundles, stylesheets, and images for a website with moderate to high traffic.</li>
+      <li><strong>High-egress data pipelines</strong> — any pipeline where data is read out of storage by external services or users. This includes log archives, analytics exports, and dataset downloads.</li>
+      <li><strong>Greenfield projects with no AWS dependency</strong> — if you are starting fresh and don't have an existing reason to stay on AWS, R2 is simpler to reason about from a cost perspective.</li>
+    </ul>
+
+    <h2>When S3 Wins</h2>
+    <p>S3 remains the better choice in these specific situations:</p>
+    <ul>
+      <li><strong>Deep AWS ecosystem integration</strong> — if your workload depends on services like Amazon Athena, AWS Glue, AWS Lake Formation, or S3 Select, these are tightly coupled to S3 and don't work with R2. There is no R2-native equivalent.</li>
+      <li><strong>AWS Lambda event triggers</strong> — S3 can trigger Lambda functions automatically when objects are created or deleted. R2 does not currently support this kind of native serverless trigger pattern.</li>
+      <li><strong>Glacier and long-term archival</strong> — AWS offers deeply discounted storage tiers (S3 Glacier, S3 Glacier Deep Archive) for rarely-accessed cold data, with per-retrieval fees in exchange for very low storage costs. R2 has no equivalent archival tier.</li>
+      <li><strong>Compliance and regional data residency requirements</strong> — if your data must reside in a specific AWS region for regulatory reasons, S3 with explicit region controls is a more mature solution. R2 is available in multiple regions but the compliance tooling is less developed.</li>
+      <li><strong>Large existing AWS infrastructure</strong> — if you are running large compute workloads on EC2 or EKS, data transferred between S3 and those services in the same region is free. S3 egress fees only apply to transfers to the public internet, not to internal AWS traffic.</li>
+    </ul>
+
+    <h2>R2 Is S3 API Compatible</h2>
+    <p>One reason many developers hesitate to switch from S3 to R2 is the assumption that migration requires a full rewrite. In practice, R2 is compatible with the S3 API. It supports the same HTTP request format, the same authentication method (AWS Signature Version 4), and the same core operations: <code>PutObject</code>, <code>GetObject</code>, <code>DeleteObject</code>, <code>ListObjectsV2</code>, <code>CreateMultipartUpload</code>, and others.</p>
+    <p>This means you can point most existing S3 client libraries directly at your R2 endpoint with only two changes:</p>
+    <ol>
+      <li>Set the endpoint URL to your R2 bucket URL: <code>https://&lt;account-id&gt;.r2.cloudflarestorage.com</code></li>
+      <li>Swap your AWS credentials for your R2 API token key and secret</li>
+    </ol>
+    <p>For example, if you're using the AWS SDK for Python (boto3), switching to R2 looks like this:</p>
+    <pre><code>import boto3
+
+# Original S3 client
+s3 = boto3.client("s3", region_name="us-east-1")
+
+# R2 client — same SDK, different endpoint and credentials
+r2 = boto3.client(
+    "s3",
+    endpoint_url="https://&lt;account-id&gt;.r2.cloudflarestorage.com",
+    aws_access_key_id="&lt;r2-access-key-id&gt;",
+    aws_secret_access_key="&lt;r2-secret-access-key&gt;",
+    region_name="auto",
+)</code></pre>
+    <p>The same pattern works with the AWS CLI, the JavaScript/TypeScript SDK, the Go SDK, and virtually any S3-compatible tool. Tools like <code>rclone</code>, <code>s3cmd</code>, and <code>mc</code> (MinIO client) all work with R2 out of the box.</p>
+    <p>The main S3 features that R2 does not support are the AWS-specific analytics and compute integrations mentioned above (Athena, Glue, Lambda triggers). Core storage operations are fully compatible.</p>
+
+    <h2>How to Think About the Decision</h2>
+    <p>The simplest mental model: ask yourself how your data flows. If your data goes in from your app and rarely comes back out — or only comes back out within AWS's own network — S3's egress fees are largely irrelevant and S3's ecosystem depth is a genuine advantage.</p>
+    <p>If your data is read by users, external services, or public CDN traffic, every gigabyte leaving S3 costs $0.09. With R2, it costs nothing. That single variable drives most cost comparisons between the two services.</p>
+    <p>For developers building public-facing products — tools, APIs, media platforms, documentation sites, or anything distributed to end users — R2 is worth evaluating seriously. The pricing model is more predictable, the free tier is genuinely useful, and the S3 API compatibility means migration is lower risk than it sounds.</p>
+
+    <h2>Uploading to R2 from macOS: R2Drop</h2>
+    <p>Once you've decided to use Cloudflare R2, the practical question is how to get files into your bucket. The Cloudflare dashboard works for occasional uploads, but it is slow for anything more than a few files. The AWS CLI works but requires configuring credentials and remembering command syntax every time.</p>
+    <p>R2Drop is a native macOS menu bar application built specifically for R2 uploads. You right-click any file or folder in Finder, select "Send to R2", and the upload runs in the background. When it finishes, the shareable URL is already in your clipboard. No browser tabs, no terminal commands.</p>
+    <p>Under the hood, R2Drop uses a Rust upload engine with multipart support and parallel transfers. Large files are split into concurrent chunks for maximum throughput. Uploads are resumable — if your connection drops, R2Drop picks up from where it left off rather than starting over.</p>
+    <p>R2Drop is free, open source under the MIT license, and stores your R2 credentials exclusively in the macOS Keychain. It also ships a companion CLI for terminal and CI/CD workflows. If you're moving to R2, R2Drop removes the friction from the upload side entirely.</p>
+
+    <div class="cta-block">
+      <h3>Start uploading to R2 without the friction.</h3>
+      <p>R2Drop is a free, open source macOS app that makes Cloudflare R2 uploads as simple as a right-click. No dashboard, no CLI commands — just Finder.</p>
+      <a href="https://github.com/superhumancorp/r2drop/releases" class="btn-primary">Download for macOS</a>
+      <a href="https://github.com/superhumancorp/r2drop" class="btn-secondary">View on GitHub</a>
+    </div>
+
+    <div class="related-posts">
+      <h3>Related Articles</h3>
+      <a href="getting-started-with-r2drop.html" class="related-link">Getting Started with R2Drop: Your First Upload in 60 Seconds</a>
+      <a href="r2drop-cli-guide.html" class="related-link">R2Drop CLI: Terminal Uploads to Cloudflare R2</a>
+    </div>
+  </main>
+</div>
+</body>
+</html>

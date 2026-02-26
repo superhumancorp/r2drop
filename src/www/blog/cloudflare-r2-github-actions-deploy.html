@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Deploy Build Artifacts to Cloudflare R2 with GitHub Actions</title>
+<meta name="description" content="Learn how to upload build artifacts, static sites, and release binaries to Cloudflare R2 from a GitHub Actions workflow using the R2Drop CLI. Full working YAML included."/>
+<link rel="canonical" href="https://r2drop.com/blog/cloudflare-r2-github-actions-deploy"/>
+<meta property="og:title" content="Deploy Build Artifacts to Cloudflare R2 with GitHub Actions"/>
+<meta property="og:description" content="Learn how to upload build artifacts, static sites, and release binaries to Cloudflare R2 from a GitHub Actions workflow using the R2Drop CLI. Full working YAML included."/>
+<meta property="og:image" content="https://r2drop.com/r2-logo.png"/>
+<meta property="og:url" content="https://r2drop.com/blog/cloudflare-r2-github-actions-deploy"/>
+<meta property="og:type" content="article"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:site" content="@superhumancorp"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<link href="https://cdn.prod.website-files.com/69383496538f3c3da700a557/css/orvimo.webflow.shared.4ccc8b082.min.css" rel="stylesheet" type="text/css" integrity="sha384-TMyLCCqRf402eL9Xa141g9lhk+tJWCTwPtAHheUrmRVyE66GCRAZ+zpBk6WoX6Bl" crossorigin="anonymous"/>
+<link href="https://fonts.googleapis.com/" rel="preconnect"/>
+<link href="https://fonts.gstatic.com/" rel="preconnect" crossorigin="anonymous"/>
+<link href="https://cdn.prod.website-files.com/" rel="preconnect" crossorigin="anonymous"/>
+<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js" type="text/javascript"></script>
+<script type="text/javascript">WebFont.load({ google: { families: ["DM Sans:300,400,500,600,700","Inter:300,400,500,600,700","Poppins:500,500italic,900,900italic"] } });</script>
+<link href="https://cdn.prod.website-files.com/69383496538f3c3da700a557/693834d0fbef503fe40926ec_Favicon.png" rel="shortcut icon" type="image/x-icon"/>
+<style>
+  .w-webflow-badge{display:none!important;}
+  body { background: #0a0a0a; color: #e8e8e8; font-family: 'DM Sans', sans-serif; }
+  .blog-article { max-width: 740px; margin: 0 auto; padding: 80px 24px 120px; }
+  .blog-article h1 { font-family: 'Poppins', sans-serif; font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 700; line-height: 1.2; margin-bottom: 24px; }
+  .blog-article h2 { font-size: 1.4rem; font-weight: 600; margin-top: 48px; margin-bottom: 16px; }
+  .blog-article h3 { font-size: 1.15rem; font-weight: 600; margin-top: 32px; margin-bottom: 12px; }
+  .blog-article p { font-size: 1.05rem; line-height: 1.75; margin-bottom: 20px; color: #c8c8c8; }
+  .blog-article ul, .blog-article ol { padding-left: 24px; margin-bottom: 20px; }
+  .blog-article li { font-size: 1.05rem; line-height: 1.75; color: #c8c8c8; margin-bottom: 8px; }
+  .blog-article code { background: #1a1a2e; padding: 2px 8px; border-radius: 4px; font-family: monospace; font-size: 0.9rem; color: #a78bfa; }
+  .blog-article pre { background: #1a1a2e; padding: 20px; border-radius: 8px; overflow-x: auto; margin-bottom: 24px; }
+  .blog-article pre code { background: none; padding: 0; color: #a78bfa; }
+  .blog-meta { font-size: 0.85rem; color: #666; margin-bottom: 40px; display: flex; gap: 16px; }
+  .blog-tag { background: #1a1a2e; color: #a78bfa; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .back-link { display: inline-block; color: #a78bfa; text-decoration: none; font-size: 0.9rem; margin-bottom: 40px; }
+  .back-link:hover { text-decoration: underline; }
+  .cta-block { background: linear-gradient(135deg, #1a1a2e, #16213e); border: 1px solid #2a2a4e; border-radius: 12px; padding: 40px; margin-top: 60px; text-align: center; }
+  .cta-block h3 { color: #fff; margin-top: 0; }
+  .cta-block p { color: #aaa; margin-bottom: 24px; }
+  .btn-primary { display: inline-block; background: #a78bfa; color: #0a0a0a; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 1rem; margin-right: 12px; }
+  .btn-secondary { display: inline-block; border: 1px solid #a78bfa; color: #a78bfa; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 1rem; }
+  .nav-simple { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid #1a1a1a; }
+  .nav-simple a { color: #e8e8e8; text-decoration: none; font-size: 0.95rem; }
+  .nav-logo { font-family: 'Poppins', sans-serif; font-style: italic; font-size: 1.4rem; }
+  .nav-logo span:first-child { font-weight: 500; }
+  .nav-logo span:last-child { font-weight: 900; }
+  .related-posts { margin-top: 60px; border-top: 1px solid #1a1a1a; padding-top: 40px; }
+  .related-posts h3 { color: #fff; margin-bottom: 20px; }
+  .related-link { display: block; color: #a78bfa; text-decoration: none; margin-bottom: 12px; font-size: 1rem; }
+  .related-link:hover { text-decoration: underline; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+  th { background: #1a1a2e; color: #a78bfa; padding: 12px 16px; text-align: left; font-size: 0.9rem; }
+  td { padding: 12px 16px; border-bottom: 1px solid #1a1a1a; font-size: 0.95rem; color: #c8c8c8; }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Deploy Build Artifacts to Cloudflare R2 with GitHub Actions",
+  "description": "Learn how to upload build artifacts, static sites, and release binaries to Cloudflare R2 from a GitHub Actions workflow using the R2Drop CLI.",
+  "image": "https://r2drop.com/r2-logo.png",
+  "author": { "@type": "Organization", "name": "Superhuman Intelligence LLC" },
+  "publisher": { "@type": "Organization", "name": "R2Drop", "url": "https://r2drop.com" },
+  "datePublished": "2026-02-26",
+  "url": "https://r2drop.com/blog/cloudflare-r2-github-actions-deploy",
+  "mainEntityOfPage": "https://r2drop.com/blog/cloudflare-r2-github-actions-deploy"
+}
+</script>
+</head>
+<body>
+<div class="page-wrapper">
+  <nav class="nav-simple">
+    <a href="../index.html" class="nav-logo"><span>R2</span><span>Drop</span></a>
+    <div style="display:flex;gap:24px;align-items:center;">
+      <a href="../index.html">Home</a>
+      <a href="https://github.com/superhumancorp/r2drop/releases" style="background:#a78bfa;color:#0a0a0a;padding:8px 20px;border-radius:6px;font-weight:700;">Download for macOS</a>
+    </div>
+  </nav>
+  <main class="blog-article">
+    <a href="../index.html" class="back-link">← Back to R2Drop</a>
+    <div class="blog-meta">
+      <span class="blog-tag">CI/CD</span>
+      <span>February 26, 2026</span>
+      <span>9 min read</span>
+    </div>
+    <h1>Deploy Build Artifacts to Cloudflare R2 with GitHub Actions</h1>
+    <p>Cloudflare R2 is one of the best places to store build artifacts, static site deployments, and media assets. There are no egress fees — meaning you can download your artifacts as often as you like without paying a cent in bandwidth costs. For teams that push builds frequently, that adds up fast compared to S3 or GCS.</p>
+    <p>With the R2Drop CLI, you can add Cloudflare R2 uploads to any GitHub Actions workflow in a single step. This guide walks through the complete setup: creating a scoped API token, configuring secrets, writing the workflow YAML, and capturing the upload URL for downstream steps.</p>
+
+    <h2>Prerequisites</h2>
+    <p>Before you start, make sure you have:</p>
+    <ul>
+      <li>A Cloudflare account with R2 enabled (you can activate it from the R2 section of the Cloudflare dashboard)</li>
+      <li>An R2 bucket already created — for example, <code>my-build-artifacts</code></li>
+      <li>A Cloudflare API token with <strong>R2:Edit</strong> permission (we'll create this below)</li>
+      <li>A GitHub repository with Actions enabled</li>
+    </ul>
+    <p>The R2Drop CLI runs on Linux, macOS, and Windows. GitHub's <code>ubuntu-latest</code> runners work perfectly out of the box.</p>
+
+    <h2>Creating a Cloudflare API Token</h2>
+    <p>You should never use your global Cloudflare API key for CI/CD. Instead, create a minimal-permission token scoped only to R2. Here's how.</p>
+
+    <h3>Step 1: Open API Tokens</h3>
+    <p>Go to <a href="https://dash.cloudflare.com/profile/api-tokens" style="color:#a78bfa;">dash.cloudflare.com/profile/api-tokens</a> (My Profile → API Tokens). Click <strong>Create Token</strong>.</p>
+
+    <h3>Step 2: Start from a custom template</h3>
+    <p>Scroll past the pre-built templates and click <strong>Create Custom Token</strong> at the bottom. This gives you full control over the scope.</p>
+
+    <h3>Step 3: Set the permissions</h3>
+    <p>Under <strong>Permissions</strong>, add one entry:</p>
+    <ul>
+      <li>Resource type: <strong>Account</strong></li>
+      <li>Service: <strong>Workers R2 Storage</strong></li>
+      <li>Permission level: <strong>Edit</strong></li>
+    </ul>
+    <p>Under <strong>Account Resources</strong>, select the specific Cloudflare account that owns your R2 bucket. Avoid selecting "All accounts" — keep the scope as tight as possible.</p>
+
+    <h3>Step 4: Save and copy the token</h3>
+    <p>Click <strong>Continue to Summary</strong>, then <strong>Create Token</strong>. Cloudflare shows the token <strong>once</strong> — copy it immediately and store it somewhere safe. You'll paste it into GitHub Secrets in the next section.</p>
+    <p>Cloudflare R2 uses an S3-compatible API. The access key ID and secret access key you need for R2Drop are not the same as the API token itself. To get them, go to your R2 bucket's <strong>Settings</strong> tab in the Cloudflare dashboard and click <strong>Manage R2 API Tokens</strong>. Create a token there with Object Read &amp; Write scope. That gives you the <code>Access Key ID</code> and <code>Secret Access Key</code> pair that R2Drop and the S3 SDK use.</p>
+
+    <h2>Setting Up GitHub Actions Secrets</h2>
+    <p>Navigate to your GitHub repository, then go to <strong>Settings → Secrets and variables → Actions → New repository secret</strong>. Add the following four secrets:</p>
+    <table>
+      <tr><th>Secret name</th><th>Where to find it</th></tr>
+      <tr><td><code>R2_ACCESS_KEY_ID</code></td><td>Access Key ID from R2 API token page</td></tr>
+      <tr><td><code>R2_SECRET_ACCESS_KEY</code></td><td>Secret Access Key from R2 API token page</td></tr>
+      <tr><td><code>R2_BUCKET</code></td><td>Your bucket name, e.g. <code>my-build-artifacts</code></td></tr>
+      <tr><td><code>R2_ENDPOINT</code></td><td>Your R2 S3 endpoint, e.g. <code>https://&lt;account-id&gt;.r2.cloudflarestorage.com</code></td></tr>
+    </table>
+    <p>You'll find your <code>R2_ENDPOINT</code> on the bucket's Settings page in the Cloudflare dashboard, listed as the <strong>S3 API</strong> endpoint URL. It looks like <code>https://abc123def456.r2.cloudflarestorage.com</code>.</p>
+    <p>These secrets are injected as environment variables at runtime. They are never exposed in logs, and they are never visible to pull requests from forks — so they're safe to use in public repositories as long as you keep your workflow scoped to trusted branches.</p>
+
+    <h2>Full GitHub Actions Workflow</h2>
+    <p>Here's a complete, working workflow that builds a project and uploads the <code>./dist</code> folder to Cloudflare R2 on every push to <code>main</code>.</p>
+    <pre><code>name: Build and Deploy to R2
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build project
+        run: npm ci &amp;&amp; npm run build
+
+      - name: Install R2Drop CLI
+        run: curl -sf https://r2drop.com/install.sh | sh
+
+      - name: Write R2Drop config
+        run: |
+          mkdir -p ~/.r2drop
+          cat &gt; ~/.r2drop/config.toml &lt;&lt;EOF
+          [accounts.ci]
+          bucket = "${{ secrets.R2_BUCKET }}"
+          endpoint = "${{ secrets.R2_ENDPOINT }}"
+          access_key_id = "${{ secrets.R2_ACCESS_KEY_ID }}"
+          secret_access_key = "${{ secrets.R2_SECRET_ACCESS_KEY }}"
+
+          [defaults]
+          account = "ci"
+          EOF
+
+      - name: Upload dist to R2
+        id: upload
+        run: |
+          RESULT=$(r2drop upload ./dist --recursive --account ci --json)
+          echo "result=$RESULT" &gt;&gt; "$GITHUB_OUTPUT"
+          echo "$RESULT" | jq -r '"Uploaded to: " + .url'
+
+      - name: Print upload URL
+        run: echo "Build artifacts live at ${{ fromJSON(steps.upload.outputs.result).url }}"</code></pre>
+    <p>Let's walk through what each step does.</p>
+    <ul>
+      <li><strong>Checkout</strong> pulls your repo onto the runner.</li>
+      <li><strong>Build</strong> compiles your project — swap in your actual build command.</li>
+      <li><strong>Install R2Drop CLI</strong> fetches the latest binary for <code>linux/amd64</code> via the install script and places it in <code>/usr/local/bin</code>.</li>
+      <li><strong>Write R2Drop config</strong> creates <code>~/.r2drop/config.toml</code> at runtime from your encrypted secrets. The config file is never stored in the repo.</li>
+      <li><strong>Upload dist to R2</strong> recursively uploads the entire <code>dist</code> folder. The <code>--json</code> flag returns structured output, which gets saved as a step output for reuse.</li>
+      <li><strong>Print upload URL</strong> demonstrates reading the URL from the previous step's JSON output.</li>
+    </ul>
+
+    <h2>Using the --json Flag to Capture Upload URLs</h2>
+    <p>The <code>--json</code> flag is the key to making uploads scriptable. When you pass it, r2drop outputs a JSON object instead of human-readable text:</p>
+    <pre><code>{
+  "status": "success",
+  "key": "dist/",
+  "url": "https://cdn.example.com/dist/",
+  "bucket": "my-build-artifacts",
+  "files_uploaded": 42,
+  "size": 8421376,
+  "duration_ms": 3102
+}</code></pre>
+    <p>You can use <code>jq</code> to extract any field from this output. For example, to grab just the URL:</p>
+    <pre><code>URL=$(r2drop upload ./dist --recursive --json | jq -r '.url')
+echo "Deployed to: $URL"</code></pre>
+    <p>Or to check whether the upload succeeded before proceeding:</p>
+    <pre><code>RESULT=$(r2drop upload ./release.tar.gz --json)
+STATUS=$(echo "$RESULT" | jq -r '.status')
+
+if [ "$STATUS" != "success" ]; then
+  echo "Upload failed: $RESULT"
+  exit 1
+fi
+
+echo "Upload complete: $(echo "$RESULT" | jq -r '.url')"</code></pre>
+
+    <h2>Alternative: Wrangler for R2 Uploads in CI</h2>
+    <p>Cloudflare's own <code>wrangler</code> CLI also supports R2 uploads via <code>wrangler r2 object put</code>. It's a reasonable choice if you're already using Wrangler for Workers deployments and want to keep your tooling consistent. The main trade-offs compared to R2Drop CLI are:</p>
+    <ul>
+      <li>Wrangler uploads one object at a time — there's no native recursive folder upload or multipart parallelism built in</li>
+      <li>Wrangler is a Node.js package, adding install time and a larger dependency footprint on your runner</li>
+      <li>R2Drop CLI is a single static binary — faster to install, no Node.js required</li>
+    </ul>
+    <p>For simple single-file uploads in a Wrangler-heavy workflow, <code>wrangler r2 object put my-bucket/path/to/file.tar.gz --file ./file.tar.gz</code> works fine. For recursive folder uploads or larger artifacts, R2Drop is faster and simpler.</p>
+
+    <h2>Advanced: Upload Only on Git Tags</h2>
+    <p>For release workflows, you often want to upload artifacts only when you push a version tag — not on every commit. Change the <code>on</code> trigger in your workflow like this:</p>
+    <pre><code>on:
+  push:
+    tags:
+      - 'v*'</code></pre>
+    <p>Then you can include the tag name in the upload path to version your artifacts:</p>
+    <pre><code>- name: Upload release artifact
+  run: |
+    r2drop upload ./dist \
+      --recursive \
+      --account ci \
+      --key "releases/${{ github.ref_name }}/" \
+      --json</code></pre>
+    <p>This uploads the <code>dist</code> folder to a path like <code>releases/v1.4.0/</code> inside your bucket, making it easy to maintain a history of past releases.</p>
+
+    <h2>Advanced: Parallel Uploads with a Matrix Strategy</h2>
+    <p>If you're building for multiple platforms (for example, a CLI tool targeting macOS, Linux, and Windows), you can compile and upload each platform artifact in parallel using a matrix strategy:</p>
+    <pre><code>jobs:
+  build-and-upload:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux-amd64
+          - os: macos-latest
+            platform: macos-arm64
+          - os: windows-latest
+            platform: windows-amd64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: cargo build --release
+
+      - name: Install R2Drop CLI
+        run: curl -sf https://r2drop.com/install.sh | sh
+
+      - name: Write R2Drop config
+        shell: bash
+        run: |
+          mkdir -p ~/.r2drop
+          cat &gt; ~/.r2drop/config.toml &lt;&lt;EOF
+          [accounts.ci]
+          bucket = "${{ secrets.R2_BUCKET }}"
+          endpoint = "${{ secrets.R2_ENDPOINT }}"
+          access_key_id = "${{ secrets.R2_ACCESS_KEY_ID }}"
+          secret_access_key = "${{ secrets.R2_SECRET_ACCESS_KEY }}"
+          EOF
+
+      - name: Upload binary to R2
+        shell: bash
+        run: |
+          r2drop upload ./target/release/mybinary \
+            --account ci \
+            --key "releases/${{ github.ref_name }}/mybinary-${{ matrix.platform }}" \
+            --json</code></pre>
+    <p>All three matrix jobs run concurrently. Each uploads its platform-specific binary to a distinct key under the same release path. The result is a clean set of versioned, publicly-accessible binaries stored in R2 — without paying egress fees every time someone downloads them.</p>
+
+    <h2>Using the Upload URL in Downstream Steps</h2>
+    <p>One common pattern is to upload a build artifact and then pass its URL to a notification step — for example, posting to Slack, updating a GitHub deployment, or writing to a build metadata service. Here's how that looks end-to-end:</p>
+    <pre><code>      - name: Upload to R2
+        id: r2_upload
+        run: |
+          RESULT=$(r2drop upload ./dist --recursive --account ci --json)
+          URL=$(echo "$RESULT" | jq -r '.url')
+          echo "url=$URL" &gt;&gt; "$GITHUB_OUTPUT"
+
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "Build deployed to R2: ${{ steps.r2_upload.outputs.url }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Create GitHub deployment status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: context.payload.deployment?.id,
+              state: 'success',
+              environment_url: '${{ steps.r2_upload.outputs.url }}'
+            })</code></pre>
+    <p>The <code>id: r2_upload</code> on the upload step lets subsequent steps reference its outputs using <code>steps.r2_upload.outputs.url</code>. This is standard GitHub Actions step output syntax — the <code>--json</code> flag is what makes it easy to extract clean values from the upload result.</p>
+
+    <h2>Local Development: Use the R2Drop macOS App</h2>
+    <p>The CLI is designed for headless, automated use. But when you're actively developing — iterating on a build, testing assets, or manually pushing files — the <a href="upload-files-cloudflare-r2-macos.html" style="color:#a78bfa;">R2Drop macOS app</a> is significantly faster.</p>
+    <p>Right-click any file or folder in Finder, choose <strong>Send to R2</strong>, and the upload starts immediately. The public URL is copied to your clipboard automatically when it finishes. There's nothing to type, no config to write at the terminal. It uses the same <code>~/.r2drop/config.toml</code> as the CLI, so any account you configure in the app is instantly available from the command line — and vice versa.</p>
+    <p>Think of the macOS app and CLI as complementary tools: the app for fast, interactive uploads during development, and the CLI for automated deploys in CI. Read the <a href="r2drop-cli-guide.html" style="color:#a78bfa;">full CLI guide</a> for a complete reference of all flags and configuration options.</p>
+
+    <div class="cta-block">
+      <h3>Uploads in your menu bar — for free</h3>
+      <p>The R2Drop macOS app makes uploading to Cloudflare R2 as fast as right-clicking a file. Free, open source, and built for developers who move quickly.</p>
+      <a href="https://github.com/superhumancorp/r2drop/releases" class="btn-primary">Download for macOS</a>
+      <a href="https://github.com/superhumancorp/r2drop" class="btn-secondary">View on GitHub</a>
+    </div>
+
+    <div class="related-posts">
+      <h3>Related Articles</h3>
+      <a href="r2drop-cli-guide.html" class="related-link">R2Drop CLI: Terminal Uploads to Cloudflare R2</a>
+      <a href="upload-files-cloudflare-r2-macos.html" class="related-link">Upload Files to Cloudflare R2 on macOS with R2Drop</a>
+    </div>
+  </main>
+</div>
+</body>
+</html>
