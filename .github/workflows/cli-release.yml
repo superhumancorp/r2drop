@@ -9,6 +9,7 @@ permissions:
 jobs:
   build-cli:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: macos-14
@@ -54,7 +55,11 @@ jobs:
 
       - name: Package
         run: |
-          BINARY="src/app/engine/r2-cli/target/${{ matrix.target }}/release/r2drop"
+          TARGET_DIR="src/app/engine/target/${{ matrix.target }}/release"
+          if [ ! -d "$TARGET_DIR" ]; then
+            TARGET_DIR="src/app/engine/r2-cli/target/${{ matrix.target }}/release"
+          fi
+          BINARY="${TARGET_DIR}/r2drop"
           [ -f "$BINARY.exe" ] && BINARY="$BINARY.exe"
           TARBALL="r2drop-${{ matrix.os_slug }}-${{ matrix.asset_arch }}.tar.gz"
           tar czf "$TARBALL" -C "$(dirname $BINARY)" "$(basename $BINARY)"
