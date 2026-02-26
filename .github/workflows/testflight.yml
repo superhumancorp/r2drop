@@ -52,5 +52,6 @@ jobs:
           APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
           BUILD_NUMBER: ${{ github.run_number }}
           MARKETING_VERSION: ${{ inputs.marketing_version }}
+          FORCE_AUTOMATIC_SIGNING: "1"
         run: |
           bundle exec fastlane upload_testflight

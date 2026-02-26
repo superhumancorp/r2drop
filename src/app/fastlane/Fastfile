@@ -45,6 +45,7 @@ platform :mac do
   # In that case, use automatic signing and let Xcode resolve installed profiles.
   # CI / scripted releases should provide explicit UUIDs and use manual signing.
   def use_automatic_signing_for_local?
+    return true if ENV.fetch("FORCE_AUTOMATIC_SIGNING", "") == "1"
     return false if ENV.fetch("CI", "").downcase == "true"
     return false if ENV.fetch("FORCE_MANUAL_SIGNING", "") == "1"
 
