@@ -17,6 +17,7 @@ struct SettingsTabView: View {
         ScrollView {
             VStack(spacing: 16) {
                 generalCard
+                finderIntegrationCard
                 performanceCard
                 exclusionCard
                 cliCard
@@ -25,6 +26,9 @@ struct SettingsTabView: View {
             .padding(20)
         }
         .onAppear { viewModel.load() }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            viewModel.refreshQuickActionStatus()
+        }
     }
 
     // MARK: - General Section (FR-045, FR-051)
@@ -85,6 +89,80 @@ struct SettingsTabView: View {
                     set: { viewModel.toggleAllowAnonymousTelemetry($0) }
                 )
             )
+        }
+    }
+
+    // MARK: - Finder Integration
+
+    private var finderIntegrationCard: some View {
+        GlassCard {
+            GlassSectionHeader(
+                title: "Finder Quick Action",
+                systemImage: "wand.and.stars"
+            )
+
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: quickActionStatusIcon)
+                    .foregroundColor(quickActionStatusColor)
+                    .font(.title3)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(quickActionStatusTitle)
+                        .font(.body.weight(.semibold))
+
+                    if let lastSeen = viewModel.quickActionLastInvokedAt {
+                        HStack(spacing: 6) {
+                            Text("Last detected:")
+                                .foregroundColor(.secondary)
+                            Text(lastSeen, style: .relative)
+                                .foregroundColor(.secondary)
+                            Text("(\(lastSeen.formatted(date: .abbreviated, time: .shortened)))")
+                                .foregroundColor(.secondary)
+                        }
+                        .font(.caption)
+                    } else if viewModel.quickActionBundled {
+                        Text("If you don't see “Send to R2Drop” in Finder, enable it in macOS Extensions settings.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    } else {
+                        Text("This build does not appear to include the Quick Action extension.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+
+                Spacer()
+            }
+
+            if viewModel.quickActionNeedsSetupHint {
+                Divider().opacity(0.3)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Setup")
+                        .font(.caption.weight(.semibold))
+                        .foregroundColor(.secondary)
+
+                    Text("System Settings → General → Login Items & Extensions → Extensions")
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundColor(.secondary)
+
+                    Text("Enable the R2Drop action under Actions / Quick Actions / Services (wording varies by macOS version).")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
+                    HStack(spacing: 8) {
+                        Button("Open Extensions Settings") {
+                            viewModel.openExtensionsSettings()
+                        }
+                        .buttonStyle(.bordered)
+
+                        Button("Refresh") {
+                            viewModel.refreshQuickActionStatus()
+                        }
+                        .buttonStyle(.borderless)
+                    }
+                }
+            }
         }
     }
 
@@ -343,5 +421,20 @@ struct SettingsTabView: View {
         // Create logs dir if it doesn't exist yet
         try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         NSWorkspace.shared.open(url)
+    }
+
+    private var quickActionStatusIcon: String {
+        if !viewModel.quickActionBundled { return "exclamationmark.triangle.fill" }
+        return viewModel.quickActionNeedsSetupHint ? "questionmark.circle.fill" : "checkmark.circle.fill"
+    }
+
+    private var quickActionStatusColor: Color {
+        if !viewModel.quickActionBundled { return .orange }
+        return viewModel.quickActionNeedsSetupHint ? .yellow : .green
+    }
+
+    private var quickActionStatusTitle: String {
+        if !viewModel.quickActionBundled { return "Quick Action missing from this build" }
+        return viewModel.quickActionNeedsSetupHint ? "Quick Action not detected yet" : "Quick Action detected"
     }
 }

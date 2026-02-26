@@ -34,6 +34,11 @@ final class SettingsViewModel: ObservableObject {
 
     @Published var allowAnonymousTelemetry: Bool = true
 
+    // MARK: - Finder Quick Action
+
+    @Published var quickActionBundled: Bool = false
+    @Published var quickActionLastInvokedAt: Date?
+
     // MARK: - Hotkey (FR-047)
 
     @Published var hotkeyDisplay: String = ""
@@ -77,6 +82,7 @@ final class SettingsViewModel: ObservableObject {
         configDirPath = ConfigManager.configDir().path
         logDirPath = ConfigManager.configDir().appendingPathComponent("logs").path
 
+        refreshQuickActionStatus()
         detectCLI()
 
         // P1: settings_loaded
@@ -204,6 +210,50 @@ final class SettingsViewModel: ObservableObject {
         TelemetryService.shared.setEnabled(enabled)
         save()
         TelemetryService.shared.track("setting_changed", properties: ["setting_key": "allow_anonymous_telemetry", "new_value_bucket": String(enabled)])
+    }
+
+    // MARK: - Finder Quick Action
+
+    var quickActionNeedsSetupHint: Bool {
+        quickActionBundled && quickActionLastInvokedAt == nil
+    }
+
+    func refreshQuickActionStatus() {
+        quickActionBundled = isQuickActionBundled()
+
+        guard let defaults = UserDefaults(suiteName: R2CoreConstants.appGroup) else {
+            quickActionLastInvokedAt = nil
+            return
+        }
+
+        let timestamp = defaults.double(forKey: R2CoreConstants.quickActionLastInvokedAtDefaultsKey)
+        if timestamp > 0 {
+            quickActionLastInvokedAt = Date(timeIntervalSince1970: timestamp)
+        } else {
+            quickActionLastInvokedAt = nil
+        }
+    }
+
+    func openExtensionsSettings() {
+        let candidates = [
+            "x-apple.systempreferences:com.apple.LoginItems-Settings.extension",
+            "x-apple.systempreferences:com.apple.preference.extensions",
+            "x-apple.systempreferences:com.apple.ExtensionsPreferences",
+            "x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension"
+        ]
+
+        for urlString in candidates {
+            if let url = URL(string: urlString), NSWorkspace.shared.open(url) {
+                TelemetryService.shared.track("quick_action_setup_opened", properties: ["source": "settings"])
+                return
+            }
+        }
+    }
+
+    private func isQuickActionBundled() -> Bool {
+        guard let pluginsURL = Bundle.main.builtInPlugInsURL else { return false }
+        let appexURL = pluginsURL.appendingPathComponent("R2DropQuickAction.appex", isDirectory: true)
+        return FileManager.default.fileExists(atPath: appexURL.path)
     }
 
     // MARK: - Upload Performance (FR-048)

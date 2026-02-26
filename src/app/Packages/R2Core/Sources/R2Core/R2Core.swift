@@ -14,4 +14,7 @@ public enum R2CoreConstants {
 
     /// URL scheme for deep linking.
     public static let urlScheme = "r2drop"
+
+    /// App Group UserDefaults key updated when the Finder Quick Action runs.
+    public static let quickActionLastInvokedAtDefaultsKey = "quickAction.lastInvokedAt"
 }

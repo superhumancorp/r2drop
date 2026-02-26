@@ -34,6 +34,8 @@ final class QuickActionRequestHandler: NSObject, NSExtensionRequestHandling {
             return
         }
 
+        recordInvocation()
+
         let config: R2Config
         do {
             config = try ConfigManager.load()
@@ -307,5 +309,10 @@ final class QuickActionRequestHandler: NSObject, NSExtensionRequestHandling {
             userInfo: [NSLocalizedDescriptionKey: message]
         )
         context.cancelRequest(withError: error)
+    }
+
+    private func recordInvocation() {
+        guard let defaults = UserDefaults(suiteName: R2CoreConstants.appGroup) else { return }
+        defaults.set(Date().timeIntervalSince1970, forKey: R2CoreConstants.quickActionLastInvokedAtDefaultsKey)
     }
 }
