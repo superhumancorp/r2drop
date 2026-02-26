@@ -39,7 +39,7 @@
 		<key>NSExtensionPrincipalClass</key>
 		<string>$(PRODUCT_MODULE_NAME).QuickActionRequestHandler</string>
 		<key>NSExtensionPointIdentifier</key>
-		<string>com.apple.services</string>
+		<string>com.apple.ui-services</string>
 	</dict>
 </dict>
 </plist>

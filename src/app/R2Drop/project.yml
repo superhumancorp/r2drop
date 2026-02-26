@@ -154,7 +154,7 @@ targets:
             NSExtensionServiceAllowsFinderPreviewItem: true
             NSExtensionServiceFinderPreviewIconName: "NSActionTemplate"
           NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).QuickActionRequestHandler"
-          NSExtensionPointIdentifier: "com.apple.services"
+          NSExtensionPointIdentifier: "com.apple.ui-services"
         CFBundleDisplayName: "Send to R2Drop"
     dependencies:
       - package: R2Core
