@@ -22,9 +22,7 @@ This works on individual files, multiple selected files, and entire folders.
 
 Drop files directly onto the R2Drop icon in your menu bar.
 
-{% embed url="https://cdn.r2drop.com/r2drop-drag-drop-menu-bar.mp4" %}
-Dragging multiple files onto the menu bar icon
-{% endembed %}
+<video src="https://cdn.r2drop.com/r2drop-drag-drop-menu-bar.mp4" controls preload="metadata" style="width:100%;border-radius:8px"></video>
 
 This is the fastest method when you already have files open in Finder and want to upload without any clicks.
 
@@ -34,9 +32,7 @@ This is the fastest method when you already have files open in Finder and want t
 
 Open the R2Drop window and drag files into the **Uploads** tab drop zone.
 
-{% embed url="https://cdn.r2drop.com/r2drop-drag-drop-app.mp4" %}
-Dragging files into the app upload area
-{% endembed %}
+<video src="https://cdn.r2drop.com/r2drop-drag-drop-app.mp4" controls preload="metadata" style="width:100%;border-radius:8px"></video>
 
 The drop zone accepts single files, multiple files, and folders. Folder contents are uploaded recursively, preserving the directory structure.
 
