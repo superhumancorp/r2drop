@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 # scripts/install.sh
-# Downloads and installs r2-cli from GitHub Releases.
+# Downloads and installs the r2drop CLI from GitHub Releases.
 #
 # Usage:
 #   curl -fsSL https://r2drop.com/install.sh | bash
@@ -18,8 +18,9 @@ BLUE="$(tput setaf 4 2>/dev/null || printf '')"
 NO_COLOR="$(tput sgr0 2>/dev/null || printf '')"
 
 REPO="superhumancorp/r2drop"
-BINARY_NAME="r2-cli"
-BASE_URL="https://github.com/${REPO}/releases"
+BINARY_NAME="r2drop"
+BASE_URL="${BASE_URL:-https://github.com/${REPO}/releases}"
+RELEASES_API_URL="${RELEASES_API_URL:-https://api.github.com/repos/${REPO}/releases}"
 
 # ── Defaults ──────────────────────────────────────────────────────────────────
 BIN_DIR="${BIN_DIR:-}"
@@ -36,8 +37,8 @@ has()       { command -v "$1" >/dev/null 2>&1; }
 detect_os() {
   os="$(uname -s | tr '[:upper:]' '[:lower:]')"
   case "$os" in
-    darwin) printf 'apple-darwin' ;;
-    linux)  printf 'unknown-linux-musl' ;;
+    darwin) printf 'macos' ;;
+    linux)  printf 'linux' ;;
     *)
       error "Unsupported OS: $os"
       error "Download manually: https://github.com/${REPO}/releases"
@@ -49,10 +50,26 @@ detect_os() {
 detect_arch() {
   arch="$(uname -m)"
   case "$arch" in
-    x86_64 | amd64)  printf 'x86_64' ;;
-    aarch64 | arm64)  printf 'aarch64' ;;
+    x86_64 | amd64)   printf 'x86_64' ;;
+    aarch64 | arm64)  printf 'arm64' ;;
     *)
       error "Unsupported architecture: $arch"
+      exit 1
+      ;;
+  esac
+}
+
+# ── Asset naming (matches .github/workflows/cli-release.yml) ────────────────
+asset_name() {
+  os="$1"
+  arch="$2"
+  case "${os}-${arch}" in
+    macos-arm64)    printf 'r2drop-macos-arm64.tar.gz' ;;
+    macos-x86_64)   printf 'r2drop-macos-x86_64.tar.gz' ;;
+    linux-arm64)    printf 'r2drop-linux-arm64.tar.gz' ;;
+    linux-x86_64)   printf 'r2drop-linux-x86_64.tar.gz' ;;
+    *)
+      error "Unsupported platform combo: ${os}-${arch}"
       exit 1
       ;;
   esac
@@ -91,29 +108,31 @@ download() {
   fi
 }
 
-# ── Resolve "latest" to a concrete version tag ───────────────────────────────
-# Uses the GitHub API (more reliable than following the /releases/latest redirect).
+# ── Resolve version to a concrete CLI release tag (cli-vX.Y.Z) ──────────────
 resolve_version() {
   if [ "$VERSION" = "latest" ]; then
-    api_url="https://api.github.com/repos/${REPO}/releases/latest"
-    response="$(curl --fail --silent --location "$api_url" 2>/dev/null || true)"
+    response="$(curl --fail --silent --location "${RELEASES_API_URL}?per_page=50" 2>/dev/null || true)"
 
-    # Extract tag_name from JSON response.
-    resolved="$(printf '%s' "$response" | grep '"tag_name"' | head -1 \
+    # Pick the newest release with a cli-v* tag.
+    resolved="$(printf '%s' "$response" | grep '"tag_name"' \
       | sed 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/' \
-      | tr -d '[:space:]')"
+      | tr -d '[:space:]' \
+      | grep '^cli-v' \
+      | head -1 || true)"
 
     if [ -z "$resolved" ]; then
-      error "No published releases found for ${REPO}."
+      error "No published CLI releases found for ${REPO}."
+      error "The GitHub releases API may be private/unavailable, or no cli-v* release has been published yet."
       error "Check https://github.com/${REPO}/releases for available versions."
-      error "To install a specific version: curl ... | bash -s -- --version v0.1.0"
+      error "To install a specific CLI release: curl ... | bash -s -- --version v0.1.0 (maps to cli-v0.1.0)"
       exit 1
     fi
     printf '%s' "$resolved"
   else
     case "$VERSION" in
-      v*) printf '%s' "$VERSION" ;;
-      *)  printf 'v%s' "$VERSION" ;;
+      cli-v*) printf '%s' "$VERSION" ;;
+      v*)     printf 'cli-%s' "$VERSION" ;;
+      *)      printf 'cli-v%s' "$VERSION" ;;
     esac
   fi
 }
@@ -141,15 +160,15 @@ done
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 printf '\n'
-info "Installing ${BOLD}r2-cli${NO_COLOR}..."
+info "Installing ${BOLD}r2drop${NO_COLOR}..."
 
 OS="$(detect_os)"
 ARCH="$(detect_arch)"
 TAG="$(resolve_version)"
 BIN_DIR="$(pick_bin_dir)"
 
-# Asset name must match GitHub Release upload naming
-ASSET="${BINARY_NAME}-${ARCH}-${OS}.tar.gz"
+# Asset name must match .github/workflows/cli-release.yml upload naming
+ASSET="$(asset_name "$OS" "$ARCH")"
 URL="${BASE_URL}/download/${TAG}/${ASSET}"
 
 info "Version:  ${BLUE}${TAG}${NO_COLOR}"
@@ -174,7 +193,7 @@ tar -xzf "$TMPFILE" -C "$BIN_DIR" "$BINARY_NAME"
 chmod +x "${BIN_DIR}/${BINARY_NAME}"
 
 printf '\n'
-completed "r2-cli ${TAG} installed to ${BIN_DIR}/r2-cli"
+completed "r2drop ${TAG} installed to ${BIN_DIR}/r2drop"
 
 # Warn if BIN_DIR is not in PATH
 if ! echo "$PATH" | grep -q "$BIN_DIR"; then

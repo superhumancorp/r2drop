@@ -57,8 +57,23 @@ INSTALL_DIR="$INSTALL_PREFIX/bin"
 # --- Preflight checks --------------------------------------------------------
 
 if ! command -v cargo &>/dev/null; then
+    # Prefer rustup-managed toolchain if PATH is pointing at an older Homebrew cargo.
+    RUSTUP_CARGO="$(rustup which cargo 2>/dev/null || true)"
+    if [[ -n "$RUSTUP_CARGO" ]]; then
+        export PATH="$HOME/.cargo/bin:$(dirname "$RUSTUP_CARGO"):$PATH"
+    fi
+fi
+
+if ! command -v cargo &>/dev/null; then
     echo "Error: cargo not found. Install Rust via https://rustup.rs"
     exit 1
+fi
+
+# Prefer rustup's cargo/rustc over Homebrew's (which may be outdated).
+RUSTUP_CARGO="$(rustup which cargo 2>/dev/null || true)"
+if [[ -n "$RUSTUP_CARGO" ]]; then
+    export PATH="$HOME/.cargo/bin:$(dirname "$RUSTUP_CARGO"):$PATH"
+    echo "Using rustup cargo: $(which cargo) ($(cargo --version))"
 fi
 
 # --- Build --------------------------------------------------------------------
@@ -82,7 +97,9 @@ echo "Installing $BINARY_NAME to $INSTALL_DIR..."
 # Create the install directory if it doesn't exist
 if [[ ! -d "$INSTALL_DIR" ]]; then
     echo "  Creating $INSTALL_DIR (may require sudo)..."
-    sudo mkdir -p "$INSTALL_DIR"
+    if ! mkdir -p "$INSTALL_DIR" 2>/dev/null; then
+        sudo mkdir -p "$INSTALL_DIR"
+    fi
 fi
 
 # Check if we need sudo for the install directory
