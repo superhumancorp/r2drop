@@ -1,7 +1,7 @@
 # Terms of Service
 
 **Effective date:** February 26, 2026
-**Published by:** Superhuman Intelligence LLC
+**Published by:** [Paul Pierre](https://github.com/paulpierre)
 
 ---
 
@@ -27,13 +27,13 @@ Do not use R2Drop to upload content that violates any law, infringes intellectua
 
 ## No Warranty
 
-R2Drop is provided **"as is"** without warranty of any kind. Superhuman Intelligence LLC makes no warranty that the app will be error-free or uninterrupted.
+R2Drop is provided **"as is"** without warranty of any kind. Paul Pierre makes no warranty that the app will be error-free or uninterrupted.
 
 ---
 
 ## Limitation of Liability
 
-Superhuman Intelligence LLC's total liability for any claim arising out of these Terms shall not exceed **$0 USD**, reflecting that R2Drop is provided free of charge.
+Paul Pierre's total liability for any claim arising out of these Terms shall not exceed **$0 USD**, reflecting that R2Drop is provided free of charge.
 
 ---
 

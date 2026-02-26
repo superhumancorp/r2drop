@@ -1,7 +1,7 @@
 # Privacy Policy
 
 **Effective date:** February 26, 2026
-**Published by:** Superhuman Intelligence LLC
+**Published by:** [Paul Pierre](https://github.com/paulpierre)
 
 ---
 
@@ -25,7 +25,7 @@ Your Cloudflare API token is:
 
 - Stored exclusively in **macOS Keychain** under service `com.superhumancorp.r2drop`
 - Never written to disk in plaintext, config files, or shell history
-- Never transmitted to Superhuman Intelligence LLC or any third party other than Cloudflare
+- Never transmitted to Paul Pierre or any third party other than Cloudflare
 
 ---
 

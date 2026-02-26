@@ -50,4 +50,4 @@ Source code: [github.com/superhumancorp/r2drop](https://github.com/superhumancor
 
 ---
 
-*Published by [Superhuman Intelligence LLC](https://github.com/superhumancorp)*
+*Published by [Paul Pierre](https://github.com/paulpierre)*
