@@ -61,4 +61,4 @@ jobs:
           BUILD_NUMBER: ${{ github.run_number }}
           MARKETING_VERSION: ${{ inputs.marketing_version }}
         run: |
-          bundle exec fastlane testflight
+          bundle exec fastlane upload_testflight

@@ -67,7 +67,7 @@ platform :mac do
   # testflight — build and upload to TestFlight
   # ---------------------------------------------------------------------------
   desc "Build R2Drop and upload to TestFlight"
-  lane :testflight do
+  lane :upload_testflight do
     build_number     = ENV.fetch("BUILD_NUMBER", Time.now.strftime("%Y%m%d%H%M"))
     marketing_version = ENV.fetch("MARKETING_VERSION", "0.1.0")
 
