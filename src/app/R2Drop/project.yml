@@ -82,6 +82,8 @@ targets:
       - package: PostHog
       - target: FinderExtension
         embed: true
+      - target: QuickActionExtension
+        embed: true
 
   FinderExtension:
     type: app-extension
@@ -116,12 +118,54 @@ targets:
     dependencies:
       - package: R2Core
 
+  QuickActionExtension:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: QuickActionExtension
+        excludes:
+          - "*.entitlements"
+    entitlements:
+      path: QuickActionExtension/QuickActionExtension.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.application-groups:
+          - "group.com.superhumancorp.r2drop"
+        keychain-access-groups:
+          - "$(AppIdentifierPrefix)com.superhumancorp.r2drop"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.superhumancorp.r2drop.QuickActionExtension
+        GENERATE_INFOPLIST_FILE: YES
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        MACOSX_DEPLOYMENT_TARGET: "13.0"
+        SWIFT_VERSION: "5.9"
+        CODE_SIGN_ENTITLEMENTS: QuickActionExtension/QuickActionExtension.entitlements
+        PRODUCT_NAME: R2DropQuickAction
+    info:
+      path: QuickActionExtension/Info.plist
+      properties:
+        NSExtension:
+          NSExtensionAttributes:
+            NSExtensionActivationRule:
+              NSExtensionActivationSupportsFileWithMaxCount: 1000
+            NSExtensionServiceRoleType: "NSExtensionServiceRoleTypeEditor"
+            NSExtensionServiceAllowsFinderPreviewItem: true
+            NSExtensionServiceFinderPreviewIconName: "NSActionTemplate"
+          NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).QuickActionRequestHandler"
+          NSExtensionPointIdentifier: "com.apple.services"
+        CFBundleDisplayName: "Send to R2Drop"
+    dependencies:
+      - package: R2Core
+
 schemes:
   R2Drop Debug:
     build:
       targets:
         R2Drop: all
         FinderExtension: all
+        QuickActionExtension: all
     run:
       config: Debug
       executable: R2Drop
@@ -142,6 +186,7 @@ schemes:
       targets:
         R2Drop: all
         FinderExtension: all
+        QuickActionExtension: all
     run:
       config: Release
       debugEnabled: false

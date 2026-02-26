@@ -28,6 +28,20 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C5739E7876D745311E6ECDA0"
+               BuildableName = "R2DropQuickAction.appex"
+               BlueprintName = "QuickActionExtension"
+               ReferencedContainer = "container:R2Drop.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
                BlueprintIdentifier = "FEB9D304B597761540AAC05C"
                BuildableName = "R2Drop.app"
                BlueprintName = "R2Drop"

@@ -22,6 +22,7 @@
 		2545899AF42BF7179DE1E713 /* Hero3.png in Resources */ = {isa = PBXBuildFile; fileRef = 2D193ADB7405EB5DEEBCCD0A /* Hero3.png */; };
 		2784836E9879CDDFDE35AC9E /* FinderExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = FF1ABF73310B6C8543ECFE9A /* FinderExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		36189925036A7B9CB1F4239B /* OnboardingCreateTokenPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 059ED55A4AF523EF0DC63232 /* OnboardingCreateTokenPanel.swift */; };
+		435C405E21FFA53F4E8CD00B /* QuickActionRequestHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D7701760A0A503C4CC6E3B /* QuickActionRequestHandler.swift */; };
 		446409FFAC19A3C84349BC4C /* UploadMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C040D0288EF490C9BB3613BA /* UploadMonitor.swift */; };
 		452CF180075871151AC639F8 /* TelemetryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08EC0C66AF5553B3D1CE5F93 /* TelemetryService.swift */; };
 		4900B66D65E03BF6D5611C3B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9C356FFCDF3B03131017A08 /* SettingsView.swift */; };
@@ -31,6 +32,7 @@
 		51E14B44F7505EC41B3DE7F0 /* DeepLinkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B2C6A165C12FE42A21E70FA /* DeepLinkHandler.swift */; };
 		5D491FDE58B6688F64DDBE4F /* OnboardingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7579519F793101201BDE7A67 /* OnboardingViewModel.swift */; };
 		5D525698D7F5A279EAEE6DC8 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 895B4748BE8DA2F5A012B32C /* NotificationService.swift */; };
+		6D241D7208D0BBD8512BAA9D /* R2Core in Frameworks */ = {isa = PBXBuildFile; productRef = 0655B0C2DF0053D85C194E67 /* R2Core */; };
 		721BD11D81B5D65412985497 /* AccountDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1706FFB21E4DD0D4C688812 /* AccountDetailView.swift */; };
 		7C6BAF9546BEB501DC21451B /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = 3C78B0CA22E55D3B56CABA69 /* PostHog */; };
 		80C6A5F627CC3567514E2A6D /* Background-1.png in Resources */ = {isa = PBXBuildFile; fileRef = 2F7747EEE426AC86E245F67C /* Background-1.png */; };
@@ -53,6 +55,7 @@
 		DF9B9EC06267434ED3CA2E5A /* OnboardingWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE544A156394A0F0F04B0E9F /* OnboardingWindow.swift */; };
 		E1FF5846E7E10C58D50D3A0C /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43DCFEC6696401ADDAB01C97 /* SettingsViewModel.swift */; };
 		E32124B7C40A7C6332AB24A8 /* ConflictDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66AA868AD68E0206A57BD8EC /* ConflictDialog.swift */; };
+		E38064E51BA89F759CB6E2C6 /* QuickActionExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2A96FAE99719CF9B79058699 /* QuickActionExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E8A30AECF68CDB36EB5129ED /* QueueViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D7D3E1104FE5EF77D9A051C /* QueueViewModel.swift */; };
 		EA02C3E3AAD8D5FC353FE46D /* AccountsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 124CA1A97D09E4B5B83AB2BC /* AccountsTabView.swift */; };
 		EA12E51672881552C5293739 /* Hero1.png in Resources */ = {isa = PBXBuildFile; fileRef = 88961B41D4106631A1D5E7E2 /* Hero1.png */; };
@@ -74,6 +77,13 @@
 			remoteGlobalIDString = 709FDF115FE2177A04582DBB;
 			remoteInfo = FinderExtension;
 		};
+		FA75268163E550C4EE926452 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B38B378D15160BCA26A2D7F2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C5739E7876D745311E6ECDA0;
+			remoteInfo = QuickActionExtension;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -84,6 +94,7 @@
 			dstSubfolderSpec = 13;
 			files = (
 				2784836E9879CDDFDE35AC9E /* FinderExtension.appex in Embed Foundation Extensions */,
+				E38064E51BA89F759CB6E2C6 /* QuickActionExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -103,6 +114,7 @@
 		1C64368FB058666531A0DB21 /* OnboardingChooseBucketPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingChooseBucketPanel.swift; sourceTree = "<group>"; };
 		2852450707AACFDA81A1D672 /* Screenshot-3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Screenshot-3.png"; sourceTree = "<group>"; };
 		299D9D5E713C277B14FF8174 /* AboutViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutViewModel.swift; sourceTree = "<group>"; };
+		2A96FAE99719CF9B79058699 /* QuickActionExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = QuickActionExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		2AC0D57F8DBDEB7C72FBBCC8 /* TelemetryRateLimiter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryRateLimiter.swift; sourceTree = "<group>"; };
 		2D193ADB7405EB5DEEBCCD0A /* Hero3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Hero3.png; sourceTree = "<group>"; };
 		2D37053996DA6608CA79C70D /* MenuBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarController.swift; sourceTree = "<group>"; };
@@ -115,6 +127,7 @@
 		4AF5FAD50680BA166646996F /* HistoryTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryTabView.swift; sourceTree = "<group>"; };
 		60FE74203227B3BD35EDB69D /* R2Core */ = {isa = PBXFileReference; lastKnownFileType = folder; name = R2Core; path = ../Packages/R2Core; sourceTree = SOURCE_ROOT; };
 		61084A1955269B0E3E233C04 /* OnboardingHowItWorksPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingHowItWorksPanel.swift; sourceTree = "<group>"; };
+		6645FD9A906C7327BE350B46 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		66AA868AD68E0206A57BD8EC /* ConflictDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConflictDialog.swift; sourceTree = "<group>"; };
 		6BE1681DC9D485DE5BFFDCC7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7291541A708E05FA97C9FF2A /* GlassComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassComponents.swift; sourceTree = "<group>"; };
@@ -133,6 +146,7 @@
 		9E2EB54091718754465BE53F /* StatusBarDragView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarDragView.swift; sourceTree = "<group>"; };
 		A1D3B81C8C2E55DB0D042611 /* R2Drop.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = R2Drop.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A63723F38B23FCAF195B1F07 /* QueueJobRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueJobRow.swift; sourceTree = "<group>"; };
+		B1D7701760A0A503C4CC6E3B /* QuickActionRequestHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickActionRequestHandler.swift; sourceTree = "<group>"; };
 		B8097D3B1DF6AFB4D238A5C0 /* TelemetrySanitizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetrySanitizer.swift; sourceTree = "<group>"; };
 		BE3A1795231F320C43031D96 /* Screenshot-2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Screenshot-2.png"; sourceTree = "<group>"; };
 		C040D0288EF490C9BB3613BA /* UploadMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadMonitor.swift; sourceTree = "<group>"; };
@@ -166,6 +180,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				FADB3198A070228F3646F6A0 /* R2Core in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D5F917F5CB71589ADE33460A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6D241D7208D0BBD8512BAA9D /* R2Core in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -280,6 +302,7 @@
 				53120C126C76B71FACF45CA4 /* App */,
 				9C1ED7D01597AAFF42FCB1D0 /* FinderExtension */,
 				9AB65FA76220BF3485C489C8 /* Packages */,
+				DEE6A40983C586F822E1C357 /* QuickActionExtension */,
 				0C0E47A2E2630DDE299EA1DF /* Resources */,
 				9316953E50CA97665D70C345 /* Products */,
 			);
@@ -300,6 +323,7 @@
 			isa = PBXGroup;
 			children = (
 				FF1ABF73310B6C8543ECFE9A /* FinderExtension.appex */,
+				2A96FAE99719CF9B79058699 /* QuickActionExtension.appex */,
 				A1D3B81C8C2E55DB0D042611 /* R2Drop.app */,
 			);
 			name = Products;
@@ -329,6 +353,15 @@
 				7291541A708E05FA97C9FF2A /* GlassComponents.swift */,
 			);
 			path = Components;
+			sourceTree = "<group>";
+		};
+		DEE6A40983C586F822E1C357 /* QuickActionExtension */ = {
+			isa = PBXGroup;
+			children = (
+				6645FD9A906C7327BE350B46 /* Info.plist */,
+				B1D7701760A0A503C4CC6E3B /* QuickActionRequestHandler.swift */,
+			);
+			path = QuickActionExtension;
 			sourceTree = "<group>";
 		};
 		E7957E96A4D7F967C50D1960 /* Services */ = {
@@ -375,6 +408,25 @@
 			productReference = FF1ABF73310B6C8543ECFE9A /* FinderExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		C5739E7876D745311E6ECDA0 /* QuickActionExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 405AF7F8F3FBC7502BBCA25E /* Build configuration list for PBXNativeTarget "QuickActionExtension" */;
+			buildPhases = (
+				B1BF9F9DA859F345AA4474F1 /* Sources */,
+				D5F917F5CB71589ADE33460A /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = QuickActionExtension;
+			packageProductDependencies = (
+				0655B0C2DF0053D85C194E67 /* R2Core */,
+			);
+			productName = QuickActionExtension;
+			productReference = 2A96FAE99719CF9B79058699 /* QuickActionExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		FEB9D304B597761540AAC05C /* R2Drop */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 34215974B1C02F6E01C6A55F /* Build configuration list for PBXNativeTarget "R2Drop" */;
@@ -388,6 +440,7 @@
 			);
 			dependencies = (
 				907A268AC8B6B0CF4E712AAC /* PBXTargetDependency */,
+				F0E5213FA3CF67373EE17ABC /* PBXTargetDependency */,
 			);
 			name = R2Drop;
 			packageProductDependencies = (
@@ -431,6 +484,7 @@
 			projectRoot = "";
 			targets = (
 				709FDF115FE2177A04582DBB /* FinderExtension */,
+				C5739E7876D745311E6ECDA0 /* QuickActionExtension */,
 				FEB9D304B597761540AAC05C /* R2Drop */,
 			);
 		};
@@ -503,6 +557,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B1BF9F9DA859F345AA4474F1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				435C405E21FFA53F4E8CD00B /* QuickActionRequestHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D5C4612887916DA7C6803963 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -518,6 +580,11 @@
 			isa = PBXTargetDependency;
 			target = 709FDF115FE2177A04582DBB /* FinderExtension */;
 			targetProxy = 3664A2584E7934363A33A1E7 /* PBXContainerItemProxy */;
+		};
+		F0E5213FA3CF67373EE17ABC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C5739E7876D745311E6ECDA0 /* QuickActionExtension */;
+			targetProxy = FA75268163E550C4EE926452 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -729,6 +796,50 @@
 			};
 			name = Debug;
 		};
+		5788B0D97E4CDC6B22A96983 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = QuickActionExtension/QuickActionExtension.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = QuickActionExtension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.superhumancorp.r2drop.QuickActionExtension;
+				PRODUCT_NAME = R2DropQuickAction;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		6625E038EAA55AE733B9911D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = QuickActionExtension/QuickActionExtension.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = QuickActionExtension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.superhumancorp.r2drop.QuickActionExtension;
+				PRODUCT_NAME = R2DropQuickAction;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
 		F7AB2B79B18ADAE64F5C7532 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -810,6 +921,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
+		405AF7F8F3FBC7502BBCA25E /* Build configuration list for PBXNativeTarget "QuickActionExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6625E038EAA55AE733B9911D /* Debug */,
+				5788B0D97E4CDC6B22A96983 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		E37EB5DBEA8C2800304EB6F4 /* Build configuration list for PBXProject "R2Drop" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -860,6 +980,10 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		0655B0C2DF0053D85C194E67 /* R2Core */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = R2Core;
+		};
 		31041CEEDF5650FA66389A3B /* Sparkle */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = D0EE24C125ED268DA9EF614D /* XCRemoteSwiftPackageReference "Sparkle" */;
