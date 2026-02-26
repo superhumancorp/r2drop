@@ -64,3 +64,4 @@ build/
 src/app/build/
 src/app/fastlane/build/
 src/app/fastlane/report.xml
+*.psd
