@@ -23,6 +23,7 @@
 require "base64"
 require "fileutils"
 require "open3"
+require "pathname"
 require "shellwords"
 require "tmpdir"
 
@@ -32,9 +33,10 @@ BUNDLE_ID         = "com.superhumancorp.r2drop"
 BUNDLE_ID_FINDER  = "com.superhumancorp.r2drop.FinderExtension"
 BUNDLE_ID_QUICK   = "com.superhumancorp.r2drop.QuickActionExtension"
 TEAM_ID           = ENV.fetch("APPLE_TEAM_ID", "A89MU37ZLB")
-XCODEWORKSPACE    = "R2Drop.xcworkspace"
+PROJECT_ROOT      = File.expand_path("..", __dir__)
+XCODEWORKSPACE    = File.join(PROJECT_ROOT, "R2Drop.xcworkspace")
 PRODUCTION_SCHEME = ENV.fetch("XCODE_SCHEME", "R2Drop Production")
-OUTPUT_DIR        = "build/fastlane"
+OUTPUT_DIR        = File.join(PROJECT_ROOT, "build", "fastlane")
 
 platform :mac do
   def env_present?(key)
@@ -215,6 +217,55 @@ platform :mac do
     end
   end
 
+  # `pilot` / `deliver` can auto-consume APP_STORE_CONNECT_API_KEY_* env vars, but
+  # their `api_key_path` option expects a JSON descriptor file, not a raw `.p8`.
+  # We use APP_STORE_CONNECT_API_KEY_PATH for the raw `.p8` path in local workflows,
+  # so pass the explicit `api_key` object and temporarily clear conflicting env vars.
+  def with_cleared_asc_env_for_upload
+    keys = %w[
+      APP_STORE_CONNECT_API_KEY_ID
+      APP_STORE_CONNECT_API_ISSUER_ID
+      APP_STORE_CONNECT_API_KEY_PATH
+      APP_STORE_CONNECT_API_KEY_CONTENT
+    ]
+    snapshot = {}
+    keys.each do |k|
+      snapshot[k] = ENV.key?(k) ? ENV[k] : :__absent__
+      ENV.delete(k)
+    end
+    yield
+  ensure
+    snapshot&.each do |k, v|
+      if v == :__absent__
+        ENV.delete(k)
+      else
+        ENV[k] = v
+      end
+    end
+  end
+
+  def with_temp_env(overrides = {})
+    snapshot = {}
+    overrides.each do |k, v|
+      key = k.to_s
+      snapshot[key] = ENV.key?(key) ? ENV[key] : :__absent__
+      if v.nil?
+        ENV.delete(key)
+      else
+        ENV[key] = v.to_s
+      end
+    end
+    yield
+  ensure
+    snapshot&.each do |k, v|
+      if v == :__absent__
+        ENV.delete(k)
+      else
+        ENV[k] = v
+      end
+    end
+  end
+
   def write_export_options_plist(path:, signing_style:, provisioning_profiles: nil)
     method = "app-store-connect"
     lines = []
@@ -296,7 +347,7 @@ platform :mac do
       UI.user_error!("xcodebuild export succeeded but no .pkg was produced in #{export_dir}.")
     end
 
-    pkg_path
+    File.expand_path(pkg_path)
   end
 
   # ---------------------------------------------------------------------------
@@ -366,6 +417,7 @@ platform :mac do
 
     pkg_output = Actions.lane_context[SharedValues::PKG_OUTPUT_PATH]
     pkg_output = gym_artifact if pkg_output.to_s.empty? && gym_artifact.to_s.end_with?(".pkg")
+    pkg_output = File.expand_path(pkg_output) unless pkg_output.to_s.empty? || Pathname.new(pkg_output).absolute?
 
     unless pkg_output && File.exist?(pkg_output)
       archive_path = Actions.lane_context[SharedValues::XCODEBUILD_ARCHIVE]
@@ -386,9 +438,8 @@ platform :mac do
 
     [pkg_output, auth_ctx[:fastlane_api_key]]
   rescue StandardError
-    cleanup_asc_auth_context!(auth_ctx)
     raise
-  else
+  ensure
     cleanup_asc_auth_context!(auth_ctx)
   end
 
@@ -403,6 +454,9 @@ platform :mac do
     UI.message "Building #{BUNDLE_ID} v#{marketing_version} (#{build_number}) for TestFlight…"
 
     pkg_path, api_key = build_for_appstore(build_number, marketing_version)
+    pkg_path = File.expand_path(pkg_path)
+    UI.user_error!("Expected TestFlight pkg not found at #{pkg_path}") unless File.exist?(pkg_path)
+    UI.message("Uploading pkg to TestFlight: #{pkg_path}")
 
     options = {
       app_identifier: BUNDLE_ID,
@@ -410,7 +464,11 @@ platform :mac do
       skip_waiting_for_build_processing: true
     }
     options[:api_key] = api_key unless api_key.nil?
-    upload_to_testflight(**options)
+    with_cleared_asc_env_for_upload do
+      with_temp_env("PILOT_PKG" => pkg_path) do
+        upload_to_testflight(**options)
+      end
+    end
 
     UI.success "Uploaded v#{marketing_version} (#{build_number}) to TestFlight."
   end
@@ -432,6 +490,9 @@ platform :mac do
     UI.message "Building #{BUNDLE_ID} v#{marketing_version} (#{build_number}) for App Store…"
 
     pkg_path, api_key = build_for_appstore(build_number, marketing_version)
+    pkg_path = File.expand_path(pkg_path)
+    UI.user_error!("Expected App Store pkg not found at #{pkg_path}") unless File.exist?(pkg_path)
+    UI.message("Uploading pkg to App Store: #{pkg_path}")
 
     options = {
       app_identifier: BUNDLE_ID,
@@ -443,7 +504,11 @@ platform :mac do
       skip_metadata: true
     }
     options[:api_key] = api_key unless api_key.nil?
-    upload_to_app_store(**options)
+    with_cleared_asc_env_for_upload do
+      with_temp_env("DELIVER_PKG" => pkg_path) do
+        upload_to_app_store(**options)
+      end
+    end
 
     UI.success "Submitted v#{marketing_version} (#{build_number}) to App Store review."
   end

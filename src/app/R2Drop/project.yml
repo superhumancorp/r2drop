@@ -16,9 +16,6 @@ packages:
     path: ../Packages/R2Core
   R2Bridge:
     path: ../Packages/R2Bridge
-  Sparkle:
-    url: https://github.com/sparkle-project/Sparkle
-    from: "2.6.0"
   ConfettiSwiftUI:
     url: https://github.com/simibac/ConfettiSwiftUI
     from: 3.0.0
@@ -39,6 +36,7 @@ targets:
     entitlements:
       path: R2Drop.entitlements
       properties:
+        com.apple.security.app-sandbox: true
         com.apple.security.application-groups:
           - "group.com.superhumancorp.r2drop"
         keychain-access-groups:
@@ -73,11 +71,11 @@ targets:
           - CFBundleURLName: "com.superhumancorp.r2drop"
             CFBundleURLSchemes:
               - "r2drop"
+        LSApplicationCategoryType: "public.app-category.productivity"
         SUPublicEDKey: "NWlOpvs7+ccCaW6557MqyCO94w3KVziS7uAOOxR8gQk="
     dependencies:
       - package: R2Core
       - package: R2Bridge
-      - package: Sparkle
       - package: ConfettiSwiftUI
       - package: PostHog
       - target: FinderExtension
@@ -112,6 +110,8 @@ targets:
     info:
       path: FinderExtension/Info.plist
       properties:
+        CFBundleDisplayName: "Send to R2Drop"
+        LSUIElement: true
         NSExtension:
           NSExtensionPointIdentifier: "com.apple.FinderSync"
           NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).FinderSync"
