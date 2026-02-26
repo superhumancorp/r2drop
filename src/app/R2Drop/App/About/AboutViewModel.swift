@@ -100,7 +100,7 @@ final class AboutViewModel: ObservableObject {
     }
 
     func openDocumentation() {
-        openURL("https://r2drop.com/docs")
+        openURL("https://docs.r2drop.com")
     }
 
     func openWebsite() {
