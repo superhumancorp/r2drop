@@ -19,6 +19,8 @@
 # profile is created in App Store Connect and add it to the PROVISIONING_PROFILE_DIST_EXTENSION
 # GitHub secret.
 
+require "shellwords"
+
 default_platform(:mac)
 
 BUNDLE_ID         = "com.superhumancorp.r2drop"
@@ -39,6 +41,14 @@ platform :mac do
     provisioning_profiles = { BUNDLE_ID => profile_uuid }
     provisioning_profiles[BUNDLE_ID_EXT] = profile_ext_uuid unless profile_ext_uuid.empty?
 
+    xcargs_list = [
+      "CURRENT_PROJECT_VERSION=#{build_number}",
+      "MARKETING_VERSION=#{marketing_version}",
+      "CODE_SIGN_STYLE=Manual",
+      "DEVELOPMENT_TEAM=#{TEAM_ID}",
+      "CODE_SIGN_IDENTITY=Apple Distribution"
+    ]
+
     gym(
       workspace: XCODEWORKSPACE,
       scheme: PRODUCTION_SCHEME,
@@ -53,13 +63,9 @@ platform :mac do
         signingStyle: "manual",
         provisioningProfiles: provisioning_profiles
       },
-      xcargs: [
-        "CURRENT_PROJECT_VERSION=#{build_number}",
-        "MARKETING_VERSION=#{marketing_version}",
-        "CODE_SIGN_STYLE=Manual",
-        "DEVELOPMENT_TEAM=#{TEAM_ID}",
-        "CODE_SIGN_IDENTITY=Apple Distribution"
-      ].join(" ")
+      # Shell-escape build settings so values with spaces (e.g. signing identities)
+      # do not get split and misparsed as xcodebuild actions.
+      xcargs: Shellwords.join(xcargs_list)
     )
   end
 
