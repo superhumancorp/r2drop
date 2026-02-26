@@ -4,7 +4,7 @@
 
 R2Drop is a native macOS menu bar application for uploading files and folders to Cloudflare R2 storage. Users right-click files in Finder, select "Send to R2", and the app handles multipart, parallel, resumable uploads. The monorepo includes a companion cross-platform CLI (`r2-cli`) sharing the same Rust upload engine and config.
 
-The project is open source (MIT), built by Superhuman Corp, and models itself after the Tailscale macOS experience: minimal UI, reliable background operation, zero friction.
+The project is open source (MIT), built by Superhuman Intelligence LLC, and models itself after the Tailscale macOS experience: minimal UI, reliable background operation, zero friction.
 
 ## Goals
 
@@ -321,7 +321,7 @@ As a user, I want version info and automatic updates so that R2Drop stays curren
 **Acceptance Criteria:**
 - [ ] App icon, "R2Drop for macOS" title, version number from build info (FR-055)
 - [ ] Links: Privacy Policy (r2drop.com/privacy), Terms of Service (r2drop.com/terms), Report an Issue (GitHub Issues URL) (FR-056)
-- [ ] Copyright: "2026 Superhuman Corp. All rights reserved." and trademark notice (FR-057)
+- [ ] Copyright: "2026 Superhuman Intelligence LLC. All rights reserved." and trademark notice (FR-057)
 - [ ] "Automatically check for updates" checkbox, default on (FR-058)
 - [ ] "Check Now" button triggers Sparkle update check (FR-058)
 - [ ] "Last checked: [timestamp]" label (FR-058)

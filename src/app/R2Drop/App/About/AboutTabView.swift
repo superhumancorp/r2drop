@@ -162,11 +162,11 @@ struct AboutTabView: View {
                 Divider().opacity(0.3)
 
                 // Copyright text
-                Text("\u{00A9} 2026 Superhuman Corp. All rights reserved.")
+                Text("\u{00A9} 2026 Superhuman Intelligence LLC. All rights reserved.")
                     .font(.callout)
                     .foregroundColor(.secondary)
 
-                Text("R2Drop is a trademark of Superhuman Corp.")
+                Text("R2Drop is a trademark of Superhuman Intelligence LLC.")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }

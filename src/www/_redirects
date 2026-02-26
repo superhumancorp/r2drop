@@ -1,0 +1,4 @@
+# Cloudflare Pages redirect rules
+# Serve clean /terms and /privacy paths (no .html extension)
+/terms      /terms/      301
+/privacy    /privacy/    301

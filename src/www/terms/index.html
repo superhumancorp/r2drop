@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Terms of Service | R2Drop</title>
+  <meta name="description" content="Terms of Service for R2Drop, a native macOS app for uploading files to Cloudflare R2. MIT-licensed, free, made by Superhuman Intelligence LLC."/>
+  <meta property="og:title" content="Terms of Service | R2Drop"/>
+  <meta property="og:type" content="website"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <link rel="canonical" href="/terms/"/>
+  <link rel="icon" type="image/x-icon" href="../favicon.ico"/>
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg"/>
+  <link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --orange: #ff8a1f;
+      --bg: #ffffff;
+      --text: #1a1a1a;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --nav-bg: #16181d;
+    }
+    body { font-family: 'DM Sans', 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+    a { color: var(--orange); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* Nav */
+    nav {
+      background: var(--nav-bg);
+      padding: 0 24px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .nav-brand img { height: 36px; border-radius: 8px; }
+    .nav-brand span {
+      font-family: 'DM Sans', sans-serif;
+      font-style: italic;
+      color: white;
+      font-size: 22px;
+      line-height: 1;
+    }
+    .nav-brand span b { font-weight: 900; }
+    .nav-links { display: flex; align-items: center; gap: 28px; }
+    .nav-links a { color: rgba(255,255,255,0.65); font-size: 14px; font-weight: 500; text-decoration: none; }
+    .nav-links a:hover { color: white; text-decoration: none; }
+    .nav-download {
+      background: var(--orange);
+      color: white !important;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .nav-download:hover { background: #e07818; }
+
+    /* Hero */
+    .page-header {
+      border-bottom: 1px solid var(--border);
+      padding: 56px 24px 40px;
+      text-align: center;
+    }
+    .page-header .tag {
+      display: inline-block;
+      background: rgba(255,138,31,0.1);
+      border: 1px solid rgba(255,138,31,0.3);
+      color: var(--orange);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+    .page-header h1 { font-size: clamp(28px, 4vw, 48px); font-weight: 800; color: var(--text); }
+    .page-header p { margin-top: 10px; color: var(--muted); font-size: 15px; }
+
+    /* Content */
+    .content {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 56px 24px 80px;
+    }
+    .content h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 40px 0 10px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+    .content h2:first-child { border-top: none; margin-top: 0; }
+    .content h3 { font-size: 16px; font-weight: 600; color: var(--text); margin: 24px 0 6px; }
+    .content p { font-size: 15px; color: #374151; margin-bottom: 14px; }
+    .content ul { padding-left: 22px; margin-bottom: 14px; }
+    .content ul li { font-size: 15px; color: #374151; margin-bottom: 6px; }
+    .content strong { color: var(--text); }
+    .effective-date {
+      background: #f9fafb;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-bottom: 40px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 24px;
+      text-align: center;
+    }
+    .footer-links { display: flex; justify-content: center; gap: 24px; margin-bottom: 12px; flex-wrap: wrap; }
+    .footer-links a { color: var(--muted); font-size: 14px; text-decoration: none; }
+    .footer-links a:hover { color: var(--text); }
+    .footer-copy { font-size: 13px; color: #9ca3af; }
+
+    @media (max-width: 640px) {
+      .nav-links .hide-mobile { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="../index.html" class="nav-brand">
+      <img src="../r2-logo.png" alt="R2Drop"/>
+      <span>R2<b>Drop</b></span>
+    </a>
+    <div class="nav-links">
+      <a href="../solutions.html" class="hide-mobile">Features</a>
+      <a href="../app-integrations.html" class="hide-mobile">CLI</a>
+      <a href="../docs/docs-homepage.html" class="hide-mobile">Docs</a>
+      <a href="https://github.com/superhumancorp/r2drop" target="_blank" class="hide-mobile">GitHub</a>
+      <a href="https://github.com/superhumancorp/r2drop/releases" class="nav-download">Download Free</a>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <div class="tag">Legal</div>
+    <h1>Terms of Service</h1>
+    <p>Please read these terms carefully before using R2Drop.</p>
+  </div>
+
+  <div class="content">
+    <div class="effective-date">
+      <strong>Effective date:</strong> February 26, 2026 &nbsp;·&nbsp;
+      <strong>Last updated:</strong> February 26, 2026 &nbsp;·&nbsp;
+      <strong>Published by:</strong> Superhuman Intelligence LLC
+    </div>
+
+    <h2>1. Acceptance of Terms</h2>
+    <p>By downloading, installing, or using R2Drop ("the App"), you agree to be bound by these Terms of Service. If you do not agree, do not use the App.</p>
+    <p>These terms apply to both the macOS application and the companion CLI tool (<code>r2drop</code>).</p>
+
+    <h2>2. License</h2>
+    <p>R2Drop is free, open-source software released under the <strong>MIT License</strong>. You may use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the software, subject to the MIT License terms available at <a href="https://github.com/superhumancorp/r2drop/blob/main/LICENSE" target="_blank">github.com/superhumancorp/r2drop</a>.</p>
+    <p>This Terms of Service governs your <em>use</em> of the App and does not restrict rights granted by the MIT License.</p>
+
+    <h2>3. Your Responsibilities</h2>
+    <h3>Cloudflare Account &amp; Costs</h3>
+    <p>R2Drop uploads files to Cloudflare R2 storage buckets that you own and control. You are solely responsible for:</p>
+    <ul>
+      <li>Your Cloudflare account, API tokens, and R2 bucket configuration.</li>
+      <li>All storage and egress costs billed to your Cloudflare account.</li>
+      <li>Ensuring your API token has only the minimum required permissions.</li>
+      <li>Revoking or rotating API tokens if you believe they have been compromised.</li>
+    </ul>
+    <h3>Content You Upload</h3>
+    <p>You are solely responsible for the content you upload via R2Drop. You agree not to use R2Drop to upload or distribute content that:</p>
+    <ul>
+      <li>Violates any applicable law or regulation.</li>
+      <li>Infringes on any third-party intellectual property rights.</li>
+      <li>Contains malware, spyware, or other malicious code.</li>
+    </ul>
+
+    <h2>4. Third-Party Services</h2>
+    <p>R2Drop connects to Cloudflare's APIs on your behalf. Your use of Cloudflare R2 is governed by <a href="https://www.cloudflare.com/terms/" target="_blank">Cloudflare's Terms of Service</a> and their <a href="https://www.cloudflare.com/privacypolicy/" target="_blank">Privacy Policy</a>. We have no affiliation with Cloudflare, Inc.</p>
+
+    <h2>5. No Warranty</h2>
+    <p>R2Drop is provided <strong>"as is"</strong> and <strong>"as available"</strong>, without warranty of any kind, express or implied. Superhuman Intelligence LLC makes no warranty that the App will be error-free, uninterrupted, or suitable for any particular purpose.</p>
+    <p>This disclaimer is consistent with the MIT License under which R2Drop is distributed.</p>
+
+    <h2>6. Limitation of Liability</h2>
+    <p>To the maximum extent permitted by applicable law, Superhuman Intelligence LLC and its contributors shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to:</p>
+    <ul>
+      <li>Loss of data, files, or content stored in your Cloudflare R2 bucket.</li>
+      <li>Unauthorized access to your Cloudflare account or R2 bucket.</li>
+      <li>Cloudflare charges resulting from use of the App.</li>
+      <li>Service interruptions or failures.</li>
+    </ul>
+    <p>Our total liability to you for any claim arising out of these Terms shall not exceed zero (USD $0), reflecting the fact that R2Drop is provided free of charge.</p>
+
+    <h2>7. Privacy</h2>
+    <p>Our collection and use of data is described in our <a href="../privacy/">Privacy Policy</a>. In summary: the App collects no personal data. Credentials are stored exclusively in macOS Keychain and never transmitted to us.</p>
+
+    <h2>8. Changes to These Terms</h2>
+    <p>We may update these Terms from time to time. We will post the updated terms at this URL with a revised effective date. Continued use of R2Drop after changes constitutes acceptance of the updated Terms.</p>
+
+    <h2>9. Governing Law</h2>
+    <p>These Terms are governed by the laws of the State of California, United States, without regard to its conflict-of-law provisions. Any disputes shall be resolved in the courts of California.</p>
+
+    <h2>10. Contact</h2>
+    <p>Questions about these Terms? Open an issue on <a href="https://github.com/superhumancorp/r2drop/issues" target="_blank">GitHub</a> or email <a href="mailto:legal@r2drop.app">legal@r2drop.app</a>.</p>
+  </div>
+
+  <footer>
+    <div class="footer-links">
+      <a href="../index.html">Home</a>
+      <a href="../privacy/">Privacy Policy</a>
+      <a href="../terms/">Terms of Service</a>
+      <a href="https://github.com/superhumancorp/r2drop" target="_blank">GitHub</a>
+    </div>
+    <p class="footer-copy">© 2026 R2Drop · <a href="https://github.com/superhumancorp" target="_blank" style="color:#9ca3af;">Superhuman Intelligence LLC</a> · MIT Licensed</p>
+  </footer>
+
+</body>
+</html>
