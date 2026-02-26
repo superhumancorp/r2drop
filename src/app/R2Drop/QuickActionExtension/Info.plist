@@ -25,10 +25,7 @@
 		<key>NSExtensionAttributes</key>
 		<dict>
 			<key>NSExtensionActivationRule</key>
-			<dict>
-				<key>NSExtensionActivationSupportsFileWithMaxCount</key>
-				<integer>1000</integer>
-			</dict>
+			<string>SUBQUERY(extensionItems,$extensionItem,SUBQUERY($extensionItem.attachments,$attachment,(ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.file-url") OR (ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.url")).@count == $extensionItem.attachments.@count).@count &gt;= 1</string>
 			<key>NSExtensionServiceRoleType</key>
 			<string>NSExtensionServiceRoleTypeEditor</string>
 			<key>NSExtensionServiceAllowsFinderPreviewItem</key>

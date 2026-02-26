@@ -148,8 +148,8 @@ targets:
       properties:
         NSExtension:
           NSExtensionAttributes:
-            NSExtensionActivationRule:
-              NSExtensionActivationSupportsFileWithMaxCount: 1000
+            NSExtensionActivationRule: >-
+              SUBQUERY(extensionItems,$extensionItem,SUBQUERY($extensionItem.attachments,$attachment,(ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.file-url") OR (ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.url")).@count == $extensionItem.attachments.@count).@count >= 1
             NSExtensionServiceRoleType: "NSExtensionServiceRoleTypeEditor"
             NSExtensionServiceAllowsFinderPreviewItem: true
             NSExtensionServiceFinderPreviewIconName: "NSActionTemplate"
