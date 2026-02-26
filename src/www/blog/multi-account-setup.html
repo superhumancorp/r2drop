@@ -33,7 +33,10 @@
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png"/>
 <link rel="manifest" href="../site.webmanifest"/>
 <style>.footer-social .social-icon-link svg{fill:#ff8a1f!important;color:#ff8a1f!important;}
-.w-webflow-badge{display:none!important;}</style>
+.w-webflow-badge{display:none!important;}
+.footer-links-grid{grid-template-columns:repeat(3,1fr)!important;gap:40px!important;}
+.footer-bottom{grid-template-columns:auto!important;justify-items:center!important;}
+.copyright-wrapper .copyright{grid-template-columns:1fr auto!important;}</style>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -152,6 +155,7 @@
 </ul>
 
 <blockquote>"You can create separate R2 API tokens for each account with minimal permissions — only the specific bucket they need access to. This follows the principle of least privilege and limits exposure if a token is ever compromised."</blockquote>
+<figure style="margin:32px 0;"><img src="../screenshot-3.png" alt="R2Drop accounts tab showing multiple configured Cloudflare R2 accounts" loading="lazy" style="width:100%;border-radius:8px;border:1px solid rgba(255,255,255,0.1);"/><figcaption style="text-align:center;font-size:0.85rem;color:#888;margin-top:8px;">R2Drop accounts tab with multiple configured accounts</figcaption></figure>
 
 <h2>Switching the Active Account</h2>
 <p>Once you have multiple accounts configured, you can switch the active account (the one used when you right-click a file in Finder and select "Send to R2") in two ways:</p>
@@ -179,6 +183,7 @@ r2drop upload report.pdf --account work-production</code></pre>
 
 <h2>Viewing Per-Account Upload History</h2>
 <p>R2Drop keeps a full upload history in <code>~/.r2drop/history.db</code>. The history panel in the menu bar dropdown can be filtered by account, so you can quickly see all uploads to a specific bucket. Each entry shows the filename, object key, size, upload time, and URL. Clicking any entry copies the URL to your clipboard.</p>
+<figure style="margin:32px 0;"><img src="../screenshot-8.png" alt="R2Drop history tab showing upload log filtered by account with searchable URLs" loading="lazy" style="width:100%;border-radius:8px;border:1px solid rgba(255,255,255,0.1);"/><figcaption style="text-align:center;font-size:0.85rem;color:#888;margin-top:8px;">Upload history filtered by account</figcaption></figure>
 
 <h2>Config File Reference</h2>
 <p>The full config.toml format for multiple accounts looks like this:</p>
@@ -249,7 +254,7 @@ account = "personal"</code></pre>
 <div class="footer-list-wrapper">
 <ul role="list" class="footer-links-list">
 <li class="footer-list-item"><a href="../" class="footer-link-item">Home</a></li>
-<li class="footer-list-item"><a href="../#features" class="footer-link-item">Features</a></li>
+<li class="footer-list-item"><a href="../solutions" class="footer-link-item">Features</a></li>
 <li class="footer-list-item"><a href="https://docs.r2drop.com" class="footer-link-item">Docs</a></li>
 <li class="footer-list-item"><a href="../about" class="footer-link-item">About</a></li>
 <li class="footer-list-item"><a href="../blog-v1" class="footer-link-item">Resources</a></li>

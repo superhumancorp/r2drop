@@ -33,7 +33,10 @@
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png"/>
 <link rel="manifest" href="../site.webmanifest"/>
 <style>.footer-social .social-icon-link svg{fill:#ff8a1f!important;color:#ff8a1f!important;}
-.w-webflow-badge{display:none!important;}</style>
+.w-webflow-badge{display:none!important;}
+.footer-links-grid{grid-template-columns:repeat(3,1fr)!important;gap:40px!important;}
+.footer-bottom{grid-template-columns:auto!important;justify-items:center!important;}
+.copyright-wrapper .copyright{grid-template-columns:1fr auto!important;}</style>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -238,6 +241,7 @@ r2 = boto3.client(
 
 <h4>Conclusion</h4>
 <p>For most developer workloads that serve data to end users, Cloudflare R2 offers dramatically lower costs than AWS S3 — primarily because of zero egress fees. S3 retains its edge for deep AWS ecosystem integrations and archival storage. The S3 API compatibility between the two services means you can try R2 with minimal migration effort and switch back if it doesn't fit.</p>
+<figure style="margin:32px 0;"><img src="../screenshot-2.png" alt="R2Drop upload queue showing parallel file transfers to Cloudflare R2" loading="lazy" style="width:100%;border-radius:8px;border:1px solid rgba(255,255,255,0.1);"/><figcaption style="text-align:center;font-size:0.85rem;color:#888;margin-top:8px;">R2Drop makes uploading to R2 effortless on macOS</figcaption></figure>
 </div>
 </div>
 </div>
@@ -280,7 +284,7 @@ r2 = boto3.client(
 <div class="footer-list-wrapper">
 <ul role="list" class="footer-links-list">
 <li class="footer-list-item"><a href="../" class="footer-link-item">Home</a></li>
-<li class="footer-list-item"><a href="../#features" class="footer-link-item">Features</a></li>
+<li class="footer-list-item"><a href="../solutions" class="footer-link-item">Features</a></li>
 <li class="footer-list-item"><a href="https://docs.r2drop.com" class="footer-link-item">Docs</a></li>
 <li class="footer-list-item"><a href="../about" class="footer-link-item">About</a></li>
 <li class="footer-list-item"><a href="../blog-v1" class="footer-link-item">Resources</a></li>
