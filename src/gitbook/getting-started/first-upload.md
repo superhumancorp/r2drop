@@ -2,7 +2,7 @@
 
 This guide walks you through connecting R2Drop to your Cloudflare R2 bucket and uploading your first file.
 
-<iframe src="https://cdn.r2drop.com/embed/r2drop-1.html" width="100%" height="400" frameborder="0" allowfullscreen style="border-radius:8px;display:block"></iframe>
+{% embed url="https://youtu.be/h9dFRsHBsLY" %}
 
 ---
 
@@ -55,12 +55,12 @@ Once onboarding is complete, upload a file using any method:
 **Drag to menu bar:**
 Drop a file onto the R2Drop icon in your menu bar.
 
-<iframe src="https://cdn.r2drop.com/embed/r2drop-drag-drop-menu-bar.html" width="100%" height="400" frameborder="0" allowfullscreen style="border-radius:8px;display:block"></iframe>
+{% embed url="https://youtu.be/FtfqbHIBGBo" %}
 
 **Drag into the app:**
 Drop files directly into the Uploads tab.
 
-<iframe src="https://cdn.r2drop.com/embed/r2drop-drag-drop-app.html" width="100%" height="400" frameborder="0" allowfullscreen style="border-radius:8px;display:block"></iframe>
+{% embed url="https://youtu.be/TsWVubTlzoc" %}
 
 **Finder right-click:**
 Right-click any file in Finder → *Send to R2*

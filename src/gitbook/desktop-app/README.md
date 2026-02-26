@@ -2,9 +2,9 @@
 
 R2Drop is a native macOS menu bar application. It runs quietly in the background and gives you multiple ways to upload files to your Cloudflare R2 bucket.
 
-<iframe src="https://cdn.r2drop.com/embed/r2drop-recording.html" width="100%" height="400" frameborder="0" allowfullscreen style="border-radius:8px;display:block"></iframe>
+{% embed url="https://youtu.be/19LeXST20O4" %}
 
-<iframe src="https://cdn.r2drop.com/embed/r2drop-2.html" width="100%" height="400" frameborder="0" allowfullscreen style="border-radius:8px;display:block;margin-top:1rem"></iframe>
+{% embed url="https://youtu.be/kxszLWEe58c" %}
 
 ---
 
