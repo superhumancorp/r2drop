@@ -54,3 +54,12 @@ src/replit/
 
 # --- YouTube upload metadata (local reference only) ---
 YOUTUBE.md
+
+# --- GIF working copies (committed via src/gitbook/assets/ instead) ---
+art/screen-recording/*.gif
+
+# --- Build artifacts ---
+build/
+src/app/build/
+src/app/fastlane/build/
+src/app/fastlane/report.xml
