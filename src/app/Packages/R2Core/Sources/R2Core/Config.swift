@@ -122,20 +122,72 @@ public final class ConfigManager {
         configDir().appendingPathComponent("config.toml")
     }
 
+    /// Shared App Group mirror path for config.toml.
+    /// Used by sandboxed extensions (Finder Sync) that cannot reliably read ~/.r2drop.
+    public static func appGroupConfigPath(appGroup: String = R2CoreConstants.appGroup) -> URL? {
+        FileManager.default
+            .containerURL(forSecurityApplicationGroupIdentifier: appGroup)?
+            .appendingPathComponent("config.toml")
+    }
+
     /// Load config from disk. Returns defaults if file doesn't exist.
     public static func load(from path: URL? = nil) throws -> R2Config {
-        let filePath = path ?? configPath()
-        guard FileManager.default.fileExists(atPath: filePath.path) else {
-            return R2Config()
+        if let path {
+            return try loadExact(from: path)
         }
-        let content = try String(contentsOf: filePath, encoding: .utf8)
-        let config = TOMLParser.parse(content)
-        return config
+
+        do {
+            let primary = try loadExact(from: configPath())
+            // Sandbox-restricted extensions may see ~/.r2drop as effectively missing.
+            // If the primary result is empty, try the App Group mirror before returning defaults.
+            if primary == R2Config(),
+               let mirrorPath = appGroupConfigPath(),
+               let mirrored = try? loadExact(from: mirrorPath),
+               mirrored != R2Config() || FileManager.default.fileExists(atPath: mirrorPath.path) {
+                return mirrored
+            }
+            return primary
+        } catch {
+            // Finder Sync extension runs sandboxed and may not be able to read ~/.r2drop.
+            // Fall back to the App Group config mirror if present.
+            if let mirrorPath = appGroupConfigPath(),
+               let mirrored = try? loadExact(from: mirrorPath) {
+                return mirrored
+            }
+            throw error
+        }
     }
 
     /// Save config to disk as TOML.
     public static func save(_ config: R2Config, to path: URL? = nil) throws {
         let filePath = path ?? configPath()
+        try saveExact(config, to: filePath)
+
+        // Best-effort mirror for sandboxed extensions (Finder Sync).
+        if path == nil,
+           let mirrorPath = appGroupConfigPath(),
+           mirrorPath.path != filePath.path {
+            try? saveExact(config, to: mirrorPath)
+        }
+    }
+
+    /// Best-effort sync from ~/.r2drop/config.toml to the App Group mirror.
+    /// Safe to call on app launch.
+    public static func syncAppGroupMirror() {
+        guard let mirrorPath = appGroupConfigPath() else { return }
+        guard let config = try? loadExact(from: configPath()) else { return }
+        try? saveExact(config, to: mirrorPath)
+    }
+
+    private static func loadExact(from filePath: URL) throws -> R2Config {
+        guard FileManager.default.fileExists(atPath: filePath.path) else {
+            return R2Config()
+        }
+        let content = try String(contentsOf: filePath, encoding: .utf8)
+        return TOMLParser.parse(content)
+    }
+
+    private static func saveExact(_ config: R2Config, to filePath: URL) throws {
         if let parent = filePath.deletingLastPathComponent() as URL? {
             try FileManager.default.createDirectory(
                 at: parent, withIntermediateDirectories: true

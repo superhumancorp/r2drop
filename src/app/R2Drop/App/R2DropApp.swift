@@ -97,6 +97,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Default is .regular (dock icon visible). If user set hide_dock_icon = true,
         // switch to .accessory (menu bar only).
         let config = (try? ConfigManager.load()) ?? R2Config()
+        // Keep an App Group config mirror in sync so the sandboxed Finder extension
+        // can resolve the active account, bucket, and exclusions.
+        ConfigManager.syncAppGroupMirror()
         // Initialize Rust audit logging (FR-067) — rolling file to ~/.r2drop/logs/
         let logResult = R2Client.initLogging(
             maxLogFiles: UInt16(config.preferences.maxLogFiles),

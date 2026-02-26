@@ -58,13 +58,28 @@ class FinderSync: FIFinderSync {
     /// Called when user clicks "Send to R2" in the Finder context menu.
     /// Supports bulk selection (FR-018).
     @objc func sendToR2(_ sender: AnyObject?) {
-        guard let selectedURLs = FIFinderSyncController.default().selectedItemURLs(),
-              !selectedURLs.isEmpty else {
+        let controller = FIFinderSyncController.default()
+        let selectedURLs = controller.selectedItemURLs() ?? []
+        let targetURLs: [URL]
+
+        if !selectedURLs.isEmpty {
+            targetURLs = selectedURLs
+        } else if let targetedURL = controller.targetedURL() {
+            // Container/context clicks may not populate selectedItemURLs().
+            targetURLs = [targetedURL]
+        } else {
             return
         }
 
         // Load config to get active account
-        let config = (try? ConfigManager.load()) ?? R2Config()
+        let config: R2Config
+        do {
+            config = try ConfigManager.load()
+        } catch {
+            NSLog("R2Drop FinderExtension: failed to load config: %@", String(describing: error))
+            showNoAccountAlert()
+            return
+        }
         guard let activeName = config.activeAccount,
               let account = config.accounts.first(where: { $0.name == activeName }) else {
             showNoAccountAlert()
@@ -73,7 +88,7 @@ class FinderSync: FIFinderSync {
 
         // Filter out excluded files (FR-049)
         let exclusions = config.preferences.exclusionPatterns
-        let filteredURLs = selectedURLs.filter { url in
+        let filteredURLs = targetURLs.filter { url in
             !matchesExclusionPattern(url.lastPathComponent, patterns: exclusions)
         }
         guard !filteredURLs.isEmpty else { return }
@@ -87,6 +102,9 @@ class FinderSync: FIFinderSync {
 
         // Queue uploads via App Groups shared queue.db (FR-021)
         queueUploads(urls: filteredURLs, account: account)
+
+        // Best-effort: wake the main app so Finder-queued jobs are transferred immediately.
+        wakeMainAppForQueuedUploads()
     }
 
     // MARK: - Confirmation Dialog (FR-019)
@@ -200,6 +218,9 @@ class FinderSync: FIFinderSync {
                 totalBytes: size
             )
         }
+
+        NSLog("R2Drop FinderExtension: queued %ld item(s) for account %@",
+              urls.count, account.name)
     }
 
     // MARK: - Exclusion Patterns (FR-049)
@@ -247,6 +268,12 @@ class FinderSync: FIFinderSync {
         alert.alertStyle = .warning
         alert.addButton(withTitle: "OK")
         alert.runModal()
+    }
+
+    /// Open a lightweight deep link so the main app can transfer Finder-queued jobs.
+    private func wakeMainAppForQueuedUploads() {
+        guard let url = URL(string: "\(R2CoreConstants.urlScheme)://status") else { return }
+        _ = NSWorkspace.shared.open(url)
     }
 
     // MARK: - Helpers
