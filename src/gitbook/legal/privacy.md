@@ -6,16 +6,39 @@
 ---
 
 {% hint style="success" %}
-**TL;DR:** The app collects nothing. Your credentials never leave your Mac.
+**TL;DR:** Telemetry is off by default and opt-in only. Your credentials and files never leave your Mac.
 {% endhint %}
 
 ---
 
 ## What the App Collects
 
-**Nothing.** The R2Drop macOS app and CLI collect no personal data, usage metrics, crash reports, or telemetry of any kind.
+### Core App — No Data Collected by Default
 
-There is no phone-home. There is no analytics SDK embedded in the app. The only network requests R2Drop makes are to Cloudflare's API endpoints on your behalf.
+The R2Drop macOS app and CLI collect **no personal data by default**. The only network requests R2Drop makes are directly to Cloudflare's API endpoints on your behalf.
+
+### Optional Anonymous Telemetry (Opt-In)
+
+If you choose to enable it in **Settings → Share anonymous usage data**, R2Drop sends anonymous usage events to [PostHog](https://posthog.com) — a third-party product analytics service. This toggle is **off by default**.
+
+**What is sent when opt-in is enabled:**
+
+- App lifecycle events (launch, quit, session duration)
+- Feature usage (which upload methods are used, tab interactions)
+- Error summaries (type of error, not file contents or paths)
+- App version, macOS version, and build number
+
+**What is never sent, even when opt-in is enabled:**
+
+- File names, file contents, or file paths
+- Your Cloudflare API token or any credentials
+- Bucket names or account names (these are one-way hashed with a per-install salt before transmission — the original values cannot be recovered)
+- Upload history or destination URLs
+- IP address (PostHog is configured without IP capture)
+
+All telemetry events are anonymous. A stable random identifier is generated at install time and stored in macOS Keychain — it is not linked to your name, email, or any other personal information.
+
+**To opt in or opt out at any time:** open R2Drop → Settings → toggle **Share anonymous usage data**.
 
 ---
 
@@ -47,7 +70,16 @@ R2Drop stores upload history locally in `~/.r2drop/history.db`. This file:
 
 ## This Website
 
-The R2Drop marketing website may use Cloudflare Web Analytics — a privacy-first, cookieless analytics service that does not track individuals or use persistent identifiers. No third-party tracking cookies are used.
+The R2Drop marketing website uses Cloudflare Web Analytics — a privacy-first, cookieless analytics service that does not track individuals or use persistent identifiers. No third-party tracking cookies are used.
+
+---
+
+## Third-Party Services
+
+| Service | Purpose | Data sent | Link |
+|---------|---------|-----------|------|
+| Cloudflare R2 | File upload destination | Your files (to your own bucket) | [cloudflare.com/privacypolicy](https://www.cloudflare.com/privacypolicy/) |
+| PostHog | Anonymous usage analytics (opt-in only) | Anonymous usage events — see above | [posthog.com/privacy](https://posthog.com/privacy/) |
 
 ---
 
@@ -60,5 +92,3 @@ R2Drop is fully open source under the MIT License. You can audit every network c
 ## Contact
 
 Privacy questions? Email [legal@r2drop.app](mailto:legal@r2drop.app) or open an issue on [GitHub](https://github.com/superhumancorp/r2drop/issues).
-
-Full policy: [r2drop.app/privacy/](https://r2drop.app/privacy/)

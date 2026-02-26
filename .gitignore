@@ -52,8 +52,9 @@ src/app/.env
 # --- Replit project (separate repo with own git history) ---
 src/replit/
 
-# --- YouTube upload metadata (local reference only) ---
+# --- Local working documents (not for repo) ---
 YOUTUBE.md
+APPSTORE.md
 
 # --- GIF working copies (committed via src/gitbook/assets/ instead) ---
 art/screen-recording/*.gif
