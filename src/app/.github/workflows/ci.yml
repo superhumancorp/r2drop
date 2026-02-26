@@ -109,7 +109,7 @@ jobs:
         run: |
           xcodebuild build \
             -workspace R2Drop.xcworkspace \
-            -scheme R2Drop \
+            -scheme "R2Drop Debug" \
             -destination 'platform=macOS' \
             CODE_SIGN_IDENTITY=- \
             CODE_SIGNING_REQUIRED=NO \
@@ -126,7 +126,7 @@ jobs:
             echo "Found test schemes: $SCHEMES"
             xcodebuild test \
               -workspace R2Drop.xcworkspace \
-              -scheme R2Drop \
+              -scheme "R2Drop Debug" \
               -destination 'platform=macOS' \
               CODE_SIGN_IDENTITY=- \
               CODE_SIGNING_REQUIRED=NO \

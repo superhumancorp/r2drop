@@ -131,7 +131,7 @@ jobs:
         run: |
           xcodebuild build \
             -workspace R2Drop.xcworkspace \
-            -scheme R2Drop \
+            -scheme "R2Drop Production" \
             -configuration Release \
             -destination 'platform=macOS' \
             -derivedDataPath build/DerivedData \

@@ -21,12 +21,12 @@
 
 default_platform(:mac)
 
-BUNDLE_ID       = "com.superhumancorp.r2drop"
-BUNDLE_ID_EXT   = "com.superhumancorp.r2drop.FinderExtension"
-TEAM_ID         = ENV.fetch("APPLE_TEAM_ID", "A89MU37ZLB")
-XCODEPROJ       = "R2Drop/R2Drop.xcodeproj"
-SCHEME          = "R2Drop"
-OUTPUT_DIR      = "build/fastlane"
+BUNDLE_ID         = "com.superhumancorp.r2drop"
+BUNDLE_ID_EXT     = "com.superhumancorp.r2drop.FinderExtension"
+TEAM_ID           = ENV.fetch("APPLE_TEAM_ID", "A89MU37ZLB")
+XCODEWORKSPACE    = "R2Drop.xcworkspace"
+PRODUCTION_SCHEME = ENV.fetch("XCODE_SCHEME", "R2Drop Production")
+OUTPUT_DIR        = "build/fastlane"
 
 platform :mac do
   # ---------------------------------------------------------------------------
@@ -40,8 +40,8 @@ platform :mac do
     provisioning_profiles[BUNDLE_ID_EXT] = profile_ext_uuid unless profile_ext_uuid.empty?
 
     gym(
-      project: XCODEPROJ,
-      scheme: SCHEME,
+      workspace: XCODEWORKSPACE,
+      scheme: PRODUCTION_SCHEME,
       configuration: "Release",
       export_method: "app-store",
       clean: true,
@@ -84,6 +84,12 @@ platform :mac do
     UI.success "Uploaded v#{marketing_version} (#{build_number}) to TestFlight."
   end
 
+  # Backward-compatible alias used by CI (`bundle exec fastlane testflight`)
+  desc "Alias for upload_testflight"
+  lane :testflight do
+    upload_testflight
+  end
+
   # ---------------------------------------------------------------------------
   # release_appstore — build and submit to Mac App Store review
   # ---------------------------------------------------------------------------
@@ -107,5 +113,11 @@ platform :mac do
     )
 
     UI.success "Submitted v#{marketing_version} (#{build_number}) to App Store review."
+  end
+
+  # Backward-compatible alias if CI/scripts call `fastlane appstore`
+  desc "Alias for release_appstore"
+  lane :appstore do
+    release_appstore
   end
 end
