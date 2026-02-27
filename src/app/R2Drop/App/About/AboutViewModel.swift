@@ -1,11 +1,12 @@
 // R2Drop/App/About/AboutViewModel.swift
-// ViewModel for the About tab in the Preferences window (US-021).
-// Manages app version info and external links.
-// App Store/TestFlight builds rely on App Store updates instead of Sparkle.
+// ViewModel for the About tab (US-021).
+// Manages app version info, Sparkle auto-update controls, and external links.
+// Uses SPUUpdater from the Sparkle framework for checking GitHub Releases.
 
 import AppKit
+import Sparkle
 
-/// Manages About tab state: version info, update checks, and external links.
+/// Manages About tab state: version info, Sparkle update checks, and external links.
 @MainActor
 final class AboutViewModel: ObservableObject {
 
@@ -26,34 +27,68 @@ final class AboutViewModel: ObservableObject {
     /// Whether a check is currently in progress
     @Published var isCheckingForUpdates: Bool = false
 
+    // MARK: - Sparkle
+
+    /// Sparkle updater controller — manages the update lifecycle.
+    private let updaterController: SPUStandardUpdaterController
+
+    /// Direct reference to the updater for programmatic access.
+    private var updater: SPUUpdater { updaterController.updater }
+
     // MARK: - Init
 
     init() {
+        // Initialize Sparkle updater (starts automatic checking if enabled in Info.plist)
+        updaterController = SPUStandardUpdaterController(
+            startingUpdater: true,
+            updaterDelegate: nil,
+            userDriverDelegate: nil
+        )
+
         // Load version info from the main bundle
         let bundle = Bundle.main
         appVersion = bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.0.0"
         buildNumber = bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "1"
-        automaticallyChecksForUpdates = false
-        lastCheckDateString = "Managed by App Store"
+
+        // Sync auto-check state from Sparkle
+        automaticallyChecksForUpdates = updater.automaticallyChecksForUpdates
+
+        // Format last check date
+        if let lastDate = updater.lastUpdateCheckDate {
+            let fmt = DateFormatter()
+            fmt.dateStyle = .medium
+            fmt.timeStyle = .short
+            lastCheckDateString = fmt.string(from: lastDate)
+        }
     }
 
     // MARK: - Actions
 
     /// Toggle automatic update checking (FR-058).
     func toggleAutoCheck(_ enabled: Bool) {
-        // App Store/TestFlight builds don't manage update checks directly.
-        automaticallyChecksForUpdates = false
+        updater.automaticallyChecksForUpdates = enabled
+        automaticallyChecksForUpdates = enabled
     }
 
     /// Trigger a manual update check (FR-058).
     func checkForUpdates() {
-        // No-op for App Store/TestFlight builds.
-        isCheckingForUpdates = false
+        updaterController.checkForUpdates(nil)
+
+        // Update the last check date after a short delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+            guard let self else { return }
+            if let lastDate = self.updater.lastUpdateCheckDate {
+                let fmt = DateFormatter()
+                fmt.dateStyle = .medium
+                fmt.timeStyle = .short
+                self.lastCheckDateString = fmt.string(from: lastDate)
+            }
+        }
     }
 
     /// Whether the "Check Now" button should be enabled.
     var canCheckForUpdates: Bool {
-        false
+        updater.canCheckForUpdates
     }
 
     // MARK: - Links (FR-056)

@@ -33,5 +33,9 @@
 	<string>public.app-category.productivity</string>
 	<key>SUPublicEDKey</key>
 	<string>NWlOpvs7+ccCaW6557MqyCO94w3KVziS7uAOOxR8gQk=</string>
+	<key>SUFeedURL</key>
+	<string>https://github.com/superhumancorp/r2drop/releases/latest/download/appcast.xml</string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
 </dict>
 </plist>
