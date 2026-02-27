@@ -300,6 +300,102 @@ platform :mac do
     [output, status]
   end
 
+  def resolve_developer_id_application_cert_name
+    env_name = ENV.fetch("DMG_SIGN_IDENTITY", "").strip
+    env_name = ENV.fetch("DEVELOPER_ID_APPLICATION_CERT_NAME", "").strip if env_name.empty?
+    return env_name unless env_name.empty?
+
+    identities_output = `security find-identity -v -p codesigning 2>/dev/null`
+    names = identities_output.lines.filter_map do |line|
+      match = line.match(/"([^"]+)"/)
+      match && match[1]
+    end.uniq
+
+    preferred = "Developer ID Application: Paul Pierre (#{TEAM_ID})"
+    exact = names.find { |n| n == preferred }
+    return exact if exact
+
+    names.find { |n| n.start_with?("Developer ID Application: ") && n.include?("(#{TEAM_ID})") }
+  end
+
+  def local_dmg_notarization_enabled?
+    flag = ENV.fetch("DMG_NOTARIZE", "").strip.downcase
+    return true if %w[1 true yes y].include?(flag)
+    return false if %w[0 false no n].include?(flag)
+
+    # Default: notarize when credentials exist.
+    env_present?("APPLE_ID") &&
+      env_present?("APPLE_APP_PASSWORD") &&
+      env_present?("APPLE_TEAM_ID")
+  end
+
+  def build_local_arch_app!(arch:, marketing_version:, build_number:)
+    derived_data_dir = File.join(PROJECT_ROOT, "build", "dmg-#{arch}")
+    FileUtils.mkdir_p(derived_data_dir)
+
+    args = [
+      "xcodebuild",
+      "-workspace", XCODEWORKSPACE,
+      "-scheme", PRODUCTION_SCHEME,
+      "-configuration", "Release",
+      "-derivedDataPath", derived_data_dir,
+      "-destination", "generic/platform=macOS",
+      "ARCHS=#{arch}",
+      "ONLY_ACTIVE_ARCH=YES",
+      "MARKETING_VERSION=#{marketing_version}",
+      "CURRENT_PROJECT_VERSION=#{build_number}",
+      "clean",
+      "build"
+    ]
+
+    _output, status = run_command_capture!(args)
+    unless status.success?
+      UI.user_error!("xcodebuild failed while building #{arch} app bundle for local DMG release.")
+    end
+
+    app_path = File.join(derived_data_dir, "Build", "Products", "Release", "R2Drop.app")
+    UI.user_error!("Expected app bundle not found at #{app_path}") unless File.directory?(app_path)
+    app_path
+  end
+
+  def package_local_dmg!(app_path:, sign_identity:, arch_slug:)
+    script_path = File.join(PROJECT_ROOT, "scripts", "generate-dmg.sh")
+    args = [script_path, "--app", app_path]
+    args += ["--sign", sign_identity] unless sign_identity.to_s.empty?
+
+    _output, status = run_command_capture!(args)
+    unless status.success?
+      UI.user_error!("DMG packaging failed for app bundle at #{app_path}")
+    end
+
+    generated = Dir[File.join(PROJECT_ROOT, "build", "R2Drop-*.dmg")].max_by { |p| File.mtime(p) }
+    UI.user_error!("No DMG found in #{File.join(PROJECT_ROOT, "build")} after packaging.") if generated.nil?
+
+    version = File.basename(generated).sub(/\AR2Drop-/, "").sub(/\.dmg\z/, "")
+    final_dmg = File.join(PROJECT_ROOT, "build", "R2Drop-#{version}-#{arch_slug}.dmg")
+    FileUtils.rm_f(final_dmg)
+    FileUtils.mv(generated, final_dmg)
+    final_dmg
+  end
+
+  def notarize_and_staple_dmg!(dmg_path:, apple_id:, app_password:, team_id:)
+    _submit_output, submit_status = run_command_capture!([
+      "xcrun", "notarytool", "submit", dmg_path,
+      "--apple-id", apple_id,
+      "--password", app_password,
+      "--team-id", team_id,
+      "--wait"
+    ])
+    unless submit_status.success?
+      UI.user_error!("Notarization failed for #{dmg_path}")
+    end
+
+    _staple_output, staple_status = run_command_capture!(["xcrun", "stapler", "staple", dmg_path])
+    unless staple_status.success?
+      UI.user_error!("Stapling failed for #{dmg_path}")
+    end
+  end
+
   def manual_export_pkg_from_archive!(archive_path:, signing_style:, provisioning_profiles:, auth_ctx:)
     export_dir = File.join(OUTPUT_DIR, "export")
     FileUtils.rm_rf(export_dir)
@@ -441,6 +537,80 @@ platform :mac do
     raise
   ensure
     cleanup_asc_auth_context!(auth_ctx)
+  end
+
+  # ---------------------------------------------------------------------------
+  # build_local_dmg — build signed DMGs locally for arm64 + x86_64
+  # ---------------------------------------------------------------------------
+  desc "Build local DMG release artifacts (arm64 + x86_64), optionally notarized"
+  lane :build_local_dmg do
+    marketing_version = ENV.fetch("MARKETING_VERSION", "0.1.0")
+    build_number = ENV.fetch("BUILD_NUMBER", Time.now.strftime("%Y%m%d%H%M"))
+    sign_enabled = !%w[0 false no n].include?(ENV.fetch("DMG_SIGN", "1").strip.downcase)
+    notarize_enabled = local_dmg_notarization_enabled?
+
+    sign_identity = ""
+    if sign_enabled
+      sign_identity = resolve_developer_id_application_cert_name.to_s
+      if sign_identity.empty?
+        UI.user_error!(
+          "Unable to resolve a Developer ID Application signing identity.\n" \
+          "Set DMG_SIGN_IDENTITY explicitly, for example:\n" \
+          "  DMG_SIGN_IDENTITY='Developer ID Application: Paul Pierre (#{TEAM_ID})'"
+        )
+      end
+    end
+
+    if notarize_enabled
+      unless env_present?("APPLE_ID") && env_present?("APPLE_APP_PASSWORD") && env_present?("APPLE_TEAM_ID")
+        UI.user_error!(
+          "DMG notarization requested, but APPLE_ID / APPLE_APP_PASSWORD / APPLE_TEAM_ID are missing."
+        )
+      end
+    end
+
+    UI.message "Building local DMG artifacts v#{marketing_version} (#{build_number})…"
+    UI.message "Signing enabled: #{sign_enabled ? "yes (#{sign_identity})" : "no"}"
+    UI.message "Notarization enabled: #{notarize_enabled ? "yes" : "no"}"
+
+    run_command_capture!([File.join(PROJECT_ROOT, "scripts", "build-rust.sh"), "--release"])
+
+    outputs = []
+    [
+      { arch: "arm64", arch_slug: "aarch64" },
+      { arch: "x86_64", arch_slug: "x86_64" }
+    ].each do |cfg|
+      app_path = build_local_arch_app!(
+        arch: cfg[:arch],
+        marketing_version: marketing_version,
+        build_number: build_number
+      )
+
+      dmg_path = package_local_dmg!(
+        app_path: app_path,
+        sign_identity: sign_enabled ? sign_identity : "",
+        arch_slug: cfg[:arch_slug]
+      )
+
+      if notarize_enabled
+        notarize_and_staple_dmg!(
+          dmg_path: dmg_path,
+          apple_id: ENV.fetch("APPLE_ID"),
+          app_password: ENV.fetch("APPLE_APP_PASSWORD"),
+          team_id: ENV.fetch("APPLE_TEAM_ID")
+        )
+      end
+
+      outputs << dmg_path
+    end
+
+    UI.success("Local DMG build complete:")
+    outputs.each { |path| UI.success("  - #{path}") }
+  end
+
+  desc "Alias for build_local_dmg"
+  lane :dmg_release do
+    build_local_dmg
   end
 
   # ---------------------------------------------------------------------------

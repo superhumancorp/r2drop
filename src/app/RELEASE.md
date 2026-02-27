@@ -24,6 +24,7 @@ make testflight
 make release
 make release-minor
 make release-major
+make dmg-release
 ```
 
 Useful helpers:
@@ -40,6 +41,14 @@ What `make` does:
 - Validates `fastlane/Fastfile`
 - Sources `.env` if present
 - Runs Fastlane with auto-generated build numbers and version bumping
+
+For local DMG artifacts:
+
+- `make dmg-release` builds both `arm64` and `x86_64` app bundles, packages DMGs, and notarizes by default
+- `make dmg-release-no-notary` skips notarization for faster local iteration
+- Artifacts land under `src/app/build/` as:
+  - `R2Drop-<version>-aarch64.dmg`
+  - `R2Drop-<version>-x86_64.dmg`
 
 ## Fastlane Lanes
 
