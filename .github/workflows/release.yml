@@ -177,7 +177,76 @@ jobs:
         run: sudo xcode-select -s /Applications/Xcode_16.2.app
 
       # ─────────────────────────────────────────────
-      # 6. Import Developer ID signing certificate into a temporary keychain.
+      # 6. Preflight release inputs and signing assets.
+      #    Fails early with clear errors when secrets are missing or invalid.
+      # ─────────────────────────────────────────────
+      - name: Preflight release inputs
+        env:
+          APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          required=(
+            APPLE_CERTIFICATE_BASE64
+            APPLE_CERTIFICATE_PASSWORD
+            APPLE_ID
+            APPLE_APP_PASSWORD
+            APPLE_TEAM_ID
+            GEMINI_API_KEY
+            TAP_GITHUB_TOKEN
+          )
+
+          missing=0
+          for name in "${required[@]}"; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::Missing required secret: ${name}"
+              missing=1
+            fi
+          done
+          [ "$missing" -eq 0 ] || exit 1
+
+          if ! [[ "$APPLE_TEAM_ID" =~ ^[A-Z0-9]{10}$ ]]; then
+            echo "::error::APPLE_TEAM_ID must be a 10-character value (letters/numbers)."
+            exit 1
+          fi
+
+          CERT_PATH="$RUNNER_TEMP/preflight-cert.p12"
+          if ! (printf '%s' "$APPLE_CERTIFICATE_BASE64" | base64 --decode > "$CERT_PATH" 2>/dev/null || \
+                printf '%s' "$APPLE_CERTIFICATE_BASE64" | base64 -D > "$CERT_PATH" 2>/dev/null); then
+            echo "::error::APPLE_CERTIFICATE_BASE64 is not valid base64."
+            exit 1
+          fi
+
+          if [ ! -s "$CERT_PATH" ]; then
+            echo "::error::Decoded certificate file is empty."
+            exit 1
+          fi
+
+          if ! openssl pkcs12 -in "$CERT_PATH" \
+            -passin "pass:${APPLE_CERTIFICATE_PASSWORD}" \
+            -nokeys >/dev/null 2>&1; then
+            echo "::error::Decoded certificate is not a valid .p12 or APPLE_CERTIFICATE_PASSWORD is incorrect."
+            exit 1
+          fi
+
+          SUBJECT=$(openssl pkcs12 -in "$CERT_PATH" \
+            -passin "pass:${APPLE_CERTIFICATE_PASSWORD}" \
+            -clcerts -nokeys 2>/dev/null | \
+            openssl x509 -noout -subject 2>/dev/null || true)
+          if ! echo "$SUBJECT" | grep -q "Developer ID Application"; then
+            echo "::warning::Certificate subject does not appear to be 'Developer ID Application'. Current subject: ${SUBJECT}"
+          fi
+
+          rm -f "$CERT_PATH"
+
+      # ─────────────────────────────────────────────
+      # 7. Import Developer ID signing certificate into a temporary keychain.
       # ─────────────────────────────────────────────
       - name: Import signing certificate
         env:
@@ -195,7 +264,7 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" "$KEYCHAIN_PATH"
 
       # ─────────────────────────────────────────────
-      # 7. Archive the app for both Apple Silicon and Intel.
+      # 8. Archive the app for both Apple Silicon and Intel.
       # ─────────────────────────────────────────────
       - name: Build & Archive (Apple Silicon)
         run: |
@@ -218,7 +287,7 @@ jobs:
             ARCHS=x86_64
 
       # ─────────────────────────────────────────────
-      # 8. Export signed .app bundles from each archive.
+      # 9. Export signed .app bundles from each archive.
       # ─────────────────────────────────────────────
       - name: Export .app bundles
         run: |
@@ -241,7 +310,7 @@ jobs:
             -exportPath "$RUNNER_TEMP/export-x86_64"
 
       # ─────────────────────────────────────────────
-      # 9. Create .dmg files, notarize, and staple.
+      # 10. Create .dmg files, notarize, and staple.
       #    aarch64 = Apple Silicon, x86_64 = Intel.
       # ─────────────────────────────────────────────
       - name: Create, notarize, and staple DMGs
@@ -270,7 +339,7 @@ jobs:
           done
 
       # ─────────────────────────────────────────────
-      # 10. Create the GitHub Release with Gemini-generated notes
+      # 11. Create the GitHub Release with Gemini-generated notes
       #     and attach both DMG files.
       # ─────────────────────────────────────────────
       - name: Create GitHub Release
@@ -285,7 +354,7 @@ jobs:
             "$RUNNER_TEMP/R2Drop-${VERSION}-x86_64.dmg"
 
       # ─────────────────────────────────────────────
-      # 11. Tell the Homebrew tap to bump the cask version.
+      # 12. Tell the Homebrew tap to bump the cask version.
       # ─────────────────────────────────────────────
       - name: Trigger Homebrew tap bump
         uses: peter-evans/repository-dispatch@v3
