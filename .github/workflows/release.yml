@@ -61,12 +61,12 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             VERSION="${{ github.event.inputs.version }}"
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git tag "v${VERSION}"
-            git push origin "v${VERSION}"
           else
             VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          if [ -z "$VERSION" ]; then
+            echo "Version could not be resolved."
+            exit 1
           fi
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
@@ -82,13 +82,23 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.version }}"
 
-          # Get commits since the previous tag (fallback to all commits).
-          PREV_TAG=$(git describe --tags --abbrev=0 "v${VERSION}^" 2>/dev/null || echo "")
-          if [ -n "$PREV_TAG" ]; then
-            COMMITS=$(git log "${PREV_TAG}..v${VERSION}" --pretty=format:"%s" --no-merges | head -60)
+          # Resolve commit range for both tag-triggered and manual runs.
+          if git rev-parse -q --verify "refs/tags/v${VERSION}" >/dev/null; then
+            PREV_TAG=$(git describe --tags --abbrev=0 "v${VERSION}^" 2>/dev/null || echo "")
+            if [ -n "$PREV_TAG" ]; then
+              RANGE="${PREV_TAG}..v${VERSION}"
+            else
+              RANGE="v${VERSION}"
+            fi
           else
-            COMMITS=$(git log "v${VERSION}" --pretty=format:"%s" --no-merges | head -60)
+            PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+            if [ -n "$PREV_TAG" ]; then
+              RANGE="${PREV_TAG}..HEAD"
+            else
+              RANGE="HEAD"
+            fi
           fi
+          COMMITS=$(git log "$RANGE" --pretty=format:"%s" --no-merges | head -60)
 
           [ -z "$COMMITS" ] && COMMITS="Initial release of R2Drop."
 
