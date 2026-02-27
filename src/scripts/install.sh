@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# scripts/install.sh
+# src/scripts/install.sh
 # Downloads and installs the r2drop CLI from GitHub Releases.
 #
 # Usage:
@@ -108,21 +108,88 @@ download() {
   fi
 }
 
+# ── GitHub CLI helpers (private repo fallback) ───────────────────────────────
+resolve_version_via_gh() {
+  if ! has gh; then
+    return 1
+  fi
+
+  gh release list -R "$REPO" --limit 100 --json tagName --jq '.[].tagName' 2>/dev/null \
+    | grep '^cli-v' \
+    | head -1
+}
+
+download_release_asset() {
+  tag="$1"
+  asset="$2"
+  dest="$3"
+  url="${BASE_URL}/download/${tag}/${asset}"
+
+  if download "$url" "$dest"; then
+    return 0
+  fi
+
+  # Private-repo fallback: use authenticated gh CLI download if available.
+  if has gh; then
+    tmpdir="$(mktemp -d /tmp/r2drop-asset-XXXXXX 2>/dev/null || mktemp -d)"
+    if gh release download "$tag" -R "$REPO" -p "$asset" -D "$tmpdir" >/dev/null 2>&1; then
+      mv "$tmpdir/$asset" "$dest"
+      rm -rf "$tmpdir"
+      return 0
+    fi
+    rm -rf "$tmpdir"
+  fi
+
+  return 1
+}
+
 # ── Resolve version to a concrete CLI release tag (cli-vX.Y.Z) ──────────────
 resolve_version() {
   if [ "$VERSION" = "latest" ]; then
-    response="$(curl --fail --silent --location "${RELEASES_API_URL}?per_page=50" 2>/dev/null || true)"
+    response_file="$(mktemp /tmp/r2drop-releases-XXXXXX.json)"
+    http_code="$(
+      curl --silent --location \
+        --output "$response_file" \
+        --write-out '%{http_code}' \
+        --header 'Accept: application/vnd.github+json' \
+        --header 'X-GitHub-Api-Version: 2022-11-28' \
+        --header 'User-Agent: r2drop-install' \
+        "${RELEASES_API_URL}?per_page=50" 2>/dev/null || true
+    )"
+    response="$(cat "$response_file" 2>/dev/null || true)"
+    rm -f "$response_file"
 
     # Pick the newest release with a cli-v* tag.
-    resolved="$(printf '%s' "$response" | grep '"tag_name"' \
-      | sed 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/' \
-      | tr -d '[:space:]' \
-      | grep '^cli-v' \
-      | head -1 || true)"
+    # NOTE: We avoid removing all whitespace globally because that can collapse
+    # lines and break matching when a non-CLI release appears first.
+    resolved="$(
+      printf '%s\n' "$response" \
+        | awk -F'"tag_name"[[:space:]]*:[[:space:]]*"' '
+            {
+              for (i = 2; i <= NF; i++) {
+                split($i, parts, "\"");
+                if (parts[1] ~ /^cli-v/) {
+                  print parts[1];
+                  exit;
+                }
+              }
+            }
+          ' \
+        | head -1
+    )"
+
+    if [ -z "$resolved" ]; then
+      resolved="$(resolve_version_via_gh || true)"
+    fi
 
     if [ -z "$resolved" ]; then
       error "No published CLI releases found for ${REPO}."
-      error "The GitHub releases API may be private/unavailable, or no cli-v* release has been published yet."
+      if [ "$http_code" = "404" ]; then
+        error "GitHub returned Not Found. This usually means the repo is private for anonymous requests."
+        error "Use an authenticated GitHub CLI session (gh auth login), or make releases public."
+      else
+        error "The GitHub releases API may be private/unavailable, or no cli-v* release has been published yet."
+      fi
       error "Check https://github.com/${REPO}/releases for available versions."
       error "To install a specific CLI release: curl ... | bash -s -- --version v0.1.0 (maps to cli-v0.1.0)"
       exit 1
@@ -177,13 +244,17 @@ info "Install:  ${BLUE}${BIN_DIR}${NO_COLOR}"
 printf '\n'
 
 # Download to a temp file
-TMPFILE="$(mktemp /tmp/r2drop-XXXXXX.tar.gz)"
-trap 'rm -f "$TMPFILE"' EXIT
+TMPDIR="$(mktemp -d /tmp/r2drop-install-XXXXXX 2>/dev/null || mktemp -d)"
+TMPFILE="${TMPDIR}/r2drop.tar.gz"
+trap 'rm -rf "$TMPDIR"' EXIT
 
 info "Downloading ${URL}..."
-if ! download "$URL" "$TMPFILE"; then
+if ! download_release_asset "$TAG" "$ASSET" "$TMPFILE"; then
   error "Download failed. Check the version and your internet connection."
   error "URL: ${URL}"
+  if has gh; then
+    error "Tip: run 'gh auth login' to enable authenticated downloads for private repos."
+  fi
   exit 1
 fi
 

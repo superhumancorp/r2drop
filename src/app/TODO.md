@@ -58,7 +58,7 @@
 ## 📦 Distribution & Packaging
 
 ### curl|bash Installer (CLI)
-- [x] Created `scripts/install.sh` (detects OS/arch, downloads from GitHub Releases, installs to `~/.local/bin`)
+- [x] Created `src/scripts/install.sh` (detects OS/arch, downloads from GitHub Releases, installs to `~/.local/bin`)
 - [x] Hosted at `https://r2drop.com/install.sh`
 - [ ] Create first CLI GitHub Release with binaries (install script expects `cli-v*` tags and `r2drop-{os}-{arch}.tar.gz` assets)
 
@@ -130,5 +130,5 @@
 
 - `INSTRUMENTATION.md` — canonical telemetry spec (events, funnels, properties, anti-spam)
 - `TODO.md` — execution status only (done vs open)
-- `homebrew/` — templates for `superhumancorp/homebrew-tap` (already pushed)
-- `scripts/install.sh` — curl|bash installer, live at `r2drop.com/install.sh`
+- `src/homebrew/` — templates for `superhumancorp/homebrew-tap` (already pushed)
+- `src/scripts/install.sh` — curl|bash installer, live at `r2drop.com/install.sh`

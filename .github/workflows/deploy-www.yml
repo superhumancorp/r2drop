@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - 'src/www/**'
-      - 'scripts/install.sh'
+      - 'src/scripts/install.sh'
   workflow_dispatch:
 
 jobs:
@@ -43,7 +43,7 @@ jobs:
 
           # Check if install.sh changed
           if [ "$BEFORE" != "0000000000000000000000000000000000000000" ] && [ -n "$BEFORE" ]; then
-            if git diff --name-only "$BEFORE" HEAD -- scripts/install.sh | grep -q install.sh; then
+            if git diff --name-only "$BEFORE" HEAD -- src/scripts/install.sh | grep -q install.sh; then
               echo "install_changed=true" >> "$GITHUB_OUTPUT"
             else
               echo "install_changed=false" >> "$GITHUB_OUTPUT"
@@ -103,7 +103,7 @@ jobs:
             "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/r2/buckets/r2drop/objects/install.sh" \
             -H "Authorization: Bearer $CF_API_TOKEN" \
             -H "Content-Type: text/plain" \
-            --data-binary @scripts/install.sh
+            --data-binary @src/scripts/install.sh
           echo "✅ Deployed install.sh"
 
       - name: Full deploy (manual trigger)

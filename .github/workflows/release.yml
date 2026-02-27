@@ -134,16 +134,16 @@ jobs:
           echo "notes_file=$RUNNER_TEMP/release_notes.md" >> "$GITHUB_OUTPUT"
 
       # ─────────────────────────────────────────────
-      # 4. Write individual release file and update CHANGELOG.md.
+      # 4. Write individual release file and update src/docs/CHANGELOG.md.
       #    Commits these back to main with [skip ci] so CI doesn't re-run.
       # ─────────────────────────────────────────────
-      - name: Update CHANGELOG and releases/
+      - name: Update CHANGELOG and src/releases/
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           DATE=$(date +%Y-%m-%d)
           NOTES=$(cat "${{ steps.changelog.outputs.notes_file }}")
 
-          mkdir -p releases
+          mkdir -p src/releases
 
           # Write per-release file.
           {
@@ -152,20 +152,20 @@ jobs:
             echo "Released: ${DATE}"
             echo ""
             echo "${NOTES}"
-          } > "releases/v${VERSION}.md"
+          } > "src/releases/v${VERSION}.md"
 
-          # Prepend new entry to CHANGELOG.md.
+          # Prepend new entry to src/docs/CHANGELOG.md.
           HEADER="## [v${VERSION}](https://github.com/superhumancorp/r2drop/releases/tag/v${VERSION}) — ${DATE}"
-          if [ -f CHANGELOG.md ]; then
-            printf '%s\n\n%s\n\n---\n\n%s' "$HEADER" "$NOTES" "$(cat CHANGELOG.md)" > CHANGELOG.md
+          if [ -f src/docs/CHANGELOG.md ]; then
+            printf '%s\n\n%s\n\n---\n\n%s' "$HEADER" "$NOTES" "$(cat src/docs/CHANGELOG.md)" > src/docs/CHANGELOG.md
           else
-            printf '%s\n\n%s\n' "$HEADER" "$NOTES" > CHANGELOG.md
+            printf '%s\n\n%s\n' "$HEADER" "$NOTES" > src/docs/CHANGELOG.md
           fi
 
           # Commit and push back to main.
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add CHANGELOG.md releases/
+          git add src/docs/CHANGELOG.md src/releases/
           git diff --cached --quiet || \
             git commit -m "chore: update changelog for v${VERSION} [skip ci]"
           git push origin HEAD:main || true

@@ -101,8 +101,9 @@ Full CLI reference: [`src/app/CLI.md`](src/app/CLI.md)
 │   │   └── Packages/      # Local Swift packages (R2Core, R2Bridge)
 │   ├── app/engine/r2-cli/ # CLI companion (Rust crate + binary target)
 │   └── www/               # Marketing website (r2drop.com)
-├── homebrew/              # Homebrew tap templates
-├── scripts/               # Install scripts
+├── src/homebrew/          # Homebrew tap templates
+├── src/scripts/           # Install scripts
+├── src/releases/          # Release notes per version
 └── .github/workflows/     # CI/CD (build, release, deploy)
 ```
 
