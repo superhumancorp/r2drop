@@ -1,8 +1,8 @@
 # .github/workflows/cli-release.yml
 # Release pipeline for r2drop CLI binary.
 # Triggers on cli-v* tags (e.g. cli-v0.1.0).
-# Builds for macOS only (ARM + x86_64).
-# Publishes macOS binaries to GitHub Releases.
+# Cross-compiles for macOS (ARM + x86), Linux (x86_64 + ARM64), Windows (x86_64).
+# Publishes platform binaries to GitHub Releases.
 
 name: CLI Release
 
@@ -54,7 +54,7 @@ jobs:
         working-directory: ${{ env.ENGINE_DIR }}
 
   # -----------------------------------------------------------------
-  # Build matrix: compile CLI for macOS targets
+  # Build matrix: compile CLI for each target platform
   # -----------------------------------------------------------------
   build:
     name: Build (${{ matrix.target }})
@@ -76,6 +76,25 @@ jobs:
             artifact: r2drop-macos-x86_64
             ext: ""
 
+          # Linux x86_64
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            artifact: r2drop-linux-x86_64
+            ext: ""
+
+          # Linux ARM64
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+            artifact: r2drop-linux-arm64
+            ext: ""
+            cross: true
+
+          # Windows x86_64
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            artifact: r2drop-windows-x86_64
+            ext: ".exe"
+
     steps:
       - uses: actions/checkout@v4
 
@@ -94,18 +113,46 @@ jobs:
           key: rust-cli-${{ matrix.target }}-${{ hashFiles('src/app/engine/**/Cargo.lock', 'src/app/engine/**/Cargo.toml') }}
           restore-keys: rust-cli-${{ matrix.target }}-
 
+      # Cross-compilation for Linux ARM64 requires a cross-linker
+      - name: Install cross-compilation tools (Linux ARM64)
+        if: matrix.cross == true
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+
+      - name: Set cross-linker (Linux ARM64)
+        if: matrix.cross == true
+        run: |
+          mkdir -p .cargo
+          cat >> .cargo/config.toml << 'EOF'
+          [target.aarch64-unknown-linux-gnu]
+          linker = "aarch64-linux-gnu-gcc"
+          EOF
+        working-directory: ${{ env.ENGINE_DIR }}
+
       - name: Build CLI binary
         run: cargo build -p r2-cli --release --target ${{ matrix.target }}
         working-directory: ${{ env.ENGINE_DIR }}
 
-      # Package the binary into a tar.gz archive.
-      - name: Package binary
+      # Package the binary into a tar.gz (Unix) or zip (Windows)
+      - name: Package binary (Unix)
+        if: runner.os != 'Windows'
         run: |
           BINARY="target/${{ matrix.target }}/release/${{ env.BINARY_NAME }}${{ matrix.ext }}"
           ARCHIVE="${{ matrix.artifact }}.tar.gz"
           chmod +x "$BINARY"
           tar czf "$ARCHIVE" -C "target/${{ matrix.target }}/release" "${{ env.BINARY_NAME }}${{ matrix.ext }}"
           echo "ARCHIVE=$ARCHIVE" >> "$GITHUB_ENV"
+        working-directory: ${{ env.ENGINE_DIR }}
+
+      - name: Package binary (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $binary = "target/${{ matrix.target }}/release/${{ env.BINARY_NAME }}${{ matrix.ext }}"
+          $archive = "${{ matrix.artifact }}.zip"
+          Compress-Archive -Path $binary -DestinationPath $archive
+          echo "ARCHIVE=$archive" | Out-File -FilePath $env:GITHUB_ENV -Append
         working-directory: ${{ env.ENGINE_DIR }}
 
       - name: Upload artifact
