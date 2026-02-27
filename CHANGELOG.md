@@ -1,3 +1,10 @@
+## [v0.1.1](https://github.com/superhumancorp/r2drop/releases/tag/v0.1.1) — 2026-02-27
+
+- ci(release): avoid tag push on manual run and fix changelog range
+- feat(www): rename blog listing to articles, fix all nav links
+
+---
+
 ## [v0.1.0](https://github.com/superhumancorp/r2drop/releases/tag/v0.1.0) — 2026-02-27
 
 - perf(ci): only upload changed files to R2 on push
