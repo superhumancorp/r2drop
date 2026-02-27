@@ -29,11 +29,11 @@ set -e
 # Build your project
 npm run build
 
-# Upload the dist folder
+# Upload the dist folder (--json returns an array of results)
 OUTPUT=$(r2drop upload ./dist --json)
 
-# Extract the public URL (requires jq)
-URL=$(echo "$OUTPUT" | jq -r '.url')
+# Extract the first uploaded file's URL (requires jq)
+URL=$(echo "$OUTPUT" | jq -r '.[0].url')
 
 echo "Deployed to: $URL"
 ```
@@ -100,8 +100,8 @@ This keeps CI uploads isolated from your personal `~/.r2drop/` state.
 ```bash
 # Verify connectivity before a critical upload
 STATUS=$(r2drop status --json)
-if [ "$(echo "$STATUS" | jq -r '.token_valid')" != "true" ]; then
-  echo "R2 token is invalid — aborting"
+if [ "$(echo "$STATUS" | jq -r '.r2_connectivity')" != "connected" ]; then
+  echo "R2 connectivity check failed — aborting"
   exit 1
 fi
 

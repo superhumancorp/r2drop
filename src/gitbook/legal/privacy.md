@@ -28,7 +28,7 @@ R2Drop sends anonymous usage events to [PostHog](https://posthog.com) — a thir
 - Error summaries (type of error, not file contents or paths)
 - App version, macOS version, and build number
 
-**What is never sent, even when opt-in is enabled:**
+**What is never sent, even when telemetry is enabled:**
 
 - File names, file contents, or file paths
 - Your Cloudflare API token or any credentials
@@ -37,7 +37,7 @@ R2Drop sends anonymous usage events to [PostHog](https://posthog.com) — a thir
 
 All telemetry events are anonymous. A stable random identifier is generated at install time and stored in macOS Keychain — it is not linked to your name, email, or any other personal information.
 
-**To opt in or opt out at any time:** open R2Drop → Settings → toggle **Share anonymous usage data**.
+**To opt out at any time:** open R2Drop → Settings → toggle **Share anonymous usage data** off.
 
 ---
 
@@ -78,7 +78,7 @@ The R2Drop marketing website uses Cloudflare Web Analytics — a privacy-first, 
 | Service | Purpose | Data sent | Link |
 |---------|---------|-----------|------|
 | Cloudflare R2 | File upload destination | Your files (to your own bucket) | [cloudflare.com/privacypolicy](https://www.cloudflare.com/privacypolicy/) |
-| PostHog | Anonymous usage analytics (opt-in only) | Anonymous usage events — see above | [posthog.com/privacy](https://posthog.com/privacy/) |
+| PostHog | Anonymous usage analytics (on by default, opt-out) | Anonymous usage events — see above | [posthog.com/privacy](https://posthog.com/privacy/) |
 
 ---
 
@@ -90,4 +90,4 @@ R2Drop is fully open source under the MIT License. You can audit every network c
 
 ## Contact
 
-Privacy questions? Email [legal@r2drop.app](mailto:legal@r2drop.app) or open an issue on [GitHub](https://github.com/superhumancorp/r2drop/issues).
+Privacy questions? Email [legal@r2drop.com](mailto:legal@r2drop.com) or open an issue on [GitHub](https://github.com/superhumancorp/r2drop/issues).

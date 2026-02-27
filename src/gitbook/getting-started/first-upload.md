@@ -12,9 +12,9 @@ R2Drop needs a Cloudflare API token scoped to your R2 bucket.
 
 1. Open [dash.cloudflare.com](https://dash.cloudflare.com) → **My Profile → API Tokens**
 2. Click **Create Token**
-3. Use the **Edit Cloudflare Workers** template, or create a custom token with:
-   - **Permissions:** `Workers R2 Storage:Edit`
-   - **Account:** your Cloudflare account
+3. Select **Create Custom Token** and add:
+   - **Permissions:** `Account > Cloudflare R2 Storage > Edit`
+   - **Account Resources:** your Cloudflare account
 4. Copy the token — you'll only see it once
 
 **Security note:** R2Drop stores this token exclusively in macOS Keychain. It's never written to disk or transmitted to our servers.

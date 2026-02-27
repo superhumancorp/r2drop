@@ -1,8 +1,22 @@
 # Settings
 
-The **Settings tab** has three sections: Upload Performance, File Exclusion Patterns, Command Line Interface, and Configuration.
+The **Settings tab** has five sections: General, Upload Performance, File Exclusion Patterns, Command Line Interface, and Configuration.
 
 ![R2Drop settings tab walkthrough](../assets/r2drop-3.gif)
+
+---
+
+## General
+
+The General section controls app-wide behavior.
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Hide Dock icon | Off | Run as menu-bar-only app |
+| Launch at login | Off | Start R2Drop when macOS logs in |
+| Play sound on upload complete | On | System sound notification when an upload finishes |
+| Follow symlinks during upload | Off | When off, symbolic links are skipped. When on, link targets are uploaded. |
+| Share anonymous usage data | On | Send anonymous telemetry via PostHog. No personal data or file contents are ever sent. You can opt out at any time. |
 
 ---
 
@@ -39,10 +53,9 @@ Files matching these patterns are automatically skipped during upload. This is p
 - `._*`
 - `.Thumbs.db`
 - `.Spotlight-V100`
-- `__Trashes`
+- `.Trashes`
 - `__MACOSX`
 - `.fseventsd`
-- `.env`
 
 ### Adding a Pattern
 
@@ -64,7 +77,7 @@ Click **Reset to Defaults** to restore the original exclusion list.
 
 ### Install CLI
 
-If the `r2drop` CLI is not installed, click **Install CLI** to install it to `~/.local/bin/r2drop`.
+If the `r2drop` CLI is not installed, click **Install CLI** to install it to `/usr/local/bin/r2drop`.
 
 The status indicator shows:
 - 🟢 **CLI installed** — path shown

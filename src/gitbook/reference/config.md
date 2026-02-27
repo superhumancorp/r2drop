@@ -41,12 +41,22 @@ token_id = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
 [preferences]
 concurrent_uploads = 4
 chunk_size_mb = 8
+exclusion_patterns = [
+    ".DS_Store",
+    "._*",
+    ".Thumbs.db",
+    ".Spotlight-V100",
+    ".Trashes",
+    "__MACOSX",
+    ".fseventsd",
+]
 launch_at_login = false
 hide_dock_icon = false
 play_sound = true
 follow_symlinks = false
 max_log_files = 5
 max_log_file_size_mb = 10
+allow_anonymous_telemetry = true
 ```
 
 ---
@@ -60,9 +70,9 @@ max_log_file_size_mb = 10
 | `bucket` | Yes | R2 bucket name |
 | `path` | No | Path prefix within the bucket (e.g., `uploads/2026/`) |
 | `custom_domain` | No | Custom domain connected to this bucket (e.g., `cdn.example.com`) |
-| `token_id` | Yes | Identifier used to look up the API token in Keychain |
+| `token_id` | Yes | API token UUID, used as the S3 Access Key ID for R2 uploads |
 
-**Important:** API tokens are stored in macOS Keychain — not in this file. `token_id` is just a Keychain lookup key.
+**Important:** API tokens are stored in macOS Keychain — not in this file. The Keychain lookup key is the account `name`.
 
 ---
 
@@ -72,12 +82,16 @@ max_log_file_size_mb = 10
 |-----|------|---------|-------------|
 | `concurrent_uploads` | int | 4 | How many files upload in parallel (1–16) |
 | `chunk_size_mb` | int | 8 | Multipart upload chunk size in MB (5–100) |
+| `exclusion_patterns` | string[] | see below | Glob patterns for files to skip during upload |
 | `launch_at_login` | bool | false | Start R2Drop when macOS logs in |
 | `hide_dock_icon` | bool | false | Hide the app from the Dock |
 | `play_sound` | bool | true | Play a sound when an upload completes |
 | `follow_symlinks` | bool | false | Follow symlinks during folder uploads |
 | `max_log_files` | int | 5 | Number of rotated log files to keep |
 | `max_log_file_size_mb` | int | 10 | Max size of each log file (MB) |
+| `allow_anonymous_telemetry` | bool | true | Send anonymous usage telemetry via PostHog (opt-out in Settings) |
+
+Default `exclusion_patterns`: `.DS_Store`, `._*`, `.Thumbs.db`, `.Spotlight-V100`, `.Trashes`, `__MACOSX`, `.fseventsd`
 
 ---
 

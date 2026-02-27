@@ -6,7 +6,7 @@
 
 R2Drop is a native macOS menu bar application for uploading files and folders to Cloudflare R2 storage. Users right-click files in Finder → "Send to R2" and the app handles multipart, parallel, resumable uploads. The project is open source (MIT) and models itself after the Tailscale macOS experience: minimal UI, reliable background operation, zero friction.
 
-The companion CLI (`r2-cli`) shares the same Rust upload engine and config, enabling headless/server use on macOS, Linux, and Windows.
+The companion CLI (`r2-cli`) shares the same Rust upload engine and config, enabling headless/terminal use on macOS (Apple Silicon and Intel).
 
 ## Repo Layout
 
@@ -51,7 +51,7 @@ r2drop/                           # Monorepo root
 - **IPC:** App Groups (`group.com.superhumancorp.r2drop`) + shared SQLite
 - **Auto-updates:** Sparkle framework (Ed25519 key: `NWlOpvs7+ccCaW6557MqyCO94w3KVziS7uAOOxR8gQk=`)
 - **CI/CD:** GitHub Actions
-- **Distribution:** .dmg + Homebrew Cask
+- **Distribution:** .dmg from GitHub Releases (Homebrew tap templates exist but not yet published)
 
 ## Credentials & Secrets
 
@@ -127,6 +127,10 @@ open src/app/R2Drop.xcworkspace
 ## Session Log
 
 <!-- Append dated entries as you learn things. Most recent first. -->
+
+### 2026-02-27
+- Full documentation audit against codebase. Fixed inaccuracies in gitbook docs, README.md, and CLAUDE.md.
+- Key fixes: exclusion patterns list was wrong (.Trashes not __Trashes, removed .env not in defaults), company name corrected to "Superhuman Intelligence LLC", CLI is macOS-only (not Linux/Windows), Homebrew tap marked as "coming soon" (not yet published), app installs CLI to /usr/local/bin (not ~/.local/bin), added missing config fields (exclusion_patterns, allow_anonymous_telemetry) to reference docs, fixed telemetry from "opt-in" to "on by default, opt-out", fixed email domain from r2drop.app to r2drop.com, added S3 credential derivation (SHA-256) to architecture docs, fixed automation script JSON field names.
 
 ### 2026-02-23
 - Initial CLAUDE.md created

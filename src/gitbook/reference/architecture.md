@@ -52,8 +52,19 @@ Files go **directly from your Mac to Cloudflare R2**. R2Drop's servers are never
 | Credentials | macOS Keychain (`Security.framework`) |
 | IPC | Unix socket (`r2drop.sock`) + shared SQLite via App Groups |
 | Auto-updates | Sparkle framework |
-| Distribution | `.dmg` + Homebrew Cask |
+| Distribution | `.dmg` from GitHub Releases |
 | CI/CD | GitHub Actions |
+
+---
+
+## S3 Credential Derivation
+
+Cloudflare R2 uses S3-compatible authentication. R2Drop derives S3 credentials from the user's Cloudflare API token:
+
+- **Access Key ID** = the API token's UUID (stored as `token_id` in config.toml, retrieved from `/user/tokens/verify`)
+- **Secret Access Key** = SHA-256 hex hash of the full API token string
+
+This is a Cloudflare R2 convention — the same derivation is used by Wrangler and other R2 tools.
 
 ---
 
@@ -82,5 +93,5 @@ App Group identifier: `group.com.superhumancorp.r2drop`
 |----------|---------|-------------|
 | `ci.yml` | Push/PR to `main` | Build + lint |
 | `release.yml` | Tag `v*` | Sign, notarize, publish `.dmg`, bump Homebrew tap |
-| `cli-release.yml` | Tag `v*` | Build CLI (macOS arm64 + x86_64) |
+| `cli-release.yml` | Tag `cli-v*` | Build CLI (macOS arm64 + x86_64) |
 | `deploy-www.yml` | Push to `src/www/` | Deploy website to Cloudflare Pages |

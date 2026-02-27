@@ -55,7 +55,7 @@ Download the latest `.dmg` from [GitHub Releases](https://github.com/superhumanc
 
 ### CLI
 
-**Homebrew:**
+**Homebrew (coming soon):**
 ```bash
 brew tap superhumancorp/tap
 brew install --formula superhumancorp/tap/r2drop
@@ -66,7 +66,7 @@ brew install --formula superhumancorp/tap/r2drop
 curl -fsSL https://r2drop.com/install.sh | bash
 ```
 
-**From the macOS app:** Open Preferences → Install CLI (installs to `~/.local/bin`)
+**From the macOS app:** Open Settings → Install CLI (installs to `/usr/local/bin`)
 
 ## 🏁 Quick Start
 
@@ -137,7 +137,7 @@ See [`src/app/INSTRUMENTATION.md`](src/app/INSTRUMENTATION.md) for the event cat
 |----------|---------|--------------|
 | `ci.yml` | Push/PR to `main` | Build + lint |
 | `release.yml` | Tag `v*` | Sign, notarize, publish DMGs, bump Homebrew tap |
-| `cli-release.yml` | Tag `cli-v*` | Cross-compile CLI (macOS + Linux) |
+| `cli-release.yml` | Tag `cli-v*` | Build CLI (macOS arm64 + x86_64) |
 | `deploy-www.yml` | Push to `src/www/` | Deploy website to Cloudflare R2 |
 
 ## 🐛 Troubleshooting
@@ -164,10 +164,10 @@ echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc
 
 ## 📄 License
 
-Copyright © 2026 Superhuman Corp. All rights reserved.
+Copyright © 2026 Superhuman Intelligence LLC. All rights reserved.
 
 ---
 
 <p align="center">
-  Built with ❤️ by <a href="https://github.com/superhumancorp">Superhuman Corp</a>
+  Built with ❤️ by <a href="https://github.com/superhumancorp">Superhuman Intelligence LLC</a>
 </p>

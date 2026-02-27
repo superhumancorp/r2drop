@@ -4,14 +4,14 @@ The `r2drop` CLI is a standalone macOS binary. It supports both Apple Silicon (a
 
 ---
 
-## Option 1: Homebrew (Recommended)
+## Option 1: Homebrew (Coming Soon)
+
+The Homebrew tap is not yet published. For now, use the quick install script or build from source.
 
 ```bash
 brew tap superhumancorp/tap
 brew install --formula superhumancorp/tap/r2drop
 ```
-
-This is the easiest method and handles updates automatically via `brew upgrade`.
 
 ---
 
@@ -32,7 +32,7 @@ If you already have R2Drop installed, the app can install the CLI for you.
 1. Open R2Drop → **Settings tab → Command Line Interface**
 2. Click **Install CLI**
 
-The CLI is installed to `~/.local/bin/r2drop` and shares the app's credentials and config.
+The CLI is installed to `/usr/local/bin/r2drop` and shares the app's credentials and config.
 
 ---
 

@@ -173,12 +173,10 @@ r2drop history --json                 # JSON output
 
 ---
 
-## Global Flags
+## Common Flags
 
-These flags work on all commands:
-
-| Flag | Description |
-|------|-------------|
-| `--json` | Output results as JSON with file paths, URLs, sizes, and status. Useful for piping into `jq` or integrating with scripts. |
-| `--help` | Show help for the command |
-| `--version` | Show CLI version |
+| Flag | Available On | Description |
+|------|-------------|-------------|
+| `--json` | `upload`, `status`, `queue`, `accounts`, `config get`, `config set`, `history` | Output results as JSON. Useful for piping into `jq` or integrating with scripts. |
+| `--help` | All commands | Show help for the command |
+| `--version` | Top-level | Show CLI version |

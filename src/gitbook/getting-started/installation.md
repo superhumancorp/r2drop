@@ -17,7 +17,9 @@ Download the latest `.dmg` from [GitHub Releases](https://github.com/superhumanc
 3. Launch R2Drop — the menu bar icon appears
 4. Complete the [onboarding flow](first-upload.md) to connect your Cloudflare account
 
-### Homebrew Cask
+### Homebrew Cask (Coming Soon)
+
+The Homebrew tap is not yet published. For now, use the direct `.dmg` download above.
 
 ```bash
 brew tap superhumancorp/tap
@@ -30,7 +32,9 @@ brew install --cask superhumancorp/tap/r2drop
 
 The CLI lets you upload files from your terminal, automate uploads in scripts, and use R2Drop in CI pipelines.
 
-### Option 1: Homebrew (Recommended)
+### Option 1: Homebrew (Coming Soon)
+
+The Homebrew tap is not yet published. For now, use the quick install script or build from source.
 
 ```bash
 brew tap superhumancorp/tap
@@ -51,7 +55,7 @@ If you already have the app installed, open **Settings → Command Line Interfac
 
 <figure><img src="https://cdn.r2drop.com/screenshot-6.png" alt="Settings tab showing CLI install button"></figure>
 
-The app installs `r2drop` to `~/.local/bin/r2drop`.
+The app installs `r2drop` to `/usr/local/bin/r2drop`.
 
 ### Option 4: Build From Source
 
