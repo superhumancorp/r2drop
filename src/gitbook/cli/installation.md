@@ -1,6 +1,6 @@
 # CLI Installation
 
-The `r2drop` CLI is a standalone binary. It works on macOS and Linux (x86_64 and arm64).
+The `r2drop` CLI is a standalone macOS binary. It supports both Apple Silicon (arm64) and Intel (x86_64) Macs.
 
 ---
 
@@ -21,7 +21,7 @@ This is the easiest method and handles updates automatically via `brew upgrade`.
 curl -fsSL https://r2drop.com/install.sh | bash
 ```
 
-Installs `r2drop` to `~/.local/bin`. Works on macOS and Linux.
+Installs `r2drop` to `~/.local/bin`.
 
 ---
 

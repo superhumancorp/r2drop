@@ -131,7 +131,7 @@
 <li>A Cloudflare API token with <strong>R2:Edit</strong> permission (we'll create this below)</li>
 <li>A GitHub repository with Actions enabled</li>
 </ul>
-<p>The R2Drop CLI runs on Linux, macOS, and Windows. GitHub's <code>ubuntu-latest</code> runners work perfectly out of the box.</p>
+<p>The R2Drop CLI runs on macOS. For CI environments, use the install script which supports macOS runners. GitHub's <code>macos-latest</code> runners work perfectly out of the box.</p>
 
 <h2>Creating a Cloudflare API Token</h2>
 <p>You should never use your global Cloudflare API key for CI/CD. Instead, create a minimal-permission token scoped only to R2. Here's how.</p>
@@ -175,7 +175,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
       - name: Checkout code
@@ -254,12 +254,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
-            platform: linux-amd64
           - os: macos-latest
             platform: macos-arm64
-          - os: windows-latest
-            platform: windows-amd64
 
     steps:
       - uses: actions/checkout@v4
@@ -274,7 +270,7 @@ jobs:
             --account ci \
             --key "releases/${{ github.ref_name }}/mybinary-${{ matrix.platform }}" \
             --json</code></pre>
-<p>All three matrix jobs run concurrently. Each uploads its platform-specific binary to a distinct key under the same release path.</p>
+<p>Each matrix job uploads its platform-specific binary to a distinct key under the same release path. Use the <code>--json</code> flag to capture structured output for downstream steps.</p>
 
 <h2>Local Development: Use the R2Drop macOS App</h2>
 <p>The CLI is designed for headless, automated use. But when you're actively developing &mdash; iterating on a build, testing assets, or manually pushing files &mdash; the <a href="upload-files-cloudflare-r2-macos">R2Drop macOS app</a> is significantly faster.</p>

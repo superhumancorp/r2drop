@@ -11,6 +11,7 @@ use r2_core::credentials;
 use r2_core::history::HistoryDb;
 use r2_core::s3::R2Client;
 use r2_core::upload::{self, UploadConfig, UploadProgress};
+use sha2::{Sha256, Digest};
 
 // ---------------------------------------------------------------------------
 // CLI args
@@ -27,6 +28,9 @@ pub struct UploadArgs {
     /// Upload using a specific account name
     #[arg(long)]
     pub account: Option<String>,
+    /// Output results as JSON (file paths and URLs)
+    #[arg(long)]
+    pub json: bool,
 }
 
 // ---------------------------------------------------------------------------
@@ -48,10 +52,14 @@ pub async fn cmd_upload(args: UploadArgs) {
         std::process::exit(1);
     }
 
-    // CLI currently passes token as both S3 creds (legacy behavior).
-    // When the CLI gets proper S3 credential support, these should be
-    // replaced with the real access_key_id and secret_access_key.
-    let client = R2Client::new(account_id, &token, &token, &token);
+    // S3-compatible credentials: access_key_id is the token UUID from config,
+    // secret_access_key is the SHA-256 hex hash of the API token (Cloudflare R2 convention).
+    let access_key_id = account.token_id.as_deref().unwrap_or_else(|| {
+        eprintln!("Account \"{}\" missing token_id. Re-run `r2drop login`.", account.name);
+        std::process::exit(1);
+    });
+    let secret_access_key = sha256_hex(&token);
+    let client = R2Client::new(account_id, &token, access_key_id, &secret_access_key);
     let upload_cfg = UploadConfig {
         chunk_size_bytes: cfg.preferences.chunk_size_mb as usize * 1024 * 1024,
         concurrency: cfg.preferences.concurrent_uploads as usize,
@@ -89,13 +97,46 @@ pub async fn cmd_upload(args: UploadArgs) {
     };
 
     if files.is_empty() {
-        println!("No files to upload.");
+        if args.json {
+            println!("[]");
+        } else {
+            println!("No files to upload.");
+        }
         return;
     }
-    println!("Uploading {} file(s) to {}/{}", files.len(), account.bucket, account.path);
+
+    let json_mode = args.json;
+
+    // Build the base URL for public links.
+    // Ensure https:// prefix if the custom domain doesn't include a scheme.
+    let base_url = account
+        .custom_domain
+        .as_deref()
+        .filter(|d| !d.is_empty())
+        .map(|d| {
+            let d = d.trim_end_matches('/');
+            if d.starts_with("http://") || d.starts_with("https://") {
+                d.to_string()
+            } else {
+                format!("https://{d}")
+            }
+        })
+        .unwrap_or_else(|| {
+            format!("https://{}.r2.cloudflarestorage.com/{}", account_id, account.bucket)
+        });
+
+    if !json_mode {
+        let display_path = account.path.trim_matches('/');
+        if display_path.is_empty() {
+            println!("Uploading {} file(s) to {}", files.len(), account.bucket);
+        } else {
+            println!("Uploading {} file(s) to {}/{}", files.len(), account.bucket, display_path);
+        }
+    }
 
     let cancel = AtomicBool::new(false);
     let mut ok_count = 0;
+    let mut results: Vec<serde_json::Value> = Vec::new();
 
     for (local_path, r2_key, cleanup) in &files {
         let file_name = local_path
@@ -103,24 +144,32 @@ pub async fn cmd_upload(args: UploadArgs) {
             .map(|n| n.to_string_lossy().to_string())
             .unwrap_or_else(|| r2_key.clone());
         let total = std::fs::metadata(local_path).map(|m| m.len()).unwrap_or(0);
+        let url = format!("{}/{}", base_url, r2_key);
 
-        println!("  {} ({})", file_name, crate::format_bytes(total));
-
-        // Progress callback — overwrites current line via \r
-        let progress_cb: Box<dyn Fn(UploadProgress) + Send + Sync> = Box::new(|p| {
-            let pct = if p.total_bytes > 0 {
-                (p.bytes_uploaded * 100) / p.total_bytes
-            } else {
-                100
-            };
-            let speed = format_speed(p.speed_bytes_per_sec);
-            let eta = match p.eta_seconds {
-                Some(s) if s > 0.5 => format!("ETA {s:.0}s"),
-                _ => String::new(),
-            };
-            print!("\r    {pct:>3}%  {speed}  {eta}          ");
+        if !json_mode {
+            print!("  {} ({})  ", file_name, crate::format_bytes(total));
             let _ = std::io::stdout().flush();
-        });
+        }
+
+        // Progress callback — overwrites current line via \r (suppressed in JSON mode)
+        let progress_cb: Box<dyn Fn(UploadProgress) + Send + Sync> = if json_mode {
+            Box::new(|_| {})
+        } else {
+            Box::new(|p| {
+                let pct = if p.total_bytes > 0 {
+                    (p.bytes_uploaded * 100) / p.total_bytes
+                } else {
+                    100
+                };
+                let speed = format_speed(p.speed_bytes_per_sec);
+                let eta = match p.eta_seconds {
+                    Some(s) if s > 0.5 => format!("ETA {s:.0}s"),
+                    _ => String::new(),
+                };
+                print!("\r    {pct:>3}%  {speed}  {eta}          ");
+                let _ = std::io::stdout().flush();
+            })
+        };
 
         match upload::upload_file(
             &client,
@@ -134,17 +183,34 @@ pub async fn cmd_upload(args: UploadArgs) {
         .await
         {
             Ok(result) => {
-                // Overwrite progress line with result
-                if result.already_existed {
-                    print!("\r    skipped (already exists)              \n");
+                if json_mode {
+                    results.push(serde_json::json!({
+                        "file": file_name,
+                        "key": r2_key,
+                        "url": url,
+                        "size": total,
+                        "status": if result.already_existed { "skipped" } else { "uploaded" }
+                    }));
+                } else if result.already_existed {
+                    println!("\r  {} ({}) → skipped (already exists)", file_name, crate::format_bytes(total));
                 } else {
-                    print!("\r    done                                  \n");
+                    println!("\r  {} ({}) → {}                    ", file_name, crate::format_bytes(total), url);
                 }
                 record_history(&file_name, total, r2_key, &account.bucket, &account.name);
                 ok_count += 1;
             }
             Err(e) => {
-                print!("\r    failed: {e}                           \n");
+                if json_mode {
+                    results.push(serde_json::json!({
+                        "file": file_name,
+                        "key": r2_key,
+                        "size": total,
+                        "status": "failed",
+                        "error": format!("{e}")
+                    }));
+                } else {
+                    println!("\r  {} ({}) → failed: {e}", file_name, crate::format_bytes(total));
+                }
             }
         }
 
@@ -153,7 +219,11 @@ pub async fn cmd_upload(args: UploadArgs) {
         }
     }
 
-    println!("{ok_count}/{} file(s) uploaded.", files.len());
+    if json_mode {
+        println!("{}", serde_json::to_string_pretty(&results).unwrap_or_default());
+    } else {
+        println!("{ok_count}/{} file(s) uploaded.", files.len());
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -203,11 +273,12 @@ fn resolve_account<'a>(
 // ---------------------------------------------------------------------------
 
 /// Build an R2 key by joining a path prefix with a file name.
+/// Strips leading/trailing slashes from prefix to avoid double-slash paths.
 fn build_r2_key(prefix: &str, name: &str) -> String {
+    let prefix = prefix.trim_matches('/');
+    let name = name.trim_start_matches('/');
     if prefix.is_empty() {
         name.to_string()
-    } else if prefix.ends_with('/') {
-        format!("{prefix}{name}")
     } else {
         format!("{prefix}/{name}")
     }
@@ -304,6 +375,18 @@ fn add_dir_to_zip(
         }
     }
     Ok(())
+}
+
+// ---------------------------------------------------------------------------
+// Crypto helpers
+// ---------------------------------------------------------------------------
+
+/// Derive the S3 Secret Access Key from a Cloudflare API token.
+/// Cloudflare R2 convention: secret_access_key = SHA-256 hex hash of the API token.
+fn sha256_hex(input: &str) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(input.as_bytes());
+    format!("{:x}", hasher.finalize())
 }
 
 // ---------------------------------------------------------------------------

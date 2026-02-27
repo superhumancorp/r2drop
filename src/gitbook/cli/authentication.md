@@ -77,8 +77,7 @@ r2drop accounts
 
 API tokens are stored in the OS keychain — not in any file.
 
-- **macOS:** Keychain, service name `com.superhumancorp.r2drop`
-- **Linux:** System keyring (libsecret/secretservice where available), or encrypted file fallback
+- **macOS Keychain**, service name `com.superhumancorp.r2drop`
 
 Tokens are never written to `config.toml`, shell history, or environment variables.
 

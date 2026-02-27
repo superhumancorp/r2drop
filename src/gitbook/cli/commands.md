@@ -48,7 +48,25 @@ r2drop upload ./release.zip --account "Work CDN"
 |------|-------------|
 | `--compress` | Create a ZIP file in temp storage before uploading |
 | `--account <NAME>` | Upload using a specific configured account |
-| `--json` | Output result as JSON |
+| `--json` | Output results as JSON with file paths, URLs, sizes, and status. Useful for piping into `jq` or integrating with scripts. |
+
+### `--json` Output Example
+
+```bash
+r2drop upload ./screenshots --json
+```
+
+```json
+[
+  {
+    "file": "screenshot.png",
+    "key": "uploads/screenshot.png",
+    "url": "https://cdn.example.com/uploads/screenshot.png",
+    "size": 245760,
+    "status": "uploaded"
+  }
+]
+```
 
 ### Notes
 
@@ -161,6 +179,6 @@ These flags work on all commands:
 
 | Flag | Description |
 |------|-------------|
-| `--json` | Output as JSON (supported on most commands) |
+| `--json` | Output results as JSON with file paths, URLs, sizes, and status. Useful for piping into `jq` or integrating with scripts. |
 | `--help` | Show help for the command |
 | `--version` | Show CLI version |

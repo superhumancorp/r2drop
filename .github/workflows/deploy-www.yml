@@ -19,12 +19,15 @@ jobs:
       - name: Get changed files
         id: changed
         run: |
-          # Get files changed in src/www/ between this commit and the previous one
-          # For workflow_dispatch or first commit, fall back to uploading everything
-          if git rev-parse HEAD~1 >/dev/null 2>&1; then
-            CHANGED=$(git diff --name-only HEAD~1 HEAD -- src/www/ | sed 's|^src/www/||')
-          else
+          # Compare against the previous commit pushed to this branch.
+          # ${{ github.event.before }} is the SHA before this push — handles
+          # multi-commit pushes (e.g. after rebase) correctly.
+          BEFORE="${{ github.event.before }}"
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || [ -z "$BEFORE" ]; then
+            # First push or workflow_dispatch — upload everything
             CHANGED=$(cd src/www && find . -type f | sed 's|^\./||')
+          else
+            CHANGED=$(git diff --name-only "$BEFORE" HEAD -- src/www/ | sed 's|^src/www/||')
           fi
 
           if [ -z "$CHANGED" ]; then
@@ -32,17 +35,21 @@ jobs:
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
           else
             echo "has_changes=true" >> "$GITHUB_OUTPUT"
-            # Write changed files to a temp file (one per line)
             echo "$CHANGED" > /tmp/changed_files.txt
-            echo "Changed files:"
+            FILE_COUNT=$(wc -l < /tmp/changed_files.txt | tr -d ' ')
+            echo "Changed $FILE_COUNT file(s):"
             cat /tmp/changed_files.txt
           fi
 
           # Check if install.sh changed
-          if git diff --name-only HEAD~1 HEAD -- scripts/install.sh | grep -q install.sh; then
-            echo "install_changed=true" >> "$GITHUB_OUTPUT"
+          if [ "$BEFORE" != "0000000000000000000000000000000000000000" ] && [ -n "$BEFORE" ]; then
+            if git diff --name-only "$BEFORE" HEAD -- scripts/install.sh | grep -q install.sh; then
+              echo "install_changed=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "install_changed=false" >> "$GITHUB_OUTPUT"
+            fi
           else
-            echo "install_changed=false" >> "$GITHUB_OUTPUT"
+            echo "install_changed=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Deploy changed files to R2

@@ -12,7 +12,8 @@ It lets you upload files and folders, manage accounts, inspect the upload queue,
 - Script uploads in shell scripts, Makefiles, and CI workflows
 - JSON output (`--json`) for machine-readable parsing
 - Share accounts and config with the macOS app — no duplicate setup
-- Runs on macOS and Linux (x86_64 and arm64)
+- Runs on macOS (Apple Silicon and Intel)
+- `--json` flag for structured output — pipe into `jq` or integrate with scripts
 
 ---
 

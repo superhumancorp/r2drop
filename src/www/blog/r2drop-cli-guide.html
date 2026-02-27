@@ -120,15 +120,15 @@
 </div>
 <div fade-in="intro" class="post-richtext-wrapper">
 <div class="richtext w-richtext">
-<p>R2Drop ships with a companion command-line tool called <code>r2drop</code> that brings the same fast, reliable Cloudflare R2 upload experience to the terminal. Whether you're writing a deployment script, automating asset uploads in CI/CD, or just prefer the command line, r2drop gives you a single command to upload files to any R2 bucket from macOS, Linux, or Windows.</p>
+<p>R2Drop ships with a companion command-line tool called <code>r2drop</code> that brings the same fast, reliable Cloudflare R2 upload experience to the terminal. Whether you're writing a deployment script, automating asset uploads in CI/CD, or just prefer the command line, r2drop gives you a single command to upload files to any R2 bucket from macOS.</p>
 <h2>What is the R2Drop CLI?</h2>
 <p>The R2Drop CLI (<code>r2drop</code>) is a standalone binary built on the same Rust upload engine as the macOS app. It shares the same configuration file (<code>~/.r2drop/config.toml</code>), so any accounts you've already configured in the R2Drop macOS app are immediately available from the terminal &mdash; no duplicate setup required.</p>
 <p>Key features of the R2Drop CLI include:</p>
-<ul role="list"><li>Multipart, parallel uploads for large files</li><li>Resumable uploads that survive connection drops</li><li>JSON output mode for scripting and automation</li><li>Cross-platform: macOS, Linux, and Windows</li><li>Reads the same <code>~/.r2drop/config.toml</code> as the macOS app</li><li>Supports multiple named accounts with a <code>--account</code> flag</li></ul>
+<ul role="list"><li>Multipart, parallel uploads for large files</li><li>Resumable uploads that survive connection drops</li><li>JSON output mode for scripting and automation</li><li>Scriptable JSON output for automation with <code>--json</code></li><li>Reads the same <code>~/.r2drop/config.toml</code> as the macOS app</li><li>Supports multiple named accounts with a <code>--account</code> flag</li></ul>
 <figure style="margin:32px 0;"><img src="../screenshot-2.png" alt="R2Drop desktop app upload queue showing active uploads with progress bars" loading="lazy" style="width:100%;border-radius:8px;border:1px solid rgba(255,255,255,0.1);"/><figcaption style="text-align:center;font-size:0.85rem;color:#888;margin-top:8px;">R2Drop desktop app — shares the same config as the CLI</figcaption></figure>
 <h2>Installing the R2Drop CLI</h2>
-<h3>Via Homebrew (macOS &amp; Linux)</h3>
-<p>The easiest way to install r2drop on macOS or Linux is via Homebrew:</p>
+<h3>Via Homebrew</h3>
+<p>The easiest way to install r2drop on macOS is via Homebrew:</p>
 <pre><code>brew tap superhumancorp/tap
 brew install --formula superhumancorp/tap/r2drop</code></pre>
 <h3>Via the install script</h3>
@@ -136,7 +136,7 @@ brew install --formula superhumancorp/tap/r2drop</code></pre>
 <pre><code>curl -sf https://r2drop.com/install.sh | sh</code></pre>
 <p>This script detects your platform and architecture, downloads the correct binary, and places it in <code>/usr/local/bin</code>.</p>
 <h3>Manual download</h3>
-<p>Pre-built binaries for macOS (arm64, x86_64), Linux (arm64, x86_64), and Windows (x86_64) are available on the <a href="https://github.com/superhumancorp/r2drop/releases">GitHub Releases page</a>.</p>
+<p>Pre-built binaries for macOS (Apple Silicon and Intel) are available on the <a href="https://github.com/superhumancorp/r2drop/releases">GitHub Releases page</a>.</p>
 <h2>Basic Usage</h2>
 <p>The core command for uploading a file to Cloudflare R2 is:</p>
 <pre><code>r2drop upload &lt;file&gt;</code></pre>
@@ -182,7 +182,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 

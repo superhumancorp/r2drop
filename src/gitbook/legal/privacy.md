@@ -34,7 +34,6 @@ R2Drop sends anonymous usage events to [PostHog](https://posthog.com) — a thir
 - Your Cloudflare API token or any credentials
 - Bucket names or account names (these are one-way hashed with a per-install salt before transmission — the original values cannot be recovered)
 - Upload history or destination URLs
-- IP address (PostHog is configured without IP capture)
 
 All telemetry events are anonymous. A stable random identifier is generated at install time and stored in macOS Keychain — it is not linked to your name, email, or any other personal information.
 

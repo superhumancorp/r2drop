@@ -81,8 +81,7 @@ source ~/.zshrc
 | Component | Requirement |
 |-----------|-------------|
 | macOS app | macOS 13 Ventura or later |
-| CLI (macOS) | macOS 10.15+ |
-| CLI (Linux) | Any modern 64-bit Linux (arm64 or x86_64) |
+| CLI | macOS 10.15+ (Apple Silicon and Intel) |
 
 ---
 

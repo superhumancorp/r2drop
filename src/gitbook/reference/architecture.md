@@ -82,5 +82,5 @@ App Group identifier: `group.com.superhumancorp.r2drop`
 |----------|---------|-------------|
 | `ci.yml` | Push/PR to `main` | Build + lint |
 | `release.yml` | Tag `v*` | Sign, notarize, publish `.dmg`, bump Homebrew tap |
-| `cli-release.yml` | Tag `v*` | Cross-compile CLI (macOS + Linux, arm64 + x86_64) |
+| `cli-release.yml` | Tag `v*` | Build CLI (macOS arm64 + x86_64) |
 | `deploy-www.yml` | Push to `src/www/` | Deploy website to Cloudflare Pages |
