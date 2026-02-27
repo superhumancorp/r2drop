@@ -1,5 +1,27 @@
 ## [v0.1.1](https://github.com/superhumancorp/r2drop/releases/tag/v0.1.1) — 2026-02-27
 
+- fix(www): rebuild about page using privacy template layout
+- docs: audit and fix documentation accuracy against codebase
+- build(release): add local dual-arch DMG lane and make target
+- fix: macOS-only docs, --json flag, SHA-256 S3 creds, CI diff-only deploy
+- chore: update changelog for v0.1.1 [skip ci]
+- chore: update changelog for v0.1.1 [skip ci]
+- ci(release): normalize cert password whitespace before validation/import
+- chore: update changelog for v0.1.1 [skip ci]
+- ci(release): add legacy PKCS12 fallback for macOS keychain import
+- chore: update changelog for v0.1.1 [skip ci]
+- ci(release): align cert decode/import with preflight validation
+- chore: update changelog for v0.1.1 [skip ci]
+- chore: update changelog for v0.1.1 [skip ci]
+- ci(release): add preflight validation for signing and secrets
+- chore: update changelog for v0.1.1 [skip ci]
+- ci(release): avoid tag push on manual run and fix changelog range
+- feat(www): rename blog listing to articles, fix all nav links
+
+---
+
+## [v0.1.1](https://github.com/superhumancorp/r2drop/releases/tag/v0.1.1) — 2026-02-27
+
 - chore: update changelog for v0.1.1 [skip ci]
 - ci(release): normalize cert password whitespace before validation/import
 - chore: update changelog for v0.1.1 [skip ci]
