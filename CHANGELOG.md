@@ -1,3 +1,10 @@
+## [v0.1.0](https://github.com/superhumancorp/r2drop/releases/tag/v0.1.0) — 2026-02-27
+
+- perf(ci): only upload changed files to R2 on push
+- feat(www): create blog.html articles page, rename Resources to Articles
+
+---
+
 ## [v0.1.0](https://github.com/superhumancorp/r2drop/releases/tag/v0.1.0) — 2026-02-26
 
 - fix: use DEVELOPER_ID_CERTIFICATE_P12 in release workflow
