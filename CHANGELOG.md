@@ -1,5 +1,17 @@
 ## [v0.1.1](https://github.com/superhumancorp/r2drop/releases/tag/v0.1.1) — 2026-02-27
 
+- ci(release): align cert decode/import with preflight validation
+- chore: update changelog for v0.1.1 [skip ci]
+- chore: update changelog for v0.1.1 [skip ci]
+- ci(release): add preflight validation for signing and secrets
+- chore: update changelog for v0.1.1 [skip ci]
+- ci(release): avoid tag push on manual run and fix changelog range
+- feat(www): rename blog listing to articles, fix all nav links
+
+---
+
+## [v0.1.1](https://github.com/superhumancorp/r2drop/releases/tag/v0.1.1) — 2026-02-27
+
 - chore: update changelog for v0.1.1 [skip ci]
 - ci(release): add preflight validation for signing and secrets
 - chore: update changelog for v0.1.1 [skip ci]
