@@ -267,8 +267,23 @@ jobs:
             exit 1
           fi
 
-          security import "$CERT_PATH" -P "$CERTIFICATE_PASSWORD" \
-            -A -f pkcs12 -k "$KEYCHAIN_PATH"
+          if ! security import "$CERT_PATH" -P "$CERTIFICATE_PASSWORD" \
+            -A -f pkcs12 -k "$KEYCHAIN_PATH"; then
+            echo "::warning::Direct PKCS#12 import failed; attempting legacy-compatible re-export."
+            LEGACY_PEM="$RUNNER_TEMP/cert-legacy.pem"
+            LEGACY_P12="$RUNNER_TEMP/cert-legacy.p12"
+
+            openssl pkcs12 -in "$CERT_PATH" \
+              -passin "pass:${CERTIFICATE_PASSWORD}" \
+              -nodes -out "$LEGACY_PEM" >/dev/null 2>&1
+            openssl pkcs12 -export -legacy \
+              -in "$LEGACY_PEM" \
+              -out "$LEGACY_P12" \
+              -passout "pass:${CERTIFICATE_PASSWORD}" >/dev/null 2>&1
+
+            security import "$LEGACY_P12" -P "$CERTIFICATE_PASSWORD" \
+              -A -f pkcs12 -k "$KEYCHAIN_PATH"
+          fi
           security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" "$KEYCHAIN_PATH"
 
