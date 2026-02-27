@@ -191,6 +191,7 @@ jobs:
           TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
         run: |
           set -euo pipefail
+          CERT_PASSWORD="$(printf '%s' "$APPLE_CERTIFICATE_PASSWORD" | tr -d '\r\n')"
 
           required=(
             APPLE_CERTIFICATE_BASE64
@@ -229,14 +230,14 @@ jobs:
           fi
 
           if ! openssl pkcs12 -in "$CERT_PATH" \
-            -passin "pass:${APPLE_CERTIFICATE_PASSWORD}" \
+            -passin "pass:${CERT_PASSWORD}" \
             -nokeys >/dev/null 2>&1; then
             echo "::error::Decoded certificate is not a valid .p12 or APPLE_CERTIFICATE_PASSWORD is incorrect."
             exit 1
           fi
 
           SUBJECT=$(openssl pkcs12 -in "$CERT_PATH" \
-            -passin "pass:${APPLE_CERTIFICATE_PASSWORD}" \
+            -passin "pass:${CERT_PASSWORD}" \
             -clcerts -nokeys 2>/dev/null | \
             openssl x509 -noout -subject 2>/dev/null || true)
           if ! echo "$SUBJECT" | grep -q "Developer ID Application"; then
@@ -254,6 +255,7 @@ jobs:
           CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
         run: |
           set -euo pipefail
+          CERT_PASSWORD="$(printf '%s' "$CERTIFICATE_PASSWORD" | tr -d '\r\n')"
           KEYCHAIN_PATH=$RUNNER_TEMP/signing.keychain-db
           CERT_PATH="$RUNNER_TEMP/cert.p12"
 
@@ -267,21 +269,21 @@ jobs:
             exit 1
           fi
 
-          if ! security import "$CERT_PATH" -P "$CERTIFICATE_PASSWORD" \
+          if ! security import "$CERT_PATH" -P "$CERT_PASSWORD" \
             -A -f pkcs12 -k "$KEYCHAIN_PATH"; then
             echo "::warning::Direct PKCS#12 import failed; attempting legacy-compatible re-export."
             LEGACY_PEM="$RUNNER_TEMP/cert-legacy.pem"
             LEGACY_P12="$RUNNER_TEMP/cert-legacy.p12"
 
             openssl pkcs12 -in "$CERT_PATH" \
-              -passin "pass:${CERTIFICATE_PASSWORD}" \
+              -passin "pass:${CERT_PASSWORD}" \
               -nodes -out "$LEGACY_PEM" >/dev/null 2>&1
             openssl pkcs12 -export -legacy \
               -in "$LEGACY_PEM" \
               -out "$LEGACY_P12" \
-              -passout "pass:${CERTIFICATE_PASSWORD}" >/dev/null 2>&1
+              -passout "pass:${CERT_PASSWORD}" >/dev/null 2>&1
 
-            security import "$LEGACY_P12" -P "$CERTIFICATE_PASSWORD" \
+            security import "$LEGACY_P12" -P "$CERT_PASSWORD" \
               -A -f pkcs12 -k "$KEYCHAIN_PATH"
           fi
           security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain
