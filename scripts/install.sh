@@ -38,9 +38,8 @@ detect_os() {
   os="$(uname -s | tr '[:upper:]' '[:lower:]')"
   case "$os" in
     darwin) printf 'macos' ;;
-    linux)  printf 'linux' ;;
     *)
-      error "Unsupported OS: $os"
+      error "Unsupported OS: $os — R2Drop CLI is macOS only."
       error "Download manually: https://github.com/${REPO}/releases"
       exit 1
       ;;
@@ -66,8 +65,6 @@ asset_name() {
   case "${os}-${arch}" in
     macos-arm64)    printf 'r2drop-macos-arm64.tar.gz' ;;
     macos-x86_64)   printf 'r2drop-macos-x86_64.tar.gz' ;;
-    linux-arm64)    printf 'r2drop-linux-arm64.tar.gz' ;;
-    linux-x86_64)   printf 'r2drop-linux-x86_64.tar.gz' ;;
     *)
       error "Unsupported platform combo: ${os}-${arch}"
       exit 1

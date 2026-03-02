@@ -33,7 +33,7 @@ permissions:
 
 env:
   SCHEME: R2Drop
-  PROJECT: src/app/R2Drop.xcodeproj
+  PROJECT: app/R2Drop.xcodeproj
 
 jobs:
   release:
@@ -134,16 +134,16 @@ jobs:
           echo "notes_file=$RUNNER_TEMP/release_notes.md" >> "$GITHUB_OUTPUT"
 
       # ─────────────────────────────────────────────
-      # 4. Write individual release file and update src/docs/CHANGELOG.md.
+      # 4. Write individual release file and update docs/CHANGELOG.md.
       #    Commits these back to main with [skip ci] so CI doesn't re-run.
       # ─────────────────────────────────────────────
-      - name: Update CHANGELOG and src/releases/
+      - name: Update CHANGELOG and releases/
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           DATE=$(date +%Y-%m-%d)
           NOTES=$(cat "${{ steps.changelog.outputs.notes_file }}")
 
-          mkdir -p src/releases
+          mkdir -p releases
 
           # Write per-release file.
           {
@@ -152,20 +152,20 @@ jobs:
             echo "Released: ${DATE}"
             echo ""
             echo "${NOTES}"
-          } > "src/releases/v${VERSION}.md"
+          } > "releases/v${VERSION}.md"
 
-          # Prepend new entry to src/docs/CHANGELOG.md.
+          # Prepend new entry to docs/CHANGELOG.md.
           HEADER="## [v${VERSION}](https://github.com/superhumancorp/r2drop/releases/tag/v${VERSION}) — ${DATE}"
-          if [ -f src/docs/CHANGELOG.md ]; then
-            printf '%s\n\n%s\n\n---\n\n%s' "$HEADER" "$NOTES" "$(cat src/docs/CHANGELOG.md)" > src/docs/CHANGELOG.md
+          if [ -f docs/CHANGELOG.md ]; then
+            printf '%s\n\n%s\n\n---\n\n%s' "$HEADER" "$NOTES" "$(cat docs/CHANGELOG.md)" > docs/CHANGELOG.md
           else
-            printf '%s\n\n%s\n' "$HEADER" "$NOTES" > src/docs/CHANGELOG.md
+            printf '%s\n\n%s\n' "$HEADER" "$NOTES" > docs/CHANGELOG.md
           fi
 
           # Commit and push back to main.
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add src/docs/CHANGELOG.md src/releases/
+          git add docs/CHANGELOG.md releases/
           git diff --cached --quiet || \
             git commit -m "chore: update changelog for v${VERSION} [skip ci]"
           git push origin HEAD:main || true
@@ -365,8 +365,52 @@ jobs:
           done
 
       # ─────────────────────────────────────────────
-      # 11. Create the GitHub Release with Gemini-generated notes
-      #     and attach both DMG files.
+      # 11. Generate Sparkle appcast.xml for auto-updates.
+      #     Uses the aarch64 DMG for the enclosure since most users
+      #     are on Apple Silicon. Sparkle checks this file for updates.
+      # ─────────────────────────────────────────────
+      - name: Generate Sparkle appcast
+        id: appcast
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          DMG_NAME="R2Drop-${VERSION}-aarch64.dmg"
+          DMG_PATH="$RUNNER_TEMP/$DMG_NAME"
+
+          FILE_SIZE=$(stat -f%z "$DMG_PATH")
+          PUB_DATE=$(date -u "+%a, %d %b %Y %H:%M:%S +0000")
+          DOWNLOAD_URL="https://github.com/${{ github.repository }}/releases/download/v${VERSION}/${DMG_NAME}"
+
+          APPCAST_PATH="$RUNNER_TEMP/appcast.xml"
+          cat > "$APPCAST_PATH" << XMLEOF
+          <?xml version="1.0" encoding="utf-8"?>
+          <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+            <channel>
+              <title>R2Drop</title>
+              <link>https://github.com/${{ github.repository }}/releases</link>
+              <description>R2Drop macOS app updates</description>
+              <language>en</language>
+              <item>
+                <title>Version ${VERSION}</title>
+                <pubDate>${PUB_DATE}</pubDate>
+                <sparkle:version>${{ github.run_number }}</sparkle:version>
+                <sparkle:shortVersionString>${VERSION}</sparkle:shortVersionString>
+                <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+                <enclosure
+                  url="${DOWNLOAD_URL}"
+                  length="${FILE_SIZE}"
+                  type="application/octet-stream"
+                  sparkle:version="${{ github.run_number }}"
+                  sparkle:shortVersionString="${VERSION}" />
+              </item>
+            </channel>
+          </rss>
+          XMLEOF
+
+          echo "path=$APPCAST_PATH" >> "$GITHUB_OUTPUT"
+
+      # ─────────────────────────────────────────────
+      # 12. Create the GitHub Release with Gemini-generated notes
+      #     and attach both DMG files plus the appcast.xml.
       # ─────────────────────────────────────────────
       - name: Create GitHub Release
         env:
@@ -377,10 +421,11 @@ jobs:
             --title "R2Drop v${VERSION}" \
             --notes-file "${{ steps.changelog.outputs.notes_file }}" \
             "$RUNNER_TEMP/R2Drop-${VERSION}-aarch64.dmg" \
-            "$RUNNER_TEMP/R2Drop-${VERSION}-x86_64.dmg"
+            "$RUNNER_TEMP/R2Drop-${VERSION}-x86_64.dmg" \
+            "${{ steps.appcast.outputs.path }}#appcast.xml"
 
       # ─────────────────────────────────────────────
-      # 12. Tell the Homebrew tap to bump the cask version.
+      # 13. Tell the Homebrew tap to bump the cask version.
       # ─────────────────────────────────────────────
       - name: Trigger Homebrew tap bump
         uses: peter-evans/repository-dispatch@v3

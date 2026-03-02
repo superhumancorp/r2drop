@@ -8,7 +8,7 @@ on:
         default: '0.1.0'
 
 env:
-  WORKING_DIR: src/app
+  WORKING_DIR: app
 
 jobs:
   testflight:

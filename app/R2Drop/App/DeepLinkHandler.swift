@@ -116,9 +116,11 @@ enum DeepLinkHandler {
             "readable": true
         ])
 
-        // Confirmation dialog (skipped if "Never ask again")
-        let neverAsk = UserDefaults(suiteName: "group.com.superhumancorp.r2drop")?.bool(forKey: "R2Drop.NeverAskConfirmation") ?? false
-        if !neverAsk {
+        // Confirmation dialog — always shown for deep link uploads from external sources.
+        // The "Never ask again" preference only applies to Finder extension uploads,
+        // not deep links (which could be triggered by external apps).
+        let alwaysConfirmDeepLinks = true
+        if alwaysConfirmDeepLinks {
             let fileName = fileURL.lastPathComponent
             let attrs = try? FileManager.default.attributesOfItem(atPath: fileURL.path)
             let size = attrs?[.size] as? UInt64 ?? 0

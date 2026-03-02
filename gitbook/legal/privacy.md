@@ -69,7 +69,7 @@ R2Drop stores upload history locally in `~/.r2drop/history.db`. This file:
 
 ## This Website
 
-The R2Drop marketing website uses Cloudflare Web Analytics — a privacy-first, cookieless analytics service that does not track individuals or use persistent identifiers. No third-party tracking cookies are used.
+The R2Drop marketing website uses Google Analytics to understand aggregate traffic patterns. Google Analytics uses cookies. We do not use Meta Pixel or other advertising trackers. You can opt out via your browser settings or the [Google Analytics opt-out extension](https://tools.google.com/dlpage/gaoptout).
 
 ---
 
@@ -78,7 +78,9 @@ The R2Drop marketing website uses Cloudflare Web Analytics — a privacy-first, 
 | Service | Purpose | Data sent | Link |
 |---------|---------|-----------|------|
 | Cloudflare R2 | File upload destination | Your files (to your own bucket) | [cloudflare.com/privacypolicy](https://www.cloudflare.com/privacypolicy/) |
-| PostHog | Anonymous usage analytics (on by default, opt-out) | Anonymous usage events — see above | [posthog.com/privacy](https://posthog.com/privacy/) |
+| PostHog | Anonymous app telemetry (on by default, opt-out) | Anonymous usage events — see above | [posthog.com/privacy](https://posthog.com/privacy/) |
+| Google Analytics | Website traffic analytics (website only, not the app) | Page views, referrers (cookies) | [policies.google.com/privacy](https://policies.google.com/privacy) |
+| Sparkle | App auto-update checks | Checks GitHub Releases for new versions | Open source, no data sent |
 
 ---
 

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="src/www/r2-logo.png" alt="R2Drop" width="120" />
+  <img src="www/r2-logo.png" alt="R2Drop" width="120" />
 </p>
 
 <h1 align="center">☁️ R2Drop</h1>
@@ -89,7 +89,7 @@ r2drop config get/set     # Configuration
 
 JSON output supported for automation: `r2drop upload file.png --json`
 
-Full CLI reference: [`src/app/CLI.md`](src/app/CLI.md)
+Full CLI reference: [`app/CLI.md`](app/CLI.md)
 
 ## 🏗️ Project Structure
 
@@ -102,7 +102,7 @@ Full CLI reference: [`src/app/CLI.md`](src/app/CLI.md)
 │   ├── app/engine/r2-cli/ # CLI companion (Rust crate + binary target)
 │   └── www/               # Marketing website (r2drop.com)
 ├── src/homebrew/          # Homebrew tap templates
-├── src/scripts/           # Install scripts
+├── scripts/           # Install scripts
 ├── src/releases/          # Release notes per version
 └── .github/workflows/     # CI/CD (build, release, deploy)
 ```
@@ -119,7 +119,7 @@ cd src/app
 xcodebuild build -scheme R2Drop -destination 'platform=macOS'
 
 # Build the CLI
-cd src/app/engine/r2-cli
+cd app/engine/r2-cli
 cargo build --release
 ```
 
@@ -130,7 +130,7 @@ R2Drop uses PostHog for anonymous telemetry with full user control:
 - Sensitive values sanitized/hashed
 - Error tracking is rate-limited and deduplicated
 
-See [`src/app/INSTRUMENTATION.md`](src/app/INSTRUMENTATION.md) for the event catalog.
+See [`app/INSTRUMENTATION.md`](app/INSTRUMENTATION.md) for the event catalog.
 
 ## 🛠️ CI/CD
 
@@ -139,7 +139,7 @@ See [`src/app/INSTRUMENTATION.md`](src/app/INSTRUMENTATION.md) for the event cat
 | `ci.yml` | Push/PR to `main` | Build + lint |
 | `release.yml` | Tag `v*` | Sign, notarize, publish DMGs, bump Homebrew tap |
 | `cli-release.yml` | Tag `cli-v*` | Build CLI (macOS arm64 + x86_64) |
-| `deploy-www.yml` | Push to `src/www/` | Deploy website to Cloudflare R2 |
+| `deploy-www.yml` | Push to `www/` | Deploy website to Cloudflare R2 |
 
 ## 🐛 Troubleshooting
 

@@ -21,6 +21,9 @@ final class TelemetryService {
 
     // MARK: - PostHog Config
 
+    // This is a public client-side key (write-only, no read access).
+    // It is safe to include in source code — PostHog client keys are designed
+    // to be embedded in client apps. It cannot be used to read or export data.
     private static let apiKey = "phc_tyaFmZbyRb9RMbinKc16kWLNmQRwZUlUUIcnvQCdCyU"
     private static let host = "https://us.i.posthog.com"
 

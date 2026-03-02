@@ -32,14 +32,14 @@ jobs:
 
       - name: Build CLI
         run: |
-          cd src/app/engine/r2-cli
+          cd app/engine/r2-cli
           cargo build --release --target ${{ matrix.target }}
 
       - name: Package
         run: |
-          TARGET_DIR="src/app/engine/target/${{ matrix.target }}/release"
+          TARGET_DIR="app/engine/target/${{ matrix.target }}/release"
           if [ ! -d "$TARGET_DIR" ]; then
-            TARGET_DIR="src/app/engine/r2-cli/target/${{ matrix.target }}/release"
+            TARGET_DIR="app/engine/r2-cli/target/${{ matrix.target }}/release"
           fi
           BINARY="${TARGET_DIR}/r2drop"
           [ -f "$BINARY.exe" ] && BINARY="$BINARY.exe"
