@@ -135,5 +135,5 @@ open src/app/R2Drop.xcworkspace
 ### 2026-02-23
 - Initial CLAUDE.md created
 - Resolved Apple cert .p12 export issue: private key wasn't in Keychain because CSR was generated elsewhere. Fixed by generating key with `openssl genrsa`, creating CSR with `openssl req`, getting new cert from Apple, and combining with `openssl pkcs12 -export`.
-- All 5 GitHub Actions secrets now pushed: APPLE_CERTIFICATE_BASE64, APPLE_CERTIFICATE_PASSWORD, APPLE_TEAM_ID, APPLE_ID ([REDACTED]), APPLE_APP_SPECIFIC_PASSWORD
-- Fixed APPLE_ID from bundle ID (com.superhumancorp.r2drop) to email ([REDACTED]) for notarization
+- All 5 GitHub Actions secrets now pushed: APPLE_CERTIFICATE_BASE64, APPLE_CERTIFICATE_PASSWORD, APPLE_TEAM_ID, APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD
+- Fixed APPLE_ID from bundle ID to Apple ID email for notarization

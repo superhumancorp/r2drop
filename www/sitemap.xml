@@ -6,9 +6,14 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://r2drop.com/terms</loc>
+    <loc>https://r2drop.com/about</loc>
     <changefreq>monthly</changefreq>
-    <priority>0.4</priority>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://r2drop.com/articles</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://r2drop.com/privacy</loc>
@@ -16,12 +21,27 @@
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://r2drop.com/install.sh</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <loc>https://r2drop.com/terms</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
   </url>
   <url>
     <loc>https://r2drop.com/blog/getting-started-with-r2drop</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://r2drop.com/blog/upload-files-cloudflare-r2-macos</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://r2drop.com/blog/cloudflare-r2-vs-aws-s3-cost-comparison</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://r2drop.com/blog/cloudflare-r2-github-actions-deploy</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -34,5 +54,15 @@
     <loc>https://r2drop.com/blog/multi-account-setup</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://r2drop.com/blog/cloudflare-r2-cdn-static-assets</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://r2drop.com/install.sh</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
   </url>
 </urlset>
