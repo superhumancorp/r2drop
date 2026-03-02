@@ -396,20 +396,44 @@ jobs:
           ARM_SIZE=$(stat -f%z "$ARM_DMG")
           X86_SIZE=$(stat -f%z "$X86_DMG")
 
-          # Ed25519 signatures (if private key is available)
+          # Ed25519 signatures using Sparkle's sign_update tool.
+          # The tool is bundled in the Sparkle framework's bin/ directory.
+          # It reads the private key from the SPARKLE_ED25519_KEY env var.
           ARM_SIG=""
           X86_SIG=""
           if [ -n "$SPARKLE_ED25519_KEY" ]; then
-            # Sparkle's sign_update reads the key from stdin
-            ARM_SIG=$(echo "$SPARKLE_ED25519_KEY" | python3 -c "
-          import sys, hashlib, base64, struct
-          # Use Sparkle's EdDSA signing via the generate_appcast approach
-          # For now, use the built-in sign_update if available
-          print('')
-          " 2>/dev/null || true)
-            echo "Note: For production Ed25519 signing, run Sparkle's generate_appcast tool"
-            echo "or store the private key and use sign_update from Sparkle.framework"
+            # Find sign_update in the Sparkle SPM checkout or DerivedData
+            SIGN_TOOL=$(find "$RUNNER_TEMP" /Users/runner/Library -name "sign_update" -type f 2>/dev/null | head -1)
+
+            if [ -z "$SIGN_TOOL" ]; then
+              # Download Sparkle release to get sign_update
+              echo "Downloading Sparkle tools..."
+              curl -sL "https://github.com/sparkle-project/Sparkle/releases/latest/download/Sparkle-2.7.5.tar.xz" \
+                -o "$RUNNER_TEMP/sparkle.tar.xz"
+              mkdir -p "$RUNNER_TEMP/sparkle"
+              tar -xf "$RUNNER_TEMP/sparkle.tar.xz" -C "$RUNNER_TEMP/sparkle" 2>/dev/null || true
+              SIGN_TOOL=$(find "$RUNNER_TEMP/sparkle" -name "sign_update" -type f 2>/dev/null | head -1)
+            fi
+
+            if [ -n "$SIGN_TOOL" ] && [ -x "$SIGN_TOOL" ]; then
+              echo "Signing DMGs with Ed25519..."
+              # sign_update outputs: sparkle:edSignature="..." length="..."
+              ARM_SIG=$("$SIGN_TOOL" "$ARM_DMG" -f <(echo "$SPARKLE_ED25519_KEY") 2>/dev/null | grep -oP 'edSignature="\K[^"]+' || true)
+              X86_SIG=$("$SIGN_TOOL" "$X86_DMG" -f <(echo "$SPARKLE_ED25519_KEY") 2>/dev/null | grep -oP 'edSignature="\K[^"]+' || true)
+              [ -n "$ARM_SIG" ] && echo "ARM64 signature: ${ARM_SIG:0:20}..."
+              [ -n "$X86_SIG" ] && echo "x86_64 signature: ${X86_SIG:0:20}..."
+            else
+              echo "Warning: sign_update not found. Appcast will be unsigned."
+            fi
+          else
+            echo "Warning: SPARKLE_ED25519_KEY not set. Appcast will be unsigned."
           fi
+
+          # Build signature attributes (empty string if unsigned)
+          ARM_SIG_ATTR=""
+          X86_SIG_ATTR=""
+          [ -n "$ARM_SIG" ] && ARM_SIG_ATTR="sparkle:edSignature=\"${ARM_SIG}\""
+          [ -n "$X86_SIG" ] && X86_SIG_ATTR="sparkle:edSignature=\"${X86_SIG}\""
 
           APPCAST_PATH="$RUNNER_TEMP/appcast.xml"
           cat > "$APPCAST_PATH" << XMLEOF
@@ -433,6 +457,7 @@ jobs:
                   sparkle:version="${BUILD_NUMBER}"
                   sparkle:shortVersionString="${VERSION}"
                   sparkle:os="macos"
+                  ${ARM_SIG_ATTR}
                   sparkle:installationType="package" />
                 <enclosure
                   url="${BASE_URL}/R2Drop-${VERSION}-x86_64.dmg"
@@ -441,6 +466,7 @@ jobs:
                   sparkle:version="${BUILD_NUMBER}"
                   sparkle:shortVersionString="${VERSION}"
                   sparkle:os="macos"
+                  ${X86_SIG_ATTR}
                   sparkle:installationType="package" />
               </item>
             </channel>
