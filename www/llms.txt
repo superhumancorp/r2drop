@@ -1,0 +1,86 @@
+# R2Drop — Native macOS Uploader for Cloudflare R2
+
+> R2Drop is a free, open-source native macOS menu bar app for uploading files to Cloudflare R2 storage. Built by Paul Pierre.
+
+## What is R2Drop?
+
+R2Drop is the first native macOS desktop application purpose-built for Cloudflare R2 object storage uploads. It puts R2 uploads in your Finder right-click menu, menu bar, and terminal — no browser or dashboard required.
+
+## Key Features
+
+- **Right-click upload**: Select any file in Finder → "Send to R2" → public URL copied to clipboard
+- **Menu bar drag-and-drop**: Drag files to the R2Drop icon in the macOS menu bar
+- **CLI companion**: `r2drop upload file.png --json` for scripting and CI/CD
+- **Multi-account support**: Unlimited Cloudflare accounts, switch with one click
+- **Multipart uploads**: Rust-powered engine with parallel chunks and resumable sessions
+- **Keychain-only credentials**: API tokens stored exclusively in macOS Keychain
+- **Auto-copy URL**: Public URL lands in your clipboard the moment upload finishes
+- **Custom domains**: Use your own CDN domain instead of R2 storage URLs
+- **Upload history**: Searchable log of every upload with one-click URL copy
+
+## Technical Details
+
+- **Platform**: macOS 13 Ventura or later (Apple Silicon and Intel)
+- **Upload engine**: Rust (async, tokio, aws-sdk-s3)
+- **UI**: Swift + SwiftUI
+- **License**: MIT (fully open source)
+- **Config**: ~/.r2drop/config.toml
+- **Credentials**: macOS Keychain (service: com.superhumancorp.r2drop)
+- **S3 compatibility**: Uses Cloudflare R2's S3-compatible API
+
+## Installation
+
+### macOS App
+Download from GitHub Releases: https://github.com/superhumancorp/r2drop/releases
+
+### CLI
+```
+curl -sf https://r2drop.com/install.sh | sh
+```
+
+### Homebrew
+```
+brew tap superhumancorp/tap
+brew install --cask r2drop        # Desktop app
+brew install superhumancorp/tap/r2drop  # CLI only
+```
+
+## CLI Usage
+
+```
+r2drop login                          # Authenticate with Cloudflare API token
+r2drop upload file.png                # Upload, get URL
+r2drop upload file.png --json         # JSON output for scripting
+r2drop upload ./dist/ --compress      # Upload folder as ZIP
+r2drop upload file.png --account work # Use specific account
+r2drop status                         # Check connection
+r2drop accounts list                  # List configured accounts
+r2drop history                        # View upload history
+```
+
+## Pricing
+
+R2Drop is free and open source (MIT license). Users pay Cloudflare directly for R2 storage:
+- Storage: $0.015/GB/month
+- Egress: $0 (free forever)
+- Free tier: 10 GB storage, 1M writes, 10M reads per month
+
+## Links
+
+- Website: https://r2drop.com
+- Documentation: https://docs.r2drop.com
+- GitHub: https://github.com/superhumancorp/r2drop
+- Articles: https://r2drop.com/articles
+- Download: https://github.com/superhumancorp/r2drop/releases
+- Privacy Policy: https://r2drop.com/privacy
+- Author: Paul Pierre (https://github.com/paulpierre)
+
+## About
+
+R2Drop was created by Paul Pierre and is maintained by Superhuman Intelligence LLC. It was built in 2 days out of frustration with the Cloudflare dashboard's upload experience. The entire macOS app (Swift + Rust + CLI + Finder extension + CI/CD) was developed using AI-assisted workflows.
+
+## Contact
+
+- Email: legal@r2drop.com
+- GitHub Issues: https://github.com/superhumancorp/r2drop/issues
+- X/Twitter: https://x.com/superhumancorp
