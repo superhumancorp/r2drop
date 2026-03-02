@@ -1,7 +1,7 @@
 # 📋 TODO — R2Drop (Reviewed Checklist)
 
 > Reviewed against current code on 2026-02-25.
-> Telemetry event strategy lives in `INSTRUMENTATION.md`. This file tracks execution status only.
+> Telemetry event catalog lives in `TELEMETRY.md`. This file tracks execution status only.
 
 ---
 
@@ -25,7 +25,7 @@
 ## 📊 Analytics & Telemetry (PostHog) — ✅ Complete
 
 ### Planning / Spec
-- [x] Telemetry strategy, funnels, and event catalog in `INSTRUMENTATION.md`
+- [x] Telemetry strategy, funnels, and event catalog in `TELEMETRY.md`
 - [x] Stable anonymous `distinct_id` generation (Keychain-first, session ID separate)
 
 ### Core Integration
@@ -128,7 +128,7 @@
 
 ## 📝 Notes
 
-- `INSTRUMENTATION.md` — canonical telemetry spec (events, funnels, properties, anti-spam)
+- `TELEMETRY.md` — telemetry event catalog and privacy documentation
 - `TODO.md` — execution status only (done vs open)
 - `src/homebrew/` — templates for `superhumancorp/homebrew-tap` (already pushed)
 - `src/scripts/install.sh` — curl|bash installer, live at `r2drop.com/install.sh`

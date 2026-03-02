@@ -24,6 +24,9 @@ xcuserdata/
 *.mode2v3
 *.perspectivev3
 
+# --- Internal docs ---
+app/INSTRUMENTATION.md
+
 # --- Credentials & Secrets ---
 app/credentials/
 app/.env
