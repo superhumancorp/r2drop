@@ -255,6 +255,24 @@ if ! download_release_asset "$TAG" "$ASSET" "$TMPFILE"; then
   exit 1
 fi
 
+# Verify SHA-256 checksum (if checksum file is available)
+CHECKSUM_ASSET="${ASSET}.sha256"
+CHECKSUM_FILE="${TMPDIR}/checksum.sha256"
+if download_release_asset "$TAG" "$CHECKSUM_ASSET" "$CHECKSUM_FILE" 2>/dev/null; then
+  EXPECTED="$(awk '{print $1}' "$CHECKSUM_FILE")"
+  ACTUAL="$(shasum -a 256 "$TMPFILE" | awk '{print $1}')"
+  if [ "$EXPECTED" != "$ACTUAL" ]; then
+    error "Checksum verification failed!"
+    error "Expected: $EXPECTED"
+    error "Actual:   $ACTUAL"
+    error "The downloaded binary may have been tampered with. Aborting."
+    exit 1
+  fi
+  completed "Checksum verified (SHA-256)"
+else
+  warn "No checksum file found for this release. Skipping verification."
+fi
+
 # Extract the binary
 mkdir -p "$BIN_DIR"
 tar -xzf "$TMPFILE" -C "$BIN_DIR" "$BINARY_NAME"

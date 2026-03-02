@@ -42,10 +42,15 @@ jobs:
             TARGET_DIR="app/engine/r2-cli/target/${{ matrix.target }}/release"
           fi
           BINARY="${TARGET_DIR}/r2drop"
-          [ -f "$BINARY.exe" ] && BINARY="$BINARY.exe"
           TARBALL="r2drop-${{ matrix.os_slug }}-${{ matrix.asset_arch }}.tar.gz"
           tar czf "$TARBALL" -C "$(dirname $BINARY)" "$(basename $BINARY)"
           echo "TARBALL=$TARBALL" >> "$GITHUB_ENV"
+
+      - name: Generate checksum
+        run: |
+          shasum -a 256 "$TARBALL" > "${TARBALL}.sha256"
+          echo "CHECKSUM_FILE=${TARBALL}.sha256" >> "$GITHUB_ENV"
+          echo "Checksum: $(cat "${TARBALL}.sha256")"
 
       - name: Ensure CLI release exists
         env:
@@ -63,4 +68,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${GITHUB_REF_NAME}"
-          gh release upload "$VERSION" "$TARBALL" --clobber
+          gh release upload "$VERSION" "$TARBALL" "$CHECKSUM_FILE" --clobber
