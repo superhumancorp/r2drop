@@ -1,0 +1,114 @@
+import * as THREE from 'three';
+import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
+
+const container = document.getElementById('r2drop-3d-container');
+if (container) {
+  const w = container.clientWidth || 800;
+  const h = container.clientHeight || 800;
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(w, h);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  container.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(40, w / h, 0.1, 1000);
+  camera.position.set(0, 0, 5);
+
+  // Bright studio lighting
+  scene.add(new THREE.AmbientLight(0xffffff, 1.0));
+  [
+    [0xffffff, 3.0, [0, 0, 6]],
+    [0xddc8ff, 2.0, [4, 4, 3]],
+    [0xc4b5fd, 1.5, [-4, 2, 2]],
+    [0xe0d4ff, 1.0, [0, -3, 2]],
+    [0xffffff, 1.0, [-2, 0, 4]],
+  ].forEach(([color, intensity, pos]) => {
+    const d = new THREE.DirectionalLight(color, intensity);
+    d.position.set(...pos); scene.add(d);
+  });
+
+  // Glossy purple material — MeshBasicMaterial to diagnose lighting
+  const mat = new THREE.MeshBasicMaterial({
+    color: 0x8b5cf6,
+    side: THREE.DoubleSide,
+  });
+
+  // FULL R2Drop product SVG — cloud with R2DROP text
+  const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 595.28 841.89"><path d="M453.41,243.95c-2.04,0-3.72.64-5.04,1.92-1.32,1.28-2.18,3.03-2.57,5.26-.13.65-.19,1.34-.19,2.09,0,1.88.51,3.35,1.53,4.41,1.02,1.07,2.53,1.6,4.53,1.6s3.67-.65,5.02-1.94c1.34-1.29,2.19-3.02,2.54-5.19.13-.68.19-1.39.19-2.13,0-1.91-.51-3.39-1.53-4.44-1.02-1.05-2.51-1.58-4.48-1.58ZM314.46,213.89c-8.28,1.23-16.64,2.48-24.61,5.06-20.58,6.67-90.94,54.28-108.19,69.87-20.74,18.76-33.18,44.39-37.7,71.84-104.79,14.46-139.69,151.19-51.01,212.04,15.51,10.64,30.33,15.64,48.49,20.05h235.96c36.89-6.78,60.84-24.33,82.53-53.84,14.76-20.08,34.92-48.81,47.18-70.12,7.79-13.53,12.5-27.6,15.82-42.83v-212.02l-208.47-.05ZM407.23,234.59h15.99c3.68,0,6.49.83,8.41,2.5,1.92,1.67,2.88,3.87,2.88,6.62,0,.78-.07,1.49-.19,2.13-.42,2.33-1.43,4.37-3.03,6.14-1.6,1.76-3.66,3.03-6.18,3.81l5.19,13.15h-11.82l-4.36-12.32-2.13,12.32h-10.76l6.01-34.35ZM371.7,234.59h14.3c3.17,0,5.88.57,8.14,1.72,2.26,1.15,3.99,2.75,5.19,4.8,1.19,2.05,1.79,4.42,1.79,7.11,0,1.07-.1,2.22-.29,3.44-.58,3.27-1.83,6.21-3.73,8.83-1.91,2.62-4.34,4.68-7.29,6.19-2.96,1.5-6.23,2.26-9.81,2.26h-14.3l6.01-34.35ZM336.93,237.11c2.5-2.04,5.45-3.06,8.84-3.06,3.07,0,5.44.72,7.1,2.16,1.66,1.44,2.5,3.45,2.5,6.04,0,.68-.08,1.5-.24,2.47-.58,3.49-2.75,6.98-6.49,10.46-3.75,3.48-7.92,6.48-12.5,9h16.23l-.78,4.51h-23.79l.73-4.08c12.99-7.89,19.95-14.43,20.89-19.6.1-.58.15-1.16.15-1.75,0-1.39-.39-2.49-1.16-3.3-.78-.81-1.99-1.21-3.63-1.21-1.94,0-3.51.62-4.72,1.87-1.21,1.25-2.04,3.08-2.5,5.51h-5.38c.68-3.98,2.27-6.99,4.77-9.02ZM306.57,234.69h12.07c3.42,0,5.99.74,7.71,2.21,1.71,1.47,2.57,3.47,2.57,5.99,0,.81-.07,1.55-.19,2.23-.45,2.69-1.58,4.88-3.39,6.6-1.81,1.71-4.18,2.81-7.12,3.3l6.54,13.92h-6.2l-6.11-13.68h-3.93l-2.42,13.68h-5.52l6.01-34.25ZM376.05,561.02l-226.9.69c-115.03-20.03-91.21-181.59,24.78-171.08.47-6.62-.65-13.98,0-20.49,5.5-54.76,55.53-91.29,109.43-76.96,42.34,11.26,67.58,54.74,61.54,97.42,33.28-1.48,64.23,7.4,84.75,34.69,38.61,51.35,8.13,124.03-53.59,135.73ZM469.64,253.56c-.55,3.07-1.66,5.8-3.34,8.18-1.68,2.38-3.84,4.23-6.47,5.56-2.63,1.33-5.61,1.99-8.94,1.99s-6.24-.63-8.63-1.89c-2.39-1.26-4.21-3.04-5.45-5.34-1.24-2.3-1.87-4.96-1.87-8.01,0-1.58.13-3.04.39-4.37.55-3.07,1.67-5.79,3.37-8.15,1.7-2.36,3.87-4.2,6.52-5.53,2.65-1.33,5.64-1.99,8.97-1.99s6.09.64,8.48,1.92c2.39,1.28,4.22,3.07,5.48,5.39,1.26,2.31,1.89,4.99,1.89,8.03,0,1.26-.13,2.67-.39,4.22ZM502.16,246.38c-.39,2.17-1.24,4.13-2.54,5.89-1.31,1.76-3.04,3.16-5.19,4.2-2.15,1.04-4.61,1.55-7.39,1.55h-4.26l-1.89,10.92h-10.76l6.01-34.35h15.02c3.68,0,6.48.82,8.38,2.47,1.91,1.65,2.86,3.91,2.86,6.79,0,.71-.08,1.55-.24,2.52ZM423.27,246.52c.03-.16.05-.37.05-.63,0-.71-.22-1.27-.65-1.67-.44-.4-1.09-.61-1.96-.61h-4.26l-1.07,5.82h4.26c2.1,0,3.31-.97,3.63-2.91ZM386.8,257.34c1.66-1.33,2.71-3.22,3.13-5.68.13-.84.19-1.46.19-1.84,0-1.88-.6-3.32-1.79-4.32-1.2-1-2.84-1.5-4.94-1.5h-2.57l-2.71,15.33h2.57c2.42,0,4.47-.66,6.13-1.99ZM323.05,245.41c.1-.49.15-.95.15-1.41,0-3.04-1.94-4.56-5.82-4.56h-6.06l-2.13,11.89h6.06c4.52,0,7.12-1.97,7.8-5.92ZM488.45,243.23h-3.05l-1.11,6.31h3.05c2.23,0,3.54-1.05,3.93-3.15.03-.19.05-.45.05-.78,0-1.58-.95-2.38-2.86-2.38Z"/></svg>`;
+
+  const loader = new SVGLoader();
+  const svgData = loader.parse(svgStr);
+  const meshGroup = new THREE.Group();
+
+  svgData.paths.forEach(path => {
+    SVGLoader.createShapes(path).forEach(shape => {
+      const geo = new THREE.ExtrudeGeometry(shape, {
+        depth: 15,
+        bevelEnabled: true,
+        bevelThickness: 2,
+        bevelSize: 1.5,
+        bevelSegments: 6,
+        curveSegments: 32,
+      });
+      geo.computeVertexNormals();
+      meshGroup.add(new THREE.Mesh(geo, mat));
+    });
+  });
+
+  // Center
+  const box = new THREE.Box3().setFromObject(meshGroup);
+  const ctr = new THREE.Vector3();
+  box.getCenter(ctr);
+  meshGroup.position.set(-ctr.x, -ctr.y, -ctr.z);
+
+  const pivot = new THREE.Group();
+  pivot.add(meshGroup);
+  const sz = new THREE.Vector3();
+  box.getSize(sz);
+  const sc = 3.2 / Math.max(sz.x, sz.y);
+  pivot.scale.set(sc, -sc, sc);
+  // Fix normals after negative scale
+  meshGroup.traverse(child => {
+    if (child.isMesh && child.geometry) {
+      const pos = child.geometry.attributes.position;
+      const norm = child.geometry.attributes.normal;
+      if (norm) {
+        for (let i = 0; i < norm.count; i++) {
+          norm.setY(i, -norm.getY(i));
+        }
+        norm.needsUpdate = true;
+      }
+    }
+  });
+
+  scene.add(pivot);
+
+  // Mouse tracking
+  let mx = 0, my = 0;
+  window.addEventListener('mousemove', e => {
+    mx = (e.clientX / window.innerWidth - 0.5) * 2;
+    my = (e.clientY / window.innerHeight - 0.5) * 2;
+  });
+
+  // Animate
+  const baseRotX = 0;
+  const clock = new THREE.Clock();
+  (function animate() {
+    requestAnimationFrame(animate);
+    const t = clock.getElapsedTime();
+    pivot.position.y = Math.sin(t * 0.8) * 0.1;
+    pivot.rotation.y = t * 0.12 + mx * 0.25;
+    pivot.rotation.x = baseRotX + Math.sin(t * 0.5) * 0.04 + my * 0.1;
+    renderer.render(scene, camera);
+  })();
+
+  // Resize
+  window.addEventListener('resize', () => {
+    const nw = container.clientWidth, nh = container.clientHeight;
+    renderer.setSize(nw, nh);
+    camera.aspect = nw / nh;
+    camera.updateProjectionMatrix();
+  });
+}

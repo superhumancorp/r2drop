@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://r2drop.com/sitemap.xml

@@ -1,0 +1,390 @@
+# .github/workflows/release.yml
+#
+# Builds, signs, notarizes, and publishes the R2Drop macOS app as a .dmg.
+# Triggered by pushing a v* tag OR manually via the GitHub Actions "Run workflow" button.
+#
+# Required GitHub repository secrets:
+#   APPLE_CERTIFICATE_BASE64    — base64-encoded Developer ID .p12
+#   APPLE_CERTIFICATE_PASSWORD  — password for the .p12
+#   APPLE_ID                    — Apple ID email (for notarytool)
+#   APPLE_APP_PASSWORD          — app-specific password for notarytool
+#   APPLE_TEAM_ID               — 10-character Apple team ID
+#   GEMINI_API_KEY              — Google Gemini API key (for changelog generation)
+#   TAP_GITHUB_TOKEN            — PAT with access to superhumancorp/homebrew-tap
+
+name: Release
+
+on:
+  # Triggered when a v* tag is pushed: git tag v0.2.0 && git push origin v0.2.0
+  push:
+    tags: ['v*']
+
+  # Manual trigger from GitHub Actions UI
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release — no "v" prefix (e.g. 0.2.0)'
+        required: true
+        type: string
+
+# Allow pushing CHANGELOG commits and creating releases
+permissions:
+  contents: write
+
+env:
+  SCHEME: R2Drop
+  PROJECT: src/app/R2Drop.xcodeproj
+
+jobs:
+  release:
+    runs-on: macos-14
+
+    steps:
+      # ─────────────────────────────────────────────
+      # 1. Checkout with full git history
+      #    Needed so we can diff commits since last tag.
+      # ─────────────────────────────────────────────
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # ─────────────────────────────────────────────
+      # 2. Resolve the version number.
+      #    - workflow_dispatch: use the input, then create + push the tag.
+      #      Using GITHUB_TOKEN means GitHub won't re-trigger the push:tags
+      #      event (built-in loop prevention).
+      #    - push: tags: strip the leading "v" from the ref name.
+      # ─────────────────────────────────────────────
+      - name: Resolve version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          if [ -z "$VERSION" ]; then
+            echo "Version could not be resolved."
+            exit 1
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      # ─────────────────────────────────────────────
+      # 3. Generate changelog with Gemini.
+      #    Collects commits since the previous tag and sends them to
+      #    Gemini to produce clean, user-facing release notes.
+      # ─────────────────────────────────────────────
+      - name: Generate changelog with Gemini
+        id: changelog
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+
+          # Resolve commit range for both tag-triggered and manual runs.
+          if git rev-parse -q --verify "refs/tags/v${VERSION}" >/dev/null; then
+            PREV_TAG=$(git describe --tags --abbrev=0 "v${VERSION}^" 2>/dev/null || echo "")
+            if [ -n "$PREV_TAG" ]; then
+              RANGE="${PREV_TAG}..v${VERSION}"
+            else
+              RANGE="v${VERSION}"
+            fi
+          else
+            PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+            if [ -n "$PREV_TAG" ]; then
+              RANGE="${PREV_TAG}..HEAD"
+            else
+              RANGE="HEAD"
+            fi
+          fi
+          COMMITS=$(git log "$RANGE" --pretty=format:"%s" --no-merges | head -60)
+
+          [ -z "$COMMITS" ] && COMMITS="Initial release of R2Drop."
+
+          # Build prompt for Gemini.
+          PROMPT="You are writing release notes for R2Drop v${VERSION}, a native macOS menu bar app for uploading files to Cloudflare R2. Users right-click files in Finder or drag them to the menu bar icon to upload, then get a public URL in their clipboard.
+
+          Based on the git commit messages below, write concise, user-friendly release notes in plain markdown.
+
+          Format:
+          - Start with 1–2 sentences summarising what changed.
+          - Then bullet points grouped by category. Only include groups that have items: Features, Bug Fixes, Improvements.
+          - Keep each bullet short and user-focused. Skip internal/tooling commits.
+
+          Commit messages:
+          ${COMMITS}
+
+          Return only the release notes body. No title, no version number, no code fences."
+
+          # Call Gemini REST API.
+          RESPONSE=$(curl -s \
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg text "$PROMPT" '{"contents":[{"parts":[{"text":$text}]}]}')")
+
+          NOTES=$(echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text // empty')
+
+          # Fallback to plain commit list if Gemini fails.
+          if [ -z "$NOTES" ]; then
+            NOTES="$(echo "$COMMITS" | sed 's/^/- /')"
+          fi
+
+          echo "$NOTES" > "$RUNNER_TEMP/release_notes.md"
+          echo "notes_file=$RUNNER_TEMP/release_notes.md" >> "$GITHUB_OUTPUT"
+
+      # ─────────────────────────────────────────────
+      # 4. Write individual release file and update src/docs/CHANGELOG.md.
+      #    Commits these back to main with [skip ci] so CI doesn't re-run.
+      # ─────────────────────────────────────────────
+      - name: Update CHANGELOG and src/releases/
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          DATE=$(date +%Y-%m-%d)
+          NOTES=$(cat "${{ steps.changelog.outputs.notes_file }}")
+
+          mkdir -p src/releases
+
+          # Write per-release file.
+          {
+            echo "# R2Drop v${VERSION}"
+            echo ""
+            echo "Released: ${DATE}"
+            echo ""
+            echo "${NOTES}"
+          } > "src/releases/v${VERSION}.md"
+
+          # Prepend new entry to src/docs/CHANGELOG.md.
+          HEADER="## [v${VERSION}](https://github.com/superhumancorp/r2drop/releases/tag/v${VERSION}) — ${DATE}"
+          if [ -f src/docs/CHANGELOG.md ]; then
+            printf '%s\n\n%s\n\n---\n\n%s' "$HEADER" "$NOTES" "$(cat src/docs/CHANGELOG.md)" > src/docs/CHANGELOG.md
+          else
+            printf '%s\n\n%s\n' "$HEADER" "$NOTES" > src/docs/CHANGELOG.md
+          fi
+
+          # Commit and push back to main.
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/docs/CHANGELOG.md src/releases/
+          git diff --cached --quiet || \
+            git commit -m "chore: update changelog for v${VERSION} [skip ci]"
+          git push origin HEAD:main || true
+
+      # ─────────────────────────────────────────────
+      # 5. Select correct Xcode version.
+      # ─────────────────────────────────────────────
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app
+
+      # ─────────────────────────────────────────────
+      # 6. Preflight release inputs and signing assets.
+      #    Fails early with clear errors when secrets are missing or invalid.
+      # ─────────────────────────────────────────────
+      - name: Preflight release inputs
+        env:
+          APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          CERT_PASSWORD="$(printf '%s' "$APPLE_CERTIFICATE_PASSWORD" | tr -d '\r\n')"
+
+          required=(
+            APPLE_CERTIFICATE_BASE64
+            APPLE_CERTIFICATE_PASSWORD
+            APPLE_ID
+            APPLE_APP_PASSWORD
+            APPLE_TEAM_ID
+            GEMINI_API_KEY
+            TAP_GITHUB_TOKEN
+          )
+
+          missing=0
+          for name in "${required[@]}"; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::Missing required secret: ${name}"
+              missing=1
+            fi
+          done
+          [ "$missing" -eq 0 ] || exit 1
+
+          if ! [[ "$APPLE_TEAM_ID" =~ ^[A-Z0-9]{10}$ ]]; then
+            echo "::error::APPLE_TEAM_ID must be a 10-character value (letters/numbers)."
+            exit 1
+          fi
+
+          CERT_PATH="$RUNNER_TEMP/preflight-cert.p12"
+          if ! (printf '%s' "$APPLE_CERTIFICATE_BASE64" | base64 --decode > "$CERT_PATH" 2>/dev/null || \
+                printf '%s' "$APPLE_CERTIFICATE_BASE64" | base64 -D > "$CERT_PATH" 2>/dev/null); then
+            echo "::error::APPLE_CERTIFICATE_BASE64 is not valid base64."
+            exit 1
+          fi
+
+          if [ ! -s "$CERT_PATH" ]; then
+            echo "::error::Decoded certificate file is empty."
+            exit 1
+          fi
+
+          if ! openssl pkcs12 -in "$CERT_PATH" \
+            -passin "pass:${CERT_PASSWORD}" \
+            -nokeys >/dev/null 2>&1; then
+            echo "::error::Decoded certificate is not a valid .p12 or APPLE_CERTIFICATE_PASSWORD is incorrect."
+            exit 1
+          fi
+
+          SUBJECT=$(openssl pkcs12 -in "$CERT_PATH" \
+            -passin "pass:${CERT_PASSWORD}" \
+            -clcerts -nokeys 2>/dev/null | \
+            openssl x509 -noout -subject 2>/dev/null || true)
+          if ! echo "$SUBJECT" | grep -q "Developer ID Application"; then
+            echo "::warning::Certificate subject does not appear to be 'Developer ID Application'. Current subject: ${SUBJECT}"
+          fi
+
+          rm -f "$CERT_PATH"
+
+      # ─────────────────────────────────────────────
+      # 7. Import Developer ID signing certificate into a temporary keychain.
+      # ─────────────────────────────────────────────
+      - name: Import signing certificate
+        env:
+          CERTIFICATE_P12: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          CERT_PASSWORD="$(printf '%s' "$CERTIFICATE_PASSWORD" | tr -d '\r\n')"
+          KEYCHAIN_PATH=$RUNNER_TEMP/signing.keychain-db
+          CERT_PATH="$RUNNER_TEMP/cert.p12"
+
+          security create-keychain -p "" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "" "$KEYCHAIN_PATH"
+
+          if ! (printf '%s' "$CERTIFICATE_P12" | base64 --decode > "$CERT_PATH" 2>/dev/null || \
+                printf '%s' "$CERTIFICATE_P12" | base64 -D > "$CERT_PATH" 2>/dev/null); then
+            echo "::error::Failed to decode APPLE_CERTIFICATE_BASE64 in import step."
+            exit 1
+          fi
+
+          if ! security import "$CERT_PATH" -P "$CERT_PASSWORD" \
+            -A -f pkcs12 -k "$KEYCHAIN_PATH"; then
+            echo "::warning::Direct PKCS#12 import failed; attempting legacy-compatible re-export."
+            LEGACY_PEM="$RUNNER_TEMP/cert-legacy.pem"
+            LEGACY_P12="$RUNNER_TEMP/cert-legacy.p12"
+
+            openssl pkcs12 -in "$CERT_PATH" \
+              -passin "pass:${CERT_PASSWORD}" \
+              -nodes -out "$LEGACY_PEM" >/dev/null 2>&1
+            openssl pkcs12 -export -legacy \
+              -in "$LEGACY_PEM" \
+              -out "$LEGACY_P12" \
+              -passout "pass:${CERT_PASSWORD}" >/dev/null 2>&1
+
+            security import "$LEGACY_P12" -P "$CERT_PASSWORD" \
+              -A -f pkcs12 -k "$KEYCHAIN_PATH"
+          fi
+          security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" "$KEYCHAIN_PATH"
+
+      # ─────────────────────────────────────────────
+      # 8. Archive the app for both Apple Silicon and Intel.
+      # ─────────────────────────────────────────────
+      - name: Build & Archive (Apple Silicon)
+        run: |
+          xcodebuild archive \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -destination 'generic/platform=macOS' \
+            -archivePath "$RUNNER_TEMP/R2Drop-arm64.xcarchive" \
+            ARCHS=arm64
+
+      - name: Build & Archive (Intel)
+        run: |
+          xcodebuild archive \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -destination 'generic/platform=macOS' \
+            -archivePath "$RUNNER_TEMP/R2Drop-x86_64.xcarchive" \
+            ARCHS=x86_64
+
+      # ─────────────────────────────────────────────
+      # 9. Export signed .app bundles from each archive.
+      # ─────────────────────────────────────────────
+      - name: Export .app bundles
+        run: |
+          cat > "$RUNNER_TEMP/ExportOptions.plist" << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+            "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>developer-id</string>
+            <key>signingStyle</key><string>automatic</string>
+          </dict></plist>
+          EOF
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/R2Drop-arm64.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -exportPath "$RUNNER_TEMP/export-arm64"
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/R2Drop-x86_64.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -exportPath "$RUNNER_TEMP/export-x86_64"
+
+      # ─────────────────────────────────────────────
+      # 10. Create .dmg files, notarize, and staple.
+      #    aarch64 = Apple Silicon, x86_64 = Intel.
+      # ─────────────────────────────────────────────
+      - name: Create, notarize, and staple DMGs
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          for arch in arm64 x86_64; do
+            APP_PATH="$RUNNER_TEMP/export-${arch}/R2Drop.app"
+            # Rename arm64 → aarch64 for conventional binary naming.
+            OUT_ARCH="${arch/arm64/aarch64}"
+            DMG_NAME="R2Drop-${VERSION}-${OUT_ARCH}.dmg"
+            hdiutil create \
+              -volname "R2Drop" \
+              -srcfolder "$APP_PATH" \
+              -ov -format UDZO \
+              "$RUNNER_TEMP/$DMG_NAME"
+            xcrun notarytool submit "$RUNNER_TEMP/$DMG_NAME" \
+              --apple-id "$APPLE_ID" \
+              --password "$APPLE_APP_PASSWORD" \
+              --team-id "$APPLE_TEAM_ID" \
+              --wait
+            xcrun stapler staple "$RUNNER_TEMP/$DMG_NAME"
+          done
+
+      # ─────────────────────────────────────────────
+      # 11. Create the GitHub Release with Gemini-generated notes
+      #     and attach both DMG files.
+      # ─────────────────────────────────────────────
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          gh release create "v${VERSION}" \
+            --title "R2Drop v${VERSION}" \
+            --notes-file "${{ steps.changelog.outputs.notes_file }}" \
+            "$RUNNER_TEMP/R2Drop-${VERSION}-aarch64.dmg" \
+            "$RUNNER_TEMP/R2Drop-${VERSION}-x86_64.dmg"
+
+      # ─────────────────────────────────────────────
+      # 12. Tell the Homebrew tap to bump the cask version.
+      # ─────────────────────────────────────────────
+      - name: Trigger Homebrew tap bump
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.TAP_GITHUB_TOKEN }}
+          repository: superhumancorp/homebrew-tap
+          event-type: new-release

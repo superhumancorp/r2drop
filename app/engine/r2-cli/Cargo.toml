@@ -1,0 +1,22 @@
+# r2-cli/Cargo.toml — Cross-platform CLI binary for R2Drop
+# Shares r2-core engine with the macOS app. Installed as `r2drop` binary.
+
+[package]
+name = "r2-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "r2drop"
+path = "src/main.rs"
+
+[dependencies]
+r2-core = { path = "../r2-core" }
+clap = { version = "4", features = ["derive"] }
+tokio = { version = "1", features = ["full"] }
+rpassword = "7"
+open = "5"
+zip = { version = "2", default-features = false, features = ["deflate"] }
+serde_json = "1"
+sha2 = "0.10"

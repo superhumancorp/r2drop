@@ -1,8 +1,0 @@
-// Packages/R2Bridge/Sources/R2BridgeC/include/module.modulemap
-// C module exposing the Rust FFI header to Swift.
-
-module R2BridgeC {
-    header "r2_ffi.h"
-    link "r2_ffi"
-    export *
-}

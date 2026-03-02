@@ -1,0 +1,3 @@
+app_identifier "com.superhumancorp.r2drop"
+apple_id ENV["APPLE_ID"] || "[REDACTED]"
+team_id ENV["APPLE_TEAM_ID"] || "A89MU37ZLB"

@@ -1,6 +1,0 @@
-# rust-toolchain.toml
-# Forces rustup to use stable toolchain (1.91+) for this workspace.
-# This avoids Homebrew's older rustc shadowing rustup in PATH.
-
-[toolchain]
-channel = "stable"

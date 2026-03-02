@@ -1,0 +1,196 @@
+# R2Drop/project.yml
+# XcodeGen spec for generating R2Drop.xcodeproj.
+# Run: cd R2Drop && xcodegen generate
+
+name: R2Drop
+options:
+  bundleIdPrefix: com.superhumancorp
+  deploymentTarget:
+    macOS: "13.0"
+  xcodeVersion: "16.2"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+
+packages:
+  R2Core:
+    path: ../Packages/R2Core
+  R2Bridge:
+    path: ../Packages/R2Bridge
+  ConfettiSwiftUI:
+    url: https://github.com/simibac/ConfettiSwiftUI
+    from: 3.0.0
+  PostHog:
+    url: https://github.com/PostHog/posthog-ios.git
+    from: "3.0.0"
+
+targets:
+  R2Drop:
+    type: application
+    platform: macOS
+    sources:
+      - path: App
+      - path: Assets.xcassets
+      - path: Resources
+        excludes:
+          - ".DS_Store"
+    entitlements:
+      path: R2Drop.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.application-groups:
+          - "group.com.superhumancorp.r2drop"
+        keychain-access-groups:
+          - "$(AppIdentifierPrefix)com.superhumancorp.r2drop"
+        com.apple.security.network.client: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.superhumancorp.r2drop
+        GENERATE_INFOPLIST_FILE: YES
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        MACOSX_DEPLOYMENT_TARGET: "13.0"
+        # Link the Rust static library + system frameworks needed by Rust deps
+        OTHER_LDFLAGS:
+          - "-L$(SRCROOT)/../engine/target/release"
+          - "-lr2_ffi"
+          - "-framework"
+          - "Security"
+          - "-framework"
+          - "SystemConfiguration"
+          - "-framework"
+          - "CoreFoundation"
+        LIBRARY_SEARCH_PATHS:
+          - "$(SRCROOT)/../engine/target/release"
+          - "$(inherited)"
+        SWIFT_VERSION: "5.9"
+        CODE_SIGN_ENTITLEMENTS: R2Drop.entitlements
+    info:
+      path: Info.plist
+      properties:
+        CFBundleURLTypes:
+          - CFBundleURLName: "com.superhumancorp.r2drop"
+            CFBundleURLSchemes:
+              - "r2drop"
+        LSApplicationCategoryType: "public.app-category.productivity"
+        SUPublicEDKey: "NWlOpvs7+ccCaW6557MqyCO94w3KVziS7uAOOxR8gQk="
+    dependencies:
+      - package: R2Core
+      - package: R2Bridge
+      - package: ConfettiSwiftUI
+      - package: PostHog
+      - target: FinderExtension
+        embed: true
+      - target: QuickActionExtension
+        embed: true
+
+  FinderExtension:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: FinderExtension
+        excludes:
+          - "*.entitlements"
+    entitlements:
+      path: FinderExtension/FinderExtension.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.application-groups:
+          - "group.com.superhumancorp.r2drop"
+        keychain-access-groups:
+          - "$(AppIdentifierPrefix)com.superhumancorp.r2drop"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.superhumancorp.r2drop.FinderExtension
+        GENERATE_INFOPLIST_FILE: YES
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        MACOSX_DEPLOYMENT_TARGET: "13.0"
+        SWIFT_VERSION: "5.9"
+        CODE_SIGN_ENTITLEMENTS: FinderExtension/FinderExtension.entitlements
+    info:
+      path: FinderExtension/Info.plist
+      properties:
+        CFBundleDisplayName: "Send to R2Drop"
+        LSUIElement: true
+        NSExtension:
+          NSExtensionPointIdentifier: "com.apple.FinderSync"
+          NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).FinderSync"
+    dependencies:
+      - package: R2Core
+
+  QuickActionExtension:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: QuickActionExtension
+        excludes:
+          - "*.entitlements"
+    entitlements:
+      path: QuickActionExtension/QuickActionExtension.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.application-groups:
+          - "group.com.superhumancorp.r2drop"
+        keychain-access-groups:
+          - "$(AppIdentifierPrefix)com.superhumancorp.r2drop"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.superhumancorp.r2drop.QuickActionExtension
+        GENERATE_INFOPLIST_FILE: YES
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        MACOSX_DEPLOYMENT_TARGET: "13.0"
+        SWIFT_VERSION: "5.9"
+        CODE_SIGN_ENTITLEMENTS: QuickActionExtension/QuickActionExtension.entitlements
+        PRODUCT_NAME: R2DropQuickAction
+    info:
+      path: QuickActionExtension/Info.plist
+      properties:
+        NSExtension:
+          NSExtensionAttributes:
+            NSExtensionActivationRule: >-
+              SUBQUERY(extensionItems,$extensionItem,SUBQUERY($extensionItem.attachments,$attachment,(ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.file-url") OR (ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.url")).@count == $extensionItem.attachments.@count).@count >= 1
+            NSExtensionServiceRoleType: "NSExtensionServiceRoleTypeEditor"
+            NSExtensionServiceAllowsFinderPreviewItem: true
+            NSExtensionServiceFinderPreviewIconName: "NSActionTemplate"
+          NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).QuickActionRequestHandler"
+          NSExtensionPointIdentifier: "com.apple.ui-services"
+        CFBundleDisplayName: "Send to R2Drop"
+    dependencies:
+      - package: R2Core
+
+schemes:
+  R2Drop Debug:
+    build:
+      targets:
+        R2Drop: all
+        FinderExtension: all
+        QuickActionExtension: all
+    run:
+      config: Debug
+      executable: R2Drop
+      commandLineArguments:
+        "-com.apple.CoreData.ConcurrencyDebug 1": true
+      environmentVariables:
+        - variable: OS_ACTIVITY_MODE
+          value: ""
+          isEnabled: true
+      debugEnabled: true
+    profile:
+      config: Debug
+    analyze:
+      config: Debug
+
+  R2Drop Production:
+    build:
+      targets:
+        R2Drop: all
+        FinderExtension: all
+        QuickActionExtension: all
+    run:
+      config: Release
+      debugEnabled: false
+    profile:
+      config: Release
+    analyze:
+      config: Release
