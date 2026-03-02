@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="www/r2-logo.png" alt="R2Drop" width="120" />
+  <img src="../www/r2-logo.png" alt="R2Drop" width="120" />
 </p>
 
 <h1 align="center">☁️ R2Drop</h1>
@@ -89,7 +89,7 @@ r2drop config get/set     # Configuration
 
 JSON output supported for automation: `r2drop upload file.png --json`
 
-Full CLI reference: [`app/CLI.md`](app/CLI.md)
+Full CLI reference: [`CLI.md`](../app/CLI.md)
 
 ## 🏗️ Project Structure
 
@@ -115,7 +115,7 @@ git clone https://github.com/superhumancorp/r2drop.git
 cd r2drop
 
 # Build the macOS app
-cd src/app
+cd app
 xcodebuild build -scheme R2Drop -destination 'platform=macOS'
 
 # Build the CLI
@@ -130,7 +130,7 @@ R2Drop uses PostHog for anonymous telemetry with full user control:
 - Sensitive values sanitized/hashed
 - Error tracking is rate-limited and deduplicated
 
-See [`app/INSTRUMENTATION.md`](app/INSTRUMENTATION.md) for the event catalog.
+See [`INSTRUMENTATION.md`](../app/INSTRUMENTATION.md) for the event catalog.
 
 ## 🛠️ CI/CD
 
