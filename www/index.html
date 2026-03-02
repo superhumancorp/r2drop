@@ -15,26 +15,32 @@ gtag('config', 'G-KVJJSZKTX2');
 
 
       <meta charset="utf-8"/>
-      <title>R2Drop — Native macOS Uploader for Cloudflare R2</title>
-      <meta content="R2Drop is the first native macOS menu bar app for Cloudflare R2 uploads. Right-click files in Finder and send them to your R2 bucket instantly. Free, open source, no browser required." name="description"/>
+      <title>R2Drop — Native macOS Uploader for Cloudflare R2 by Paul Pierre</title>
+      <meta content="R2Drop is a native macOS menu bar app for uploading files to Cloudflare R2. Right-click in Finder, drag to menu bar, or use the CLI. Free, open source, built by Paul Pierre." name="description"/>
       <link rel="canonical" href="https://r2drop.com/"/>
-      <meta content="R2Drop — Native macOS Uploader for Cloudflare R2" property="og:title"/>
-      <meta content="R2Drop is the first native macOS menu bar app for Cloudflare R2 uploads. Right-click files in Finder and send them to your R2 bucket instantly. Free, open source, no browser required." property="og:description"/>
-      <meta content="https://r2drop.com/r2-logo.png" property="og:image"/>
+      <meta content="R2Drop — Native macOS Uploader for Cloudflare R2 by Paul Pierre" property="og:title"/>
+      <meta content="R2Drop is a native macOS menu bar app for uploading files to Cloudflare R2. Right-click in Finder, drag to menu bar, or use the CLI. Free and open source." property="og:description"/>
+      <meta content="https://cdn.r2drop.com/banner.png" property="og:image"/>
+      <meta content="1200" property="og:image:width"/>
+      <meta content="630" property="og:image:height"/>
       <meta content="https://r2drop.com" property="og:url"/>
+      <meta content="R2Drop" property="og:site_name"/>
       <meta property="og:type" content="website"/>
-      <meta content="R2Drop — Native macOS Uploader for Cloudflare R2" property="twitter:title"/>
-      <meta content="R2Drop is the first native macOS menu bar app for Cloudflare R2 uploads. Right-click files in Finder and send them to your R2 bucket instantly. Free, open source, no browser required." property="twitter:description"/>
+      <meta content="R2Drop — Native macOS Uploader for Cloudflare R2 by Paul Pierre" property="twitter:title"/>
+      <meta content="R2Drop is a native macOS menu bar app for uploading files to Cloudflare R2. Right-click in Finder, drag to menu bar, or use the CLI. Free and open source." property="twitter:description"/>
+      <meta content="https://cdn.r2drop.com/banner.png" property="twitter:image"/>
       <meta content="summary_large_image" name="twitter:card"/>
+      <meta content="@paulpierre" name="twitter:creator"/>
       <meta content="@superhumancorp" name="twitter:site"/>
       <meta content="width=device-width, initial-scale=1" name="viewport"/>
-      <meta content="Webflow" name="generator"/>
+      <meta content="R2Drop" name="generator"/>
+      <meta content="Paul Pierre" name="author"/>
       <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
         "name": "R2Drop",
-        "description": "R2Drop is the first native macOS menu bar app for Cloudflare R2 uploads. Upload files and folders from Finder with a right-click, get a shareable link instantly. Built with a Rust upload engine for multipart, parallel, resumable uploads.",
+        "description": "R2Drop is a native macOS menu bar app for uploading files to Cloudflare R2. Right-click in Finder, drag to the menu bar, or use the CLI. Free and open source.",
         "operatingSystem": "macOS",
         "applicationCategory": "DeveloperApplication",
         "offers": {
@@ -44,14 +50,41 @@ gtag('config', 'G-KVJJSZKTX2');
         },
         "url": "https://r2drop.com",
         "downloadUrl": "https://github.com/superhumancorp/r2drop/releases",
-        "softwareVersion": "1.0",
+        "softwareVersion": "0.1.1",
         "author": {
+          "@type": "Person",
+          "name": "Paul Pierre",
+          "url": "https://github.com/paulpierre",
+          "sameAs": [
+            "https://x.com/paulpierre",
+            "https://github.com/paulpierre"
+          ]
+        },
+        "publisher": {
           "@type": "Organization",
           "name": "Superhuman Intelligence LLC",
           "url": "https://r2drop.com"
         },
         "license": "https://opensource.org/licenses/MIT",
-        "sameAs": "https://github.com/superhumancorp/r2drop"
+        "sameAs": [
+          "https://github.com/superhumancorp/r2drop",
+          "https://x.com/superhumancorp"
+        ],
+        "image": "https://cdn.r2drop.com/banner.png"
+      }
+      </script>
+      <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "R2Drop",
+        "alternateName": "R2Drop for macOS",
+        "url": "https://r2drop.com",
+        "description": "Native macOS menu bar app for Cloudflare R2 uploads by Paul Pierre",
+        "author": {
+          "@type": "Person",
+          "name": "Paul Pierre"
+        }
       }
       </script>
       <script type="application/ld+json">
@@ -64,39 +97,47 @@ gtag('config', 'G-KVJJSZKTX2');
             "name": "Is R2Drop free?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Yes — R2Drop is completely free during beta. You only pay for your Cloudflare R2 storage and egress, which is already some of the cheapest object storage available. No per-upload fees, no subscriptions required."
+              "text": "Yes. R2Drop is free and open source under the MIT license. No subscriptions, no per-upload fees. You only pay Cloudflare for R2 storage ($0.015/GB/month, $0 egress)."
             }
           },
           {
             "@type": "Question",
-            "name": "Does R2Drop store my files?",
+            "name": "Do I need a Cloudflare account?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "No. R2Drop uploads files directly from your Mac to your Cloudflare R2 bucket. Files never pass through our servers. Your API credentials are stored securely in the macOS Keychain — never in any cloud service or configuration file."
+              "text": "Yes. You need a free Cloudflare account with R2 enabled and at least one bucket. R2's free tier includes 10 GB storage, 1 million write operations, and 10 million read operations per month."
             }
           },
           {
             "@type": "Question",
-            "name": "Can I add multiple Cloudflare accounts?",
+            "name": "Does R2Drop store or see my files?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Yes. R2Drop supports unlimited accounts. Each account has its own bucket, path prefix, and optional custom domain. Switch the active account from the menu bar in a single click."
+              "text": "No. Files travel directly from your Mac to your Cloudflare R2 bucket over HTTPS. There is no R2Drop server in the data path. Credentials are stored exclusively in macOS Keychain."
             }
           },
           {
             "@type": "Question",
-            "name": "How do I install R2Drop?",
+            "name": "What macOS version do I need?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Download the .dmg from GitHub Releases and drag to Applications, or install via Homebrew: brew tap superhumancorp/tap && brew install --cask r2drop. The CLI companion is available separately: brew install --formula superhumancorp/tap/r2drop."
+              "text": "R2Drop requires macOS 13 Ventura or later. The companion CLI shares the same config and upload engine."
             }
           },
           {
             "@type": "Question",
-            "name": "Does R2Drop work headlessly or in CI/CD?",
+            "name": "Is there a file size limit?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Yes — the r2drop CLI companion supports all the same upload features as the macOS app. Use it in shell scripts, CI/CD pipelines, or with JSON output for automation: r2drop upload file.png --json"
+              "text": "No practical limit. R2Drop automatically uses multipart uploads for large files with configurable chunk sizes and up to 16 parallel streams. Cloudflare R2 supports objects up to 5 TB."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is R2Drop open source?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. R2Drop is fully open source under the MIT license. The code is on GitHub at github.com/superhumancorp/r2drop. Built by Paul Pierre."
             }
           }
         ]
