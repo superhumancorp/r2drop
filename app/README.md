@@ -18,6 +18,11 @@ R2Drop is a macOS app for uploading files and folders to Cloudflare R2 with fast
 - CLI docs: `CLI.md`
 - Release docs (local + CI): `RELEASE.md`
 - Telemetry: `TELEMETRY.md`
+- Roadmap: [`ROADMAP.md`](../ROADMAP.md)
+
+## Feedback
+
+Have a feature request or found a bug? [Submit feedback on Canny](https://superhuman.canny.io/) or [open an issue](https://github.com/superhumancorp/r2drop/issues). PRs welcome.
 
 ## Local Development
 

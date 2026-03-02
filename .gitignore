@@ -26,6 +26,7 @@ xcuserdata/
 
 # --- Internal docs ---
 app/INSTRUMENTATION.md
+docs/REQUIREMENTS.md
 
 # --- Credentials & Secrets ---
 app/credentials/
