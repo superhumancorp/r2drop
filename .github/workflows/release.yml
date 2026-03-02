@@ -11,6 +11,8 @@
 #   APPLE_TEAM_ID               — 10-character Apple team ID
 #   GEMINI_API_KEY              — Google Gemini API key (for changelog generation)
 #   TAP_GITHUB_TOKEN            — PAT with access to superhumancorp/homebrew-tap
+#   SPARKLE_ED25519_KEY         — Sparkle private Ed25519 key (preferred)
+#   SPARKLE_PRIVATE_KEY         — legacy Sparkle private key secret name (supported)
 
 name: Release
 
@@ -33,7 +35,8 @@ permissions:
 
 env:
   SCHEME: R2Drop
-  PROJECT: app/R2Drop.xcodeproj
+  PROJECT: app/R2Drop/R2Drop.xcodeproj
+  SPARKLE_CLI_VERSION: 2.9.0
 
 jobs:
   release:
@@ -194,6 +197,8 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+          SPARKLE_ED25519_KEY: ${{ secrets.SPARKLE_ED25519_KEY }}
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: |
           set -euo pipefail
           CERT_PASSWORD="$(printf '%s' "$APPLE_CERTIFICATE_PASSWORD" | tr -d '\r\n')"
@@ -216,6 +221,13 @@ jobs:
             fi
           done
           [ "$missing" -eq 0 ] || exit 1
+
+          SPARKLE_KEY="${SPARKLE_ED25519_KEY:-${SPARKLE_PRIVATE_KEY:-}}"
+          SPARKLE_KEY="$(printf '%s' "$SPARKLE_KEY" | tr -d '\r\n')"
+          if [ -z "$SPARKLE_KEY" ]; then
+            echo "::error::Missing Sparkle private key secret. Set SPARKLE_ED25519_KEY (preferred) or SPARKLE_PRIVATE_KEY."
+            exit 1
+          fi
 
           if ! [[ "$APPLE_TEAM_ID" =~ ^[A-Z0-9]{10}$ ]]; then
             echo "::error::APPLE_TEAM_ID must be a 10-character value (letters/numbers)."
@@ -375,16 +387,18 @@ jobs:
 
       # ─────────────────────────────────────────────
       # 11. Generate Sparkle appcast.xml for auto-updates.
-      #     - Includes BOTH aarch64 and x86_64 DMGs via sparkle:os/arch attributes
+      #     - Includes BOTH aarch64 and x86_64 DMGs via separate enclosure entries
       #     - sparkle:version uses BUILD_NUMBER (matches CURRENT_PROJECT_VERSION)
-      #     - Ed25519 signature via SPARKLE_ED25519_KEY secret (if available)
+      #     - Requires Ed25519 signature from SPARKLE_ED25519_KEY/SPARKLE_PRIVATE_KEY
       #     - Ref: https://sparkle-project.org/documentation/publishing/
       # ─────────────────────────────────────────────
       - name: Generate Sparkle appcast
         id: appcast
         env:
           SPARKLE_ED25519_KEY: ${{ secrets.SPARKLE_ED25519_KEY }}
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: |
+          set -euo pipefail
           VERSION="${{ steps.version.outputs.version }}"
           BUILD_NUMBER="${{ steps.version.outputs.build_number }}"
           PUB_DATE=$(date -u "+%a, %d %b %Y %H:%M:%S +0000")
@@ -396,44 +410,55 @@ jobs:
           ARM_SIZE=$(stat -f%z "$ARM_DMG")
           X86_SIZE=$(stat -f%z "$X86_DMG")
 
-          # Ed25519 signatures using Sparkle's sign_update tool.
-          # The tool is bundled in the Sparkle framework's bin/ directory.
-          # It reads the private key from the SPARKLE_ED25519_KEY env var.
-          ARM_SIG=""
-          X86_SIG=""
-          if [ -n "$SPARKLE_ED25519_KEY" ]; then
-            # Find sign_update in the Sparkle SPM checkout or DerivedData
-            SIGN_TOOL=$(find "$RUNNER_TEMP" /Users/runner/Library -name "sign_update" -type f 2>/dev/null | head -1)
-
-            if [ -z "$SIGN_TOOL" ]; then
-              # Download Sparkle release to get sign_update
-              echo "Downloading Sparkle tools..."
-              curl -sL "https://github.com/sparkle-project/Sparkle/releases/latest/download/Sparkle-2.7.5.tar.xz" \
-                -o "$RUNNER_TEMP/sparkle.tar.xz"
-              mkdir -p "$RUNNER_TEMP/sparkle"
-              tar -xf "$RUNNER_TEMP/sparkle.tar.xz" -C "$RUNNER_TEMP/sparkle" 2>/dev/null || true
-              SIGN_TOOL=$(find "$RUNNER_TEMP/sparkle" -name "sign_update" -type f 2>/dev/null | head -1)
-            fi
-
-            if [ -n "$SIGN_TOOL" ] && [ -x "$SIGN_TOOL" ]; then
-              echo "Signing DMGs with Ed25519..."
-              # sign_update outputs: sparkle:edSignature="..." length="..."
-              ARM_SIG=$("$SIGN_TOOL" "$ARM_DMG" -f <(echo "$SPARKLE_ED25519_KEY") 2>/dev/null | grep -oP 'edSignature="\K[^"]+' || true)
-              X86_SIG=$("$SIGN_TOOL" "$X86_DMG" -f <(echo "$SPARKLE_ED25519_KEY") 2>/dev/null | grep -oP 'edSignature="\K[^"]+' || true)
-              [ -n "$ARM_SIG" ] && echo "ARM64 signature: ${ARM_SIG:0:20}..."
-              [ -n "$X86_SIG" ] && echo "x86_64 signature: ${X86_SIG:0:20}..."
-            else
-              echo "Warning: sign_update not found. Appcast will be unsigned."
-            fi
-          else
-            echo "Warning: SPARKLE_ED25519_KEY not set. Appcast will be unsigned."
+          # Resolve private key from preferred/legacy secret names.
+          SPARKLE_KEY="${SPARKLE_ED25519_KEY:-${SPARKLE_PRIVATE_KEY:-}}"
+          SPARKLE_KEY="$(printf '%s' "$SPARKLE_KEY" | tr -d '\r\n')"
+          if [ -z "$SPARKLE_KEY" ]; then
+            echo "::error::Missing Sparkle private key secret. Set SPARKLE_ED25519_KEY (preferred) or SPARKLE_PRIVATE_KEY."
+            exit 1
           fi
 
-          # Build signature attributes (empty string if unsigned)
-          ARM_SIG_ATTR=""
-          X86_SIG_ATTR=""
-          [ -n "$ARM_SIG" ] && ARM_SIG_ATTR="sparkle:edSignature=\"${ARM_SIG}\""
-          [ -n "$X86_SIG" ] && X86_SIG_ATTR="sparkle:edSignature=\"${X86_SIG}\""
+          # Download pinned Sparkle CLI tools and use sign_update deterministically.
+          SPARKLE_ROOT="$RUNNER_TEMP/sparkle-${SPARKLE_CLI_VERSION}"
+          SPARKLE_ARCHIVE="$RUNNER_TEMP/sparkle-${SPARKLE_CLI_VERSION}.tar.xz"
+          curl -fsSL "https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_CLI_VERSION}/Sparkle-${SPARKLE_CLI_VERSION}.tar.xz" \
+            -o "$SPARKLE_ARCHIVE"
+          rm -rf "$SPARKLE_ROOT"
+          mkdir -p "$SPARKLE_ROOT"
+          tar -xf "$SPARKLE_ARCHIVE" -C "$SPARKLE_ROOT"
+          SIGN_TOOL="$SPARKLE_ROOT/bin/sign_update"
+          if [ ! -x "$SIGN_TOOL" ]; then
+            echo "::error::sign_update not found at expected path: $SIGN_TOOL"
+            exit 1
+          fi
+
+          KEY_FILE="$RUNNER_TEMP/sparkle_private_key.txt"
+          printf '%s' "$SPARKLE_KEY" > "$KEY_FILE"
+          chmod 600 "$KEY_FILE"
+
+          sign_and_extract() {
+            local dmg_path="$1"
+            local output sig
+            if ! output=$("$SIGN_TOOL" "$dmg_path" -f "$KEY_FILE" 2>&1); then
+              echo "::error::sign_update failed for ${dmg_path}"
+              echo "$output"
+              return 1
+            fi
+            sig=$(printf '%s\n' "$output" | sed -n 's/.*sparkle:edSignature=\"\([^\"]*\)\".*/\1/p' | head -1)
+            if [ -z "$sig" ]; then
+              echo "::error::Could not parse sparkle:edSignature from sign_update output for ${dmg_path}"
+              echo "$output"
+              return 1
+            fi
+            printf '%s' "$sig"
+          }
+
+          ARM_SIG="$(sign_and_extract "$ARM_DMG")"
+          X86_SIG="$(sign_and_extract "$X86_DMG")"
+          rm -f "$KEY_FILE"
+
+          ARM_SIG_ATTR="sparkle:edSignature=\"${ARM_SIG}\""
+          X86_SIG_ATTR="sparkle:edSignature=\"${X86_SIG}\""
 
           APPCAST_PATH="$RUNNER_TEMP/appcast.xml"
           cat > "$APPCAST_PATH" << XMLEOF

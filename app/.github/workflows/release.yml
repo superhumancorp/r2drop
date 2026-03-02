@@ -20,6 +20,7 @@ env:
   CARGO_TERM_COLOR: always
   ENGINE_DIR: src/app/engine
   APP_DIR: src/app
+  SPARKLE_CLI_VERSION: 2.9.0
 
 jobs:
   release:
@@ -226,7 +227,11 @@ jobs:
       # -----------------------------------------------------------------
       - name: Generate Sparkle appcast
         id: appcast
+        env:
+          SPARKLE_ED25519_KEY: ${{ secrets.SPARKLE_ED25519_KEY }}
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: |
+          set -euo pipefail
           VERSION="${{ steps.version.outputs.version }}"
           TAG="${{ steps.version.outputs.tag }}"
           DMG_PATH="${{ steps.dmg.outputs.path }}"
@@ -240,6 +245,43 @@ jobs:
 
           # Download URL on GitHub Releases
           DOWNLOAD_URL="https://github.com/${{ github.repository }}/releases/download/${TAG}/${DMG_NAME}"
+
+          SPARKLE_KEY="${SPARKLE_ED25519_KEY:-${SPARKLE_PRIVATE_KEY:-}}"
+          SPARKLE_KEY="$(printf '%s' "$SPARKLE_KEY" | tr -d '\r\n')"
+          if [ -z "$SPARKLE_KEY" ]; then
+            echo "Missing Sparkle private key secret. Set SPARKLE_ED25519_KEY (preferred) or SPARKLE_PRIVATE_KEY." >&2
+            exit 1
+          fi
+
+          SPARKLE_ROOT="$RUNNER_TEMP/sparkle-${SPARKLE_CLI_VERSION}"
+          SPARKLE_ARCHIVE="$RUNNER_TEMP/sparkle-${SPARKLE_CLI_VERSION}.tar.xz"
+          curl -fsSL "https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_CLI_VERSION}/Sparkle-${SPARKLE_CLI_VERSION}.tar.xz" \
+            -o "$SPARKLE_ARCHIVE"
+          rm -rf "$SPARKLE_ROOT"
+          mkdir -p "$SPARKLE_ROOT"
+          tar -xf "$SPARKLE_ARCHIVE" -C "$SPARKLE_ROOT"
+          SIGN_TOOL="$SPARKLE_ROOT/bin/sign_update"
+          if [ ! -x "$SIGN_TOOL" ]; then
+            echo "sign_update not found at expected path: $SIGN_TOOL" >&2
+            exit 1
+          fi
+
+          KEY_FILE="$RUNNER_TEMP/sparkle_private_key.txt"
+          printf '%s' "$SPARKLE_KEY" > "$KEY_FILE"
+          chmod 600 "$KEY_FILE"
+
+          SIGN_OUTPUT=$("$SIGN_TOOL" "$DMG_PATH" -f "$KEY_FILE" 2>&1) || {
+            echo "$SIGN_OUTPUT" >&2
+            exit 1
+          }
+          SPARKLE_ED_SIG="$(printf '%s\n' "$SIGN_OUTPUT" | sed -n 's/.*sparkle:edSignature=\"\([^\"]*\)\".*/\1/p' | head -1)"
+          rm -f "$KEY_FILE"
+
+          if [ -z "$SPARKLE_ED_SIG" ]; then
+            echo "Could not parse sparkle:edSignature from sign_update output." >&2
+            echo "$SIGN_OUTPUT" >&2
+            exit 1
+          fi
 
           # Generate the appcast XML snippet
           APPCAST_PATH="$RUNNER_TEMP/appcast.xml"
@@ -261,6 +303,7 @@ jobs:
                   url="${DOWNLOAD_URL}"
                   length="${FILE_SIZE}"
                   type="application/octet-stream"
+                  sparkle:edSignature="${SPARKLE_ED_SIG}"
                   sparkle:version="${{ github.run_number }}"
                   sparkle:shortVersionString="${VERSION}" />
               </item>

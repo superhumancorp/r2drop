@@ -13,11 +13,12 @@ The companion CLI (`r2-cli`) shares the same Rust upload engine and config, enab
 ```
 r2drop/                           # Repo root (this directory)
 ├── .github/workflows/            # CI/CD workflows
-│   ├── release.yml               # Release: sign, notarize, publish .dmg
+│   ├── release.yml               # Release: sign, notarize, publish signed Sparkle appcast + .dmg
 │   ├── cli-release.yml           # CLI binary release
 │   ├── deploy-www.yml            # Deploy website to R2
 │   └── ci.yml                    # PR: lint, build, test
 ├── CLAUDE.md                     # ← You are here. Keep this updated.
+├── AGENTS.md                     # Agent operating instructions (must stay in sync with CLAUDE.md)
 ├── LICENSE                       # MIT License
 ├── app/                          # Xcode workspace root
 │   ├── R2Drop.xcworkspace/       # Open this in Xcode
@@ -55,9 +56,9 @@ r2drop/                           # Repo root (this directory)
 
 | Location | Contents |
 |----------|----------|
-| `app/.env` | CF_API_TOKEN, GITHUB_TOKEN, APPLE_CERTIFICATE_BASE64, APPLE_CERTIFICATE_PASSWORD, APPLE_TEAM_ID, APPLE_ID (email), APPLE_APP_SPECIFIC_PASSWORD |
+| `app/.env` | CF_API_TOKEN, GITHUB_TOKEN, APPLE_CERTIFICATE_BASE64, APPLE_CERTIFICATE_PASSWORD, APPLE_TEAM_ID, APPLE_ID (email), APPLE_APP_SPECIFIC_PASSWORD, optional SPARKLE_ED25519_KEY |
 | `app/credentials/` | Apple .cer files, CSR, provisioning profiles |
-| GitHub Actions Secrets | Mirror of .env values — pushed via API |
+| GitHub Actions Secrets | Mirror of .env values — release also requires `SPARKLE_ED25519_KEY` (preferred) or `SPARKLE_PRIVATE_KEY` |
 
 **Runtime credentials** (user's R2 tokens) are stored exclusively in macOS Keychain. The config.toml contains account metadata (bucket names, endpoints) but **never** tokens or secrets.
 
@@ -91,6 +92,11 @@ r2drop/                           # Repo root (this directory)
 # Open in Xcode
 open app/R2Drop.xcworkspace
 
+# Local Sparkle tooling checks (from app/)
+cd app
+make release-check-key
+make release-verify-update-feed
+
 # Install CLI locally
 ./scripts/install-cli.sh
 
@@ -103,6 +109,8 @@ open app/R2Drop.xcworkspace
 - Apple cert .p12 export requires the private key to be in the same Keychain as the certificate. If you regenerate certs, use `openssl genrsa` + `openssl req` to create the CSR so you control the private key, then combine with `openssl pkcs12 -export`.
 - The `.p12` password and APPLE_ID (email, not bundle ID) are both needed for notarization in CI.
 - Sparkle requires the Ed25519 public key in Info.plist under `SUPublicEDKey`.
+- CI release appcast signing is pinned to Sparkle CLI `2.9.0` in `.github/workflows/release.yml`.
+- Release appcast generation is fail-closed: missing Sparkle key or signature parse failure must fail the workflow.
 
 ## Self-Update Instructions
 
@@ -123,6 +131,12 @@ open app/R2Drop.xcworkspace
 ## Session Log
 
 <!-- Append dated entries as you learn things. Most recent first. -->
+
+### 2026-03-02
+- Release workflow hardened for Sparkle updates: pinned Sparkle CLI to `2.9.0`, enforced required Sparkle private key (`SPARKLE_ED25519_KEY` preferred, `SPARKLE_PRIVATE_KEY` legacy), and fail-closed appcast signing.
+- Fixed root release workflow project path to `app/R2Drop/R2Drop.xcodeproj`.
+- Added local release-signing maintenance targets in `app/Makefile` (`release-tools`, `release-public-key`, `release-check-key`, `release-sign-dmg`, `release-verify-update-feed`) with `sparkle-*` aliases preserved.
+- Updated local release docs (`app/RELEASE.md`, `app/README.md`) to include Sparkle key validation and signed appcast verification steps.
 
 ### 2026-02-27
 - Full documentation audit against codebase. Fixed inaccuracies in gitbook docs, README.md, and CLAUDE.md.

@@ -52,6 +52,8 @@ make testflight
 make release
 make release-minor
 make release-major
+make release-check-key
+make release-verify-update-feed
 ```
 
 What these do:
@@ -61,6 +63,7 @@ What these do:
 - Auto-generate `BUILD_NUMBER` (UTC timestamp) unless overridden
 - Auto-bump `MARKETING_VERSION` for `make release` (patch by default, no file edits)
 - Use automatic signing locally by default if provisioning profile UUIDs are not set
+- Include release-signing targets for key verification and update-feed signature checks
 
 See `RELEASE.md` for full env vars, signing requirements, CI/tag releases, and troubleshooting.
 

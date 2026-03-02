@@ -25,6 +25,8 @@ make release
 make release-minor
 make release-major
 make dmg-release
+make release-check-key
+make release-verify-update-feed
 ```
 
 Useful helpers:
@@ -49,6 +51,26 @@ For local DMG artifacts:
 - Artifacts land under `src/app/build/` as:
   - `R2Drop-<version>-aarch64.dmg`
   - `R2Drop-<version>-x86_64.dmg`
+
+## Sparkle Signing (Local)
+
+Sparkle Ed25519 signing tools are exposed via `Makefile` targets and pinned to Sparkle `2.9.0`.
+
+```bash
+make release-tools
+make release-public-key
+make release-check-key
+make release-sign-dmg DMG=build/R2Drop-0.1.1-aarch64.dmg
+make release-verify-update-feed
+```
+
+Notes:
+
+- `make release-check-key` validates local Keychain key material against `SUPublicEDKey`.
+- `make release-sign-dmg` uses the key in macOS Keychain by default.
+- To use a raw key file instead, pass `SIGNING_PRIVATE_KEY_FILE=/path/to/key.txt`.
+- `make release-verify-update-feed` checks that the latest update feed contains at least one `sparkle:edSignature`.
+- Legacy `sparkle-*` make targets are preserved as aliases.
 
 ## Fastlane Lanes
 
@@ -117,6 +139,8 @@ Common:
 - `APPLE_TEAM_ID` (defaults to `A89MU37ZLB` in `Fastfile`)
 - `BUILD_NUMBER` (optional; auto-generated timestamp if omitted)
 - `MARKETING_VERSION` (optional; `make release*` auto-computes one if omitted)
+- `SPARKLE_ED25519_KEY` (preferred CI secret for release appcast signing)
+- `SPARKLE_PRIVATE_KEY` (legacy CI secret name, still accepted)
 
 App Store Connect upload auth (depending on your local Fastlane setup):
 
@@ -168,6 +192,7 @@ What it does:
 - Builds universal Rust library
 - Builds/signs/notarizes the macOS app
 - Builds/signs/notarizes DMG
+- Generates Sparkle `appcast.xml` with Ed25519 signatures
 - Publishes release artifacts
 
 ### CI / app build scheme notes

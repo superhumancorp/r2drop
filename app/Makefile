@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: help print-version rust-release fastlane-check testflight release release-patch release-minor release-major dmg-release dmg-release-no-notary
+.PHONY: help print-version rust-release fastlane-check testflight release release-patch release-minor release-major dmg-release dmg-release-no-notary release-tools release-public-key release-check-key release-sign-dmg release-verify-update-feed sparkle-tools sparkle-public-key sparkle-check-key sparkle-sign-dmg sparkle-verify-appcast
 
 # Pull the first MARKETING_VERSION from the XcodeGen spec (R2Drop target).
 CURRENT_MARKETING_VERSION := $(shell awk -F'"' '/MARKETING_VERSION:/ { print $$2; exit }' R2Drop/project.yml)
@@ -8,6 +8,12 @@ CURRENT_MARKETING_VERSION := $(shell awk -F'"' '/MARKETING_VERSION:/ { print $$2
 # Allow callers to override, e.g. `make testflight BUILD_NUMBER=123`.
 FASTLANE ?= bundle exec fastlane
 VERSION_BUMP ?= patch
+SIGNING_TOOLS_VERSION ?= 2.9.0
+RELEASE_PUBLIC_KEY ?= NWlOpvs7+ccCaW6557MqyCO94w3KVziS7uAOOxR8gQk=
+SIGNING_TOOLS_DIR ?= /tmp/sparkle-$(SIGNING_TOOLS_VERSION)
+SIGNING_TOOLS_ARCHIVE ?= /tmp/sparkle-$(SIGNING_TOOLS_VERSION).tar.xz
+SIGNING_BIN_DIR ?= $(SIGNING_TOOLS_DIR)/bin
+UPDATE_FEED_URL ?= https://github.com/superhumancorp/r2drop/releases/latest/download/appcast.xml
 
 help:
 	@echo "R2Drop local release automation"
@@ -19,6 +25,11 @@ help:
 	@echo "  make release-major     Same as release with major bump"
 	@echo "  make dmg-release       Build local DMGs (arm64 + x86_64), sign + notarize by default"
 	@echo "  make dmg-release-no-notary  Same as dmg-release but skips notarization"
+	@echo "  make release-tools     Download update-signing tools"
+	@echo "  make release-public-key Print local release-signing public key"
+	@echo "  make release-check-key Verify local release-signing key matches app key"
+	@echo "  make release-sign-dmg DMG=<path> [SIGNING_PRIVATE_KEY_FILE=<path>]"
+	@echo "  make release-verify-update-feed [UPDATE_FEED_URL=<url>]"
 	@echo "  make print-version     Show current/next version preview"
 	@echo ""
 	@echo "Overrides:"
@@ -29,6 +40,9 @@ help:
 	@echo "  DMG_SIGN=0|1           Toggle DMG app signing (default 1)"
 	@echo "  DMG_NOTARIZE=0|1       Toggle DMG notarization (default 1 for make dmg-release)"
 	@echo "  DMG_SIGN_IDENTITY='Developer ID Application: Paul Pierre (A89MU37ZLB)'"
+	@echo "  SIGNING_TOOLS_VERSION=2.9.0  Update-signing tool version"
+	@echo "  RELEASE_PUBLIC_KEY=<base64> Expected app release public key"
+	@echo "  UPDATE_FEED_URL=<url>  Update feed URL used by release-verify-update-feed"
 	@echo ""
 	@echo "Notes:"
 	@echo "  - make testflight keeps MARKETING_VERSION at the current project version by default"
@@ -105,3 +119,74 @@ dmg-release: rust-release fastlane-check
 
 dmg-release-no-notary:
 	@$(MAKE) dmg-release DMG_NOTARIZE=0
+
+release-tools:
+	@set -euo pipefail; \
+	echo "Installing release-signing tools $(SIGNING_TOOLS_VERSION) into $(SIGNING_TOOLS_DIR)"; \
+	curl -fsSL "https://github.com/sparkle-project/Sparkle/releases/download/$(SIGNING_TOOLS_VERSION)/Sparkle-$(SIGNING_TOOLS_VERSION).tar.xz" \
+	  -o "$(SIGNING_TOOLS_ARCHIVE)"; \
+	rm -rf "$(SIGNING_TOOLS_DIR)"; \
+	mkdir -p "$(SIGNING_TOOLS_DIR)"; \
+	tar -xf "$(SIGNING_TOOLS_ARCHIVE)" -C "$(SIGNING_TOOLS_DIR)"; \
+	test -x "$(SIGNING_BIN_DIR)/sign_update"; \
+	test -x "$(SIGNING_BIN_DIR)/generate_appcast"; \
+	test -x "$(SIGNING_BIN_DIR)/generate_keys"; \
+	ls -1 "$(SIGNING_BIN_DIR)"
+
+release-public-key: release-tools
+	@$(SIGNING_BIN_DIR)/generate_keys -p
+
+release-check-key: release-tools
+	@set -euo pipefail; \
+	actual="$$( $(SIGNING_BIN_DIR)/generate_keys -p )"; \
+	expected="$(RELEASE_PUBLIC_KEY)"; \
+	echo "Expected: $$expected"; \
+	echo "Actual:   $$actual"; \
+	if [ "$$actual" != "$$expected" ]; then \
+	  echo "Release signing public key mismatch" >&2; \
+	  exit 1; \
+	fi; \
+	echo "Release signing public key matches SUPublicEDKey"
+
+release-sign-dmg: release-tools
+	@set -euo pipefail; \
+	if [ -z "$${DMG:-}" ]; then \
+	  echo "Usage: make release-sign-dmg DMG=/path/to/R2Drop-<version>-<arch>.dmg [SIGNING_PRIVATE_KEY_FILE=/path/to/key.txt]" >&2; \
+	  exit 1; \
+	fi; \
+	if [ ! -f "$$DMG" ]; then \
+	  echo "DMG not found: $$DMG" >&2; \
+	  exit 1; \
+	fi; \
+	if [ -n "$${SIGNING_PRIVATE_KEY_FILE:-}" ]; then \
+	  if [ ! -f "$$SIGNING_PRIVATE_KEY_FILE" ]; then \
+	    echo "Key file not found: $$SIGNING_PRIVATE_KEY_FILE" >&2; \
+	    exit 1; \
+	  fi; \
+	  "$(SIGNING_BIN_DIR)/sign_update" "$$DMG" -f "$$SIGNING_PRIVATE_KEY_FILE"; \
+	else \
+	  "$(SIGNING_BIN_DIR)/sign_update" "$$DMG"; \
+	fi
+
+release-verify-update-feed:
+	@set -euo pipefail; \
+	tmp="$$(mktemp)"; \
+	curl -fsSL "$(UPDATE_FEED_URL)" -o "$$tmp"; \
+	sig_count="$$(rg -c 'sparkle:edSignature=' "$$tmp" || true)"; \
+	echo "Update feed URL: $(UPDATE_FEED_URL)"; \
+	echo "Signature count: $$sig_count"; \
+	if [ "$$sig_count" -lt 1 ]; then \
+	  echo "No update signatures found in update feed" >&2; \
+	  cat "$$tmp"; \
+	  rm -f "$$tmp"; \
+	  exit 1; \
+	fi; \
+	echo "Update signatures present in feed"; \
+	rm -f "$$tmp"
+
+# Backward-compatible aliases.
+sparkle-tools: release-tools
+sparkle-public-key: release-public-key
+sparkle-check-key: release-check-key
+sparkle-sign-dmg: release-sign-dmg
+sparkle-verify-appcast: release-verify-update-feed
