@@ -170,5 +170,5 @@ Copyright © 2026 Superhuman Intelligence LLC. All rights reserved.
 ---
 
 <p align="center">
-  Built with ❤️ by <a href="https://github.com/superhumancorp">Superhuman Intelligence LLC</a>
+  Built with ❤️ by <a href="https://superhumancorp.com">Superhuman Intelligence LLC</a>
 </p>
