@@ -1,0 +1,142 @@
+name: Deploy Website to R2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/www/**'
+      - 'src/scripts/install.sh'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Get changed files
+        id: changed
+        run: |
+          # Compare against the previous commit pushed to this branch.
+          # ${{ github.event.before }} is the SHA before this push — handles
+          # multi-commit pushes (e.g. after rebase) correctly.
+          BEFORE="${{ github.event.before }}"
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || [ -z "$BEFORE" ]; then
+            # First push or workflow_dispatch — upload everything
+            CHANGED=$(cd src/www && find . -type f | sed 's|^\./||')
+          else
+            CHANGED=$(git diff --name-only "$BEFORE" HEAD -- src/www/ | sed 's|^src/www/||')
+          fi
+
+          if [ -z "$CHANGED" ]; then
+            echo "No www files changed"
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            echo "$CHANGED" > /tmp/changed_files.txt
+            FILE_COUNT=$(wc -l < /tmp/changed_files.txt | tr -d ' ')
+            echo "Changed $FILE_COUNT file(s):"
+            cat /tmp/changed_files.txt
+          fi
+
+          # Check if install.sh changed
+          if [ "$BEFORE" != "0000000000000000000000000000000000000000" ] && [ -n "$BEFORE" ]; then
+            if git diff --name-only "$BEFORE" HEAD -- src/scripts/install.sh | grep -q install.sh; then
+              echo "install_changed=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "install_changed=false" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "install_changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy changed files to R2
+        if: steps.changed.outputs.has_changes == 'true'
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+        run: |
+          cd src/www
+          COUNT=0
+          while IFS= read -r key; do
+            [ -z "$key" ] && continue
+            [ ! -f "$key" ] && continue
+
+            # Determine content type
+            case "${key##*.}" in
+              html) ct="text/html" ;;
+              css)  ct="text/css" ;;
+              js)   ct="application/javascript" ;;
+              json) ct="application/json" ;;
+              svg)  ct="image/svg+xml" ;;
+              png)  ct="image/png" ;;
+              jpg|jpeg) ct="image/jpeg" ;;
+              webp) ct="image/webp" ;;
+              avif) ct="image/avif" ;;
+              woff2) ct="font/woff2" ;;
+              woff) ct="font/woff" ;;
+              ico)  ct="image/x-icon" ;;
+              xml)  ct="application/xml" ;;
+              txt)  ct="text/plain" ;;
+              *)    ct="application/octet-stream" ;;
+            esac
+
+            echo "Uploading: $key ($ct)"
+            curl -sf -X PUT \
+              "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/r2/buckets/r2drop/objects/$key" \
+              -H "Authorization: Bearer $CF_API_TOKEN" \
+              -H "Content-Type: $ct" \
+              --data-binary @"$key" > /dev/null
+            COUNT=$((COUNT + 1))
+          done < /tmp/changed_files.txt
+          echo "✅ Deployed $COUNT changed files to R2"
+
+      - name: Deploy install.sh to R2 root
+        if: steps.changed.outputs.install_changed == 'true'
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+        run: |
+          curl -sf -X PUT \
+            "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/r2/buckets/r2drop/objects/install.sh" \
+            -H "Authorization: Bearer $CF_API_TOKEN" \
+            -H "Content-Type: text/plain" \
+            --data-binary @src/scripts/install.sh
+          echo "✅ Deployed install.sh"
+
+      - name: Full deploy (manual trigger)
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+        run: |
+          cd src/www
+          find . -type f | while IFS= read -r file; do
+            key="${file#./}"
+            case "${key##*.}" in
+              html) ct="text/html" ;;
+              css)  ct="text/css" ;;
+              js)   ct="application/javascript" ;;
+              json) ct="application/json" ;;
+              svg)  ct="image/svg+xml" ;;
+              png)  ct="image/png" ;;
+              jpg|jpeg) ct="image/jpeg" ;;
+              webp) ct="image/webp" ;;
+              avif) ct="image/avif" ;;
+              woff2) ct="font/woff2" ;;
+              woff) ct="font/woff" ;;
+              ico)  ct="image/x-icon" ;;
+              xml)  ct="application/xml" ;;
+              txt)  ct="text/plain" ;;
+              *)    ct="application/octet-stream" ;;
+            esac
+            echo "Uploading: $key ($ct)"
+            curl -sf -X PUT \
+              "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/r2/buckets/r2drop/objects/$key" \
+              -H "Authorization: Bearer $CF_API_TOKEN" \
+              -H "Content-Type: $ct" \
+              --data-binary @"$file" > /dev/null
+          done
+          echo "✅ Full deploy: $(find . -type f | wc -l) files to R2"

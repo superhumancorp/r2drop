@@ -1,0 +1,66 @@
+name: CLI Release
+on:
+  push:
+    tags: ['cli-v*']
+
+permissions:
+  contents: write
+
+jobs:
+  build-cli:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            target: aarch64-apple-darwin
+            os_slug: macos
+            asset_arch: arm64
+          - os: macos-14
+            target: x86_64-apple-darwin
+            os_slug: macos
+            asset_arch: x86_64
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Build CLI
+        run: |
+          cd src/app/engine/r2-cli
+          cargo build --release --target ${{ matrix.target }}
+
+      - name: Package
+        run: |
+          TARGET_DIR="src/app/engine/target/${{ matrix.target }}/release"
+          if [ ! -d "$TARGET_DIR" ]; then
+            TARGET_DIR="src/app/engine/r2-cli/target/${{ matrix.target }}/release"
+          fi
+          BINARY="${TARGET_DIR}/r2drop"
+          [ -f "$BINARY.exe" ] && BINARY="$BINARY.exe"
+          TARBALL="r2drop-${{ matrix.os_slug }}-${{ matrix.asset_arch }}.tar.gz"
+          tar czf "$TARBALL" -C "$(dirname $BINARY)" "$(basename $BINARY)"
+          echo "TARBALL=$TARBALL" >> "$GITHUB_ENV"
+
+      - name: Ensure CLI release exists
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+          gh release view "$VERSION" >/dev/null 2>&1 || \
+            gh release create "$VERSION" \
+              --title "R2Drop CLI ${VERSION#cli-v}" \
+              --notes "R2Drop CLI release ${VERSION#cli-v}" || \
+            gh release view "$VERSION" >/dev/null 2>&1
+
+      - name: Upload to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+          gh release upload "$VERSION" "$TARBALL" --clobber
