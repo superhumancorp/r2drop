@@ -5,19 +5,19 @@
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-KVJJSZKTX2"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-KVJJSZKTX2');</script>
-<title>R2Drop vs rclone for Cloudflare R2 | R2Drop</title>
-<meta content="rclone is powerful but complex. R2Drop gives you a native macOS GUI plus CLI for Cloudflare R2 uploads. Here's when to use which." name="description"/>
-<meta content="R2Drop vs rclone for Cloudflare R2" property="og:title"/>
-<meta content="rclone is powerful but complex. R2Drop gives you a native macOS GUI plus CLI for Cloudflare R2 uploads. Here's when to use which." property="og:description"/>
+<title>R2Drop vs R2Client for Cloudflare R2 Uploads | R2Drop</title>
+<meta content="R2Drop is free and open source. R2Client costs money after a 3-day trial. Both upload to Cloudflare R2, but the tradeoffs go deeper than price." name="description"/>
+<meta content="R2Drop vs R2Client for Cloudflare R2 Uploads" property="og:title"/>
+<meta content="R2Drop is free forever. R2Client has a 3-day trial then you pay. Here's the full comparison." property="og:description"/>
 <meta content="https://cdn.r2drop.com/site/og.png" property="og:image"/>
-<meta content="https://r2drop.com/blog/r2drop-vs-rclone" property="og:url"/>
+<meta content="https://r2drop.com/blog/r2drop-vs-r2client" property="og:url"/>
 <meta content="article" property="og:type"/>
-<meta content="R2Drop vs rclone for Cloudflare R2" property="twitter:title"/>
-<meta content="rclone is powerful but complex. R2Drop gives you GUI + CLI for R2." property="twitter:description"/>
+<meta content="R2Drop vs R2Client for Cloudflare R2 Uploads" property="twitter:title"/>
+<meta content="Free and open source vs paid one-time purchase. Both for Cloudflare R2." property="twitter:description"/>
 <meta content="https://cdn.r2drop.com/site/og.png" property="twitter:image"/>
 <meta content="summary_large_image" name="twitter:card"/>
 <meta name="twitter:site" content="@paulpierre"/>
-<link rel="canonical" href="https://r2drop.com/blog/r2drop-vs-rclone"/>
+<link rel="canonical" href="https://r2drop.com/blog/r2drop-vs-r2client"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
 <meta content="R2Drop" name="generator"/>
 <link href="https://cdn.prod.website-files.com/69383496538f3c3da700a557/css/orvimo.webflow.shared.4ccc8b082.min.css" rel="stylesheet" type="text/css" integrity="sha384-TMyLCCqRf402eL9Xa141g9lhk+tJWCTwPtAHheUrmRVyE66GCRAZ+zpBk6WoX6Bl" crossorigin="anonymous"/>
@@ -31,8 +31,6 @@
 .richtext th{text-align:left;padding:12px 16px;background:rgba(255,255,255,0.05);color:#fff;font-weight:600;border-bottom:2px solid rgba(255,138,31,0.3);}
 .richtext td{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.06);color:#ccc;}
 .richtext tr:hover td{background:rgba(255,255,255,0.02);}
-.richtext pre{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:16px 20px;overflow-x:auto;margin:20px 0;font-size:0.9rem;line-height:1.6;}
-.richtext pre code{background:none;padding:0;color:#ccc;}
 .richtext .cta-box{background:rgba(255,138,31,0.08);border:1px solid rgba(255,138,31,0.2);border-radius:12px;padding:32px;margin:48px 0;text-align:center;}
 .richtext .cta-box p{color:#ccc;margin-bottom:16px;}
 .richtext .cta-box .btn-dl{display:inline-block;padding:12px 28px;font-size:16px;background:#ff8a1f;color:#000;border-radius:8px;font-weight:600;text-decoration:none;}
@@ -54,15 +52,15 @@
 {
   "@context": "https://schema.org",
   "@type": "Article",
-  "headline": "R2Drop vs rclone for Cloudflare R2",
-  "description": "rclone is powerful but complex. R2Drop gives you a native macOS GUI plus CLI for Cloudflare R2 uploads.",
+  "headline": "R2Drop vs R2Client for Cloudflare R2 Uploads",
+  "description": "R2Drop is free and open source. R2Client costs money after a 3-day trial. Both upload to Cloudflare R2, but the tradeoffs go deeper than price.",
   "image": "https://cdn.r2drop.com/site/og.png",
   "author": { "@type": "Person", "name": "Paul Pierre", "url": "https://paulpierre.com" },
   "publisher": { "@type": "Organization", "name": "R2Drop", "url": "https://r2drop.com" },
-  "datePublished": "2026-03-02",
-  "dateModified": "2026-03-02",
-  "url": "https://r2drop.com/blog/r2drop-vs-rclone",
-  "mainEntityOfPage": "https://r2drop.com/blog/r2drop-vs-rclone"
+  "datePublished": "2026-03-01",
+  "dateModified": "2026-03-01",
+  "url": "https://r2drop.com/blog/r2drop-vs-r2client",
+  "mainEntityOfPage": "https://r2drop.com/blog/r2drop-vs-r2client"
 }
 </script>
 </head>
@@ -115,12 +113,12 @@
 <header class="header single-post">
 <div class="w-layout-blockcontainer container single-post w-container">
 <div reveal-content="true" class="header-text-wrapper centered">
-<h1 line-split="hero-header" class="header-title l">R2Drop vs rclone for Cloudflare R2</h1>
+<h1 line-split="hero-header" class="header-title l">R2Drop vs R2Client for Cloudflare R2 Uploads</h1>
 <div class="single-post-infos">
 <a line-split="intro" href="../articles" class="category-link single-post">Comparison</a>
 <div class="date-wrapper">
 <div line-split="intro" class="date single-post">&mdash;</div>
-<div line-split="intro" class="date single-post">March 2, 2026</div>
+<div line-split="intro" class="date single-post">March 1, 2026</div>
 </div>
 </div>
 </div>
@@ -129,113 +127,94 @@
 <section class="section single-post-content">
 <div reveal-content="true" class="w-layout-blockcontainer container single-post w-container">
 <div parallax-container="true" class="blog-list-img-wrapper blog">
-<img src="../blog-banner-2.png" loading="lazy" img-hover="false" alt="R2Drop vs rclone for Cloudflare R2" class="blog-img parallax"/>
+<img src="../blog-banner-1.png" loading="lazy" img-hover="false" alt="R2Drop vs R2Client for Cloudflare R2 uploads" class="blog-img parallax"/>
 <div class="img-curtain"></div>
 </div>
 <div fade-in="intro" class="post-richtext-wrapper">
 <div class="richtext w-richtext">
 
-<p>If you've spent any time on <a href="https://www.reddit.com/r/CloudFlare/">r/CloudFlare</a>, you've seen the answer to "how do I upload to R2?" at least fifty times: <em>just use rclone</em>.</p>
+<p><a href="https://r2client.com">R2Client</a> is one of the few dedicated desktop apps for managing Cloudflare R2 buckets. It's cross-platform, supports large files, and pitches itself as "use Cloudflare R2 like a local drive." I found it while searching for R2 tools before I built <a href="https://r2drop.com">R2Drop</a>.</p>
 
-<p>And look, rclone is great. I've used it for years. But "just use rclone" glosses over the ~20 minutes of config-file editing it takes to get there. I built <a href="https://r2drop.com">R2Drop</a> because I wanted something faster for quick uploads, and I figured other people did too.</p>
+<p>They solve similar problems, but the approach and cost model are different. Here's the breakdown.</p>
 
-<h2>rclone: the 800-pound gorilla</h2>
+<h2>The price difference</h2>
 
-<p>rclone is a CLI tool that talks to basically every cloud storage provider that exists. S3, R2, GCS, Dropbox, OneDrive, you name it. It can copy, sync, mount remote storage as a local drive, encrypt on the fly, and handle transfers of any size. It's been around since 2014 and it's battle-tested.</p>
+<p>This is the big one. R2Drop is free. No trial period, no feature gates, no paid tier. MIT licensed, <a href="https://github.com/superhumancorp/r2drop">source on GitHub</a>. You get everything.</p>
 
-<p>The setup for Cloudflare R2 looks something like this:</p>
+<p>R2Client gives you a 3-day free trial, then you buy a license. It's a one-time purchase (not a subscription, which is nice), but you're still paying for a tool that uploads files to your own storage. If the trial runs out on a Friday and you need to upload something over the weekend, you're either paying or switching tools.</p>
 
-<pre><code>[myr2]
-type = s3
-provider = Cloudflare
-access_key_id = your_access_key
-secret_access_key = your_secret_key
-endpoint = https://&lt;account_id&gt;.r2.cloudflarestorage.com
-acl = private</code></pre>
+<h2>Native vs Electron</h2>
 
-<p>You put that in <code>~/.config/rclone/rclone.conf</code>, and then you can do:</p>
+<p>R2Drop is a native macOS app. Swift and SwiftUI for the interface, Rust for the upload engine. It runs as a menu bar icon, uses about 30-50 MB of RAM, and integrates with Finder and macOS Keychain.</p>
 
-<pre><code>rclone copy ./file.png myr2:my-bucket/path/</code></pre>
+<p>R2Client is built with Electron. That means it ships a bundled Chromium browser, which puts memory usage in the 200-400 MB range. The upside is cross-platform support: R2Client runs on macOS, Windows, and Linux from the same codebase.</p>
 
-<p>That works. But your credentials are sitting in a plain text config file. And if you have multiple R2 accounts, you're managing multiple config blocks manually. And there's no URL copying after upload, you have to construct it yourself based on your custom domain or the R2 public URL pattern.</p>
+<p>If you're on Windows or Linux, R2Client is one of your options. On macOS, R2Drop is lighter and more integrated with the OS.</p>
 
-<h2>R2Drop: the single-purpose alternative</h2>
+<h2>The Gatekeeper problem</h2>
 
-<p>R2Drop does one thing: upload files to Cloudflare R2 from macOS. It has a native GUI (menu bar app) and a CLI, and they share the same config and upload queue.</p>
+<p>R2Client's macOS build isn't code-signed. When you download and try to open it, macOS Gatekeeper will block it. You have to right-click, choose Open, and confirm the security dialog. Depending on your macOS version, you might need to go into System Settings > Privacy & Security to allow it.</p>
 
-<p>Setup takes about two minutes. You paste your Cloudflare API token, pick a bucket, optionally set a custom domain, and you're done. Credentials go into macOS Keychain, not a config file.</p>
-
-<p>After that, you right-click a file in Finder, hit "Send to R2," and the public URL lands in your clipboard when it finishes uploading.</p>
-
-<p>Or from the terminal:</p>
-
-<pre><code>r2drop upload screenshot.png
-# URL copied to clipboard
-
-r2drop upload ./assets/ --json
-# JSON output for scripting</code></pre>
+<p>This isn't a dealbreaker, but it's friction. R2Drop is properly signed and notarized, so it just opens.</p>
 
 <h2>Side-by-side</h2>
 
 <table>
 <thead>
-<tr><th>Feature</th><th>R2Drop</th><th>rclone</th></tr>
+<tr><th>Feature</th><th>R2Drop</th><th>R2Client</th></tr>
 </thead>
 <tbody>
-<tr><td>Price</td><td>Free (MIT)</td><td>Free (MIT)</td></tr>
-<tr><td>GUI</td><td>Yes (native macOS)</td><td>No (CLI only)</td></tr>
-<tr><td>CLI</td><td>Yes</td><td>Yes</td></tr>
-<tr><td>Finder integration</td><td>Right-click "Send to R2"</td><td>No</td></tr>
-<tr><td>Setup time</td><td>~2 minutes, guided</td><td>~10-20 minutes, manual config</td></tr>
-<tr><td>Credential storage</td><td>macOS Keychain</td><td>Plain text config file</td></tr>
+<tr><td>Price</td><td>Free (MIT)</td><td>Paid (one-time, 3-day trial)</td></tr>
+<tr><td>Platform</td><td>macOS</td><td>macOS, Windows, Linux</td></tr>
+<tr><td>Framework</td><td>Native Swift/SwiftUI + Rust</td><td>Electron</td></tr>
+<tr><td>Code-signed (macOS)</td><td>Yes</td><td>No</td></tr>
+<tr><td>Memory usage</td><td>~30-50 MB</td><td>~200-400 MB</td></tr>
+<tr><td>Finder right-click</td><td>Yes ("Send to R2")</td><td>No</td></tr>
+<tr><td>Menu bar app</td><td>Yes</td><td>No (standard window)</td></tr>
+<tr><td>CLI companion</td><td>Yes</td><td>No</td></tr>
 <tr><td>Auto-copy URL</td><td>Yes</td><td>No</td></tr>
-<tr><td>Multi-account</td><td>One-click switching</td><td>Multiple config blocks</td></tr>
-<tr><td>Sync/mount</td><td>No</td><td>Yes</td></tr>
-<tr><td>Resumable uploads</td><td>Yes</td><td>Yes</td></tr>
-<tr><td>Upload engine</td><td>Rust, parallel multipart</td><td>Go, parallel multipart</td></tr>
-<tr><td>Platforms</td><td>macOS</td><td>macOS, Linux, Windows, BSD, etc.</td></tr>
-<tr><td>Providers supported</td><td>Cloudflare R2</td><td>40+ cloud storage providers</td></tr>
+<tr><td>Credential storage</td><td>macOS Keychain</td><td>App config file</td></tr>
+<tr><td>Large file support</td><td>Multipart, parallel streams</td><td>Up to 50 GB</td></tr>
+<tr><td>Local encryption</td><td>No</td><td>Yes</td></tr>
+<tr><td>Bucket browsing</td><td>No</td><td>Yes</td></tr>
+<tr><td>Open source</td><td>Yes (MIT)</td><td>No</td></tr>
 </tbody>
 </table>
 
-<h2>Where rclone wins and it's not close</h2>
+<h2>Where R2Client wins</h2>
 
-<p>Sync. If you need to keep a local directory in sync with an R2 bucket (or vice versa), rclone is the tool. <code>rclone sync</code> handles deltas, checksums, and bandwidth limiting. R2Drop doesn't do sync at all.</p>
+<p>Cross-platform. If your team uses Windows, Linux, and Mac, R2Client gives everyone the same tool. R2Drop only runs on macOS.</p>
 
-<p>Mounting. <code>rclone mount myr2:bucket /mnt/r2</code> gives you R2 as a local filesystem. Useful for certain workflows. R2Drop doesn't do this either.</p>
+<p>Bucket browsing. R2Client lets you view, navigate, and manage files in your R2 buckets. R2Drop is an uploader, not a file manager.</p>
 
-<p>Cross-platform. rclone runs on everything. R2Drop is macOS only.</p>
-
-<p>Multi-provider. If you're moving files between S3 and R2, or Backblaze and R2, rclone handles that natively. R2Drop only talks to R2.</p>
+<p>Local encryption. R2Client can encrypt files before uploading. R2Drop doesn't do client-side encryption.</p>
 
 <h2>Where R2Drop wins</h2>
 
-<p>The daily workflow of "I have a file, I want it in R2, give me the URL." That loop is 2-3 seconds with R2Drop and probably 15-30 seconds with rclone (open terminal, type the command, construct the URL manually).</p>
+<p>It's free. That's worth repeating. No trial, no license key, no expiration. I built R2Drop because I needed it, and charging money for an upload tool felt wrong when the storage itself already costs money.</p>
 
-<p>Security. Credentials in macOS Keychain vs. a plain text file. Not a huge deal for some people, but it matters to me.</p>
+<p>Finder integration. Right-click a file, "Send to R2." The URL goes to your clipboard. No app windows, no dragging files around. This is the workflow I use dozens of times a day.</p>
 
-<p>The GUI. Not everyone wants to live in the terminal for every task. The menu bar app lets you drag and drop files, see upload progress, switch accounts, and manage your queue without touching a terminal.</p>
+<p>The CLI. <code>r2drop upload ./assets/ --json</code> works in shell scripts, Makefiles, and CI pipelines. It shares config with the GUI app, so there's no separate setup. R2Client doesn't have a CLI.</p>
 
-<p>And the CLI shares config with the GUI. You don't configure them separately. <code>r2drop upload</code> uses the same credentials and settings as the menu bar app. With rclone, the config file is the config file, there's no graphical counterpart (unless you count rclone's web GUI, which is... fine).</p>
+<p>It's open source. You can read the code, modify it, audit it. If R2Drop ever disappeared, you could fork it and keep going. With R2Client, if the developer stops maintaining it, your license still works but you can't fix bugs yourself.</p>
 
-<h2>Can you use both?</h2>
+<h2>Bottom line</h2>
 
-<p>Yes. I do. rclone handles my nightly sync jobs. R2Drop handles my ad-hoc uploads during the day. They don't conflict.</p>
+<p>If you need cross-platform support or bucket browsing, R2Client does that and R2Drop doesn't.</p>
 
-<p>If you're already using rclone and happy with it, I'm not going to tell you to switch. But if you find yourself uploading one-off files to R2 regularly and wishing it was faster, give R2Drop a shot.</p>
+<p>If you're on macOS and want a free, native, open-source tool that integrates with Finder and the terminal, R2Drop is the better fit. You'll never hit a trial expiration or need to bypass Gatekeeper.</p>
 
 <div class="cta-box">
-  <p>R2Drop is free, open source, and does one thing well: fast R2 uploads from macOS.</p>
+  <p>Free, native, open source. No trial, no license key.</p>
   <a href="https://github.com/superhumancorp/r2drop/releases" class="btn-dl">Download R2Drop</a>
-  <p style="margin-top:12px;font-size:0.85rem;color:#888">or <a href="https://github.com/superhumancorp/r2drop">check out the source on GitHub</a></p>
+  <p style="margin-top:12px;font-size:0.85rem;color:#888">MIT license. <a href="https://github.com/superhumancorp/r2drop">Source on GitHub</a>.</p>
 </div>
-
-<p>Have a great day. Carry on.</p>
 
 </div>
 </div>
 <div class="compare-footer">
-  Compare: <a href="r2drop-vs-cyberduck">R2Drop vs Cyberduck</a> &middot;
+  Compare: <a href="r2drop-vs-flaresync">R2Drop vs FlareSync</a> &middot;
   <a href="r2drop-vs-r2-uploader">R2Drop vs R2Uploader</a> &middot;
   <a href="r2drop-vs-cloudflare-dashboard">R2Drop vs Dashboard</a> &middot;
   <a href="best-cloudflare-r2-upload-tools">All R2 tools compared</a>
@@ -250,22 +229,22 @@ r2drop upload ./assets/ --json
 <div class="w-dyn-list">
 <div reveal-content="true" role="list" class="blog-list single-post w-dyn-items">
 <div fade-in="true" role="listitem" class="blog-item cross-article w-dyn-item">
-<a parallax-container="true" aria-label="read more" no-events="true" href="r2drop-vs-cyberduck" class="blog-list-img-wrapper blog w-inline-block">
-<img src="../blog-banner-1.png" loading="lazy" img-hover="true" alt="R2Drop vs Cyberduck" class="blog-img parallax"/>
+<a parallax-container="true" aria-label="read more" no-events="true" href="r2drop-vs-flaresync" class="blog-list-img-wrapper blog w-inline-block">
+<img src="../blog-banner-2.png" loading="lazy" img-hover="true" alt="R2Drop vs FlareSync" class="blog-img parallax"/>
 </a>
 <div class="blog-list-content">
 <div class="blog-category-wrapper">
 <div class="blog-category-title">Comparison</div>
 </div>
-<a aria-label="read more" href="r2drop-vs-cyberduck" class="blog-title-wrapper w-inline-block">
-<div class="blog-title-text">R2Drop vs Cyberduck for Cloudflare R2 Uploads</div>
+<a aria-label="read more" href="r2drop-vs-flaresync" class="blog-title-wrapper w-inline-block">
+<div class="blog-title-text">R2Drop vs FlareSync for Cloudflare R2</div>
 </a>
 <div class="summary-wrapper">
-<p class="summary-text">Purpose-built for R2 vs general-purpose file transfer. Here's what matters.</p>
+<p class="summary-text">R2Drop is free with CLI and Finder integration. FlareSync is $2.99 on the Mac App Store.</p>
 </div>
 <div class="date-wrapper">
 <div class="date">&mdash;</div>
-<div class="date">March 2, 2026</div>
+<div class="date">March 4, 2026</div>
 </div>
 </div>
 </div>
@@ -281,11 +260,11 @@ r2drop upload ./assets/ --json
 <div class="blog-title-text">Best Cloudflare R2 Upload Tools in 2026</div>
 </a>
 <div class="summary-wrapper">
-<p class="summary-text">Comparing R2Drop, R2Client, FlareSync, R2 Explorer, rclone, and Cyberduck for Cloudflare R2 uploads.</p>
+<p class="summary-text">Comparing R2Drop, R2Client, FlareSync, R2 Explorer, and the Cloudflare Dashboard for R2 uploads.</p>
 </div>
 <div class="date-wrapper">
 <div class="date">&mdash;</div>
-<div class="date">March 2, 2026</div>
+<div class="date">February 25, 2026</div>
 </div>
 </div>
 </div>
@@ -312,7 +291,7 @@ r2drop upload ./assets/ --json
 <div class="footer-links-list-wrapper">
 <div class="footer-links-heading">Install</div>
 <div class="footer-list-wrapper">
-<ul role="list" class="footer-links-list">
+<ul id="w-node-_087b196d-b026-a298-5d40-c324b41ad7b4-b41ad796" role="list" class="footer-links-list">
 <li class="footer-list-item"><a href="https://github.com/superhumancorp/r2drop/releases" class="footer-link-item">Download macOS App</a></li>
 <li class="footer-list-item"><a href="https://docs.r2drop.com" class="footer-link-item">CLI Installation</a></li>
 <li class="footer-list-item"><a href="https://docs.r2drop.com" class="footer-link-item">Quick Start Guide</a></li>
@@ -324,8 +303,8 @@ r2drop upload ./assets/ --json
 <div class="footer-links-heading">Compare</div>
 <div class="footer-list-wrapper">
 <ul role="list" class="footer-links-list">
-<li class="footer-list-item"><a href="r2drop-vs-cyberduck" class="footer-link-item">R2Drop vs Cyberduck</a></li>
-<li class="footer-list-item"><a href="r2drop-vs-rclone" class="footer-link-item">R2Drop vs rclone</a></li>
+<li class="footer-list-item"><a href="r2drop-vs-r2client" class="footer-link-item">R2Drop vs R2Client</a></li>
+<li class="footer-list-item"><a href="r2drop-vs-flaresync" class="footer-link-item">R2Drop vs FlareSync</a></li>
 <li class="footer-list-item"><a href="r2drop-vs-r2-uploader" class="footer-link-item">R2Drop vs R2Uploader</a></li>
 <li class="footer-list-item"><a href="r2drop-vs-cloudflare-dashboard" class="footer-link-item">R2Drop vs Dashboard</a></li>
 <li class="footer-list-item"><a href="best-cloudflare-r2-upload-tools" class="footer-link-item">All R2 tools compared</a></li>
