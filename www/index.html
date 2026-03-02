@@ -160,7 +160,8 @@ gtag('config', 'G-KVJJSZKTX2');
 .footer-social .social-icon-link svg{fill:#ff8a1f!important;color:#ff8a1f!important;}
 .nav-menu .default-nav-links{display:flex;align-items:center;gap:32px;}
 .nav-link{white-space:nowrap;}
-.footer-links-grid{grid-template-columns:repeat(3,1fr)!important;gap:40px!important;}
+.footer-links-grid{grid-template-columns:repeat(4,1fr)!important;gap:40px!important;}
+@media(max-width:767px){.footer-links-grid{grid-template-columns:repeat(2,1fr)!important;}}
 .footer-bottom{grid-template-columns:auto!important;justify-items:center!important;}
 .copyright-wrapper .copyright{grid-template-columns:1fr auto!important;}
 @media(max-width:767px){
@@ -722,13 +723,19 @@ Natively.</h1>
                         </ul>
                      </div>
                   </div>
-               </div>
-               <div style="text-align:center;padding:16px 0;font-size:13px;color:#666;border-top:1px solid #222;margin-top:24px;">
-                  Compare: <a href="blog/r2drop-vs-r2client" style="color:#888;text-decoration:none;">vs R2Client</a> &middot;
-                  <a href="blog/r2drop-vs-flaresync" style="color:#888;text-decoration:none;">vs FlareSync</a> &middot;
-                  <a href="blog/r2drop-vs-r2-uploader" style="color:#888;text-decoration:none;">vs R2Uploader</a> &middot;
-                  <a href="blog/r2drop-vs-cloudflare-dashboard" style="color:#888;text-decoration:none;">vs Dashboard</a> &middot;
-                  <a href="blog/best-cloudflare-r2-upload-tools" style="color:#888;text-decoration:none;">All tools compared</a>
+                  <div class="footer-links-list-wrapper">
+                     <div class="footer-links-heading">Resources</div>
+                     <div class="footer-list-wrapper">
+                        <ul role="list" class="footer-links-list">
+                           <li class="footer-list-item"><a href="blog/best-cloudflare-r2-upload-tools" class="footer-link-item">Best R2 Upload Tools 2026</a></li>
+                           <li class="footer-list-item"><a href="blog/r2drop-vs-r2client" class="footer-link-item">R2Drop vs R2Client</a></li>
+                           <li class="footer-list-item"><a href="blog/r2drop-vs-flaresync" class="footer-link-item">R2Drop vs FlareSync</a></li>
+                           <li class="footer-list-item"><a href="blog/r2drop-vs-cloudflare-dashboard" class="footer-link-item">R2Drop vs Dashboard</a></li>
+                           <li class="footer-list-item"><a href="blog/how-i-built-r2drop-in-two-days" class="footer-link-item">How I Built R2Drop</a></li>
+                           <li class="footer-list-item"><a href="https://superhuman.canny.io/" target="_blank" class="footer-link-item">Feedback</a></li>
+                        </ul>
+                     </div>
+                  </div>
                </div>
                <div class="w-layout-grid footer-bottom">
                   <div id="w-node-_087b196d-b026-a298-5d40-c324b41ad7fc-b41ad796" class="footer-logo-wrapper">
