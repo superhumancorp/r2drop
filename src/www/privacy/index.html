@@ -103,11 +103,11 @@
 
 <p><strong>Effective date:</strong> February 26, 2026 &nbsp;&middot;&nbsp; <strong>Last updated:</strong> February 26, 2026 &nbsp;&middot;&nbsp; <strong>Published by:</strong> Superhuman Intelligence LLC</p>
 
-<p><em>Short version: the App collects nothing. Your credentials never leave your Mac.</em></p>
+<p><em>Short version: telemetry is on by default and fully anonymous. You can opt out any time in Settings. Your credentials never leave your Mac.</em></p>
 
 <h2>TL;DR &mdash; The short version</h2>
 <ul>
-<li>The App sends zero telemetry or analytics to us.</li>
+<li>Anonymous usage telemetry is on by default via PostHog. No personal data, file contents, or credentials are ever sent. You can opt out in Settings.</li>
 <li>Your Cloudflare API credentials are stored only in macOS Keychain &mdash; never on our servers.</li>
 <li>Your files go directly from your Mac to your own Cloudflare R2 bucket. We never see them.</li>
 <li>R2Drop is open-source. You can verify all of this at <a href="https://github.com/superhumancorp/r2drop" target="_blank">github.com/superhumancorp/r2drop</a>.</li>
@@ -116,9 +116,10 @@
 <h2>1. Who We Are</h2>
 <p>R2Drop is developed and maintained by <strong>Superhuman Intelligence LLC</strong>, operating under the GitHub organization <a href="https://github.com/superhumancorp" target="_blank">superhumancorp</a>. For privacy-related inquiries, contact us at <a href="mailto:legal@r2drop.com">legal@r2drop.com</a> or open an issue on <a href="https://github.com/superhumancorp/r2drop/issues" target="_blank">GitHub</a>.</p>
 
-<h2>2. What the App Collects</h2>
-<p><strong>Nothing.</strong> The R2Drop macOS application and CLI tool collect no personal data, usage metrics, crash reports, or telemetry of any kind.</p>
-<p>There is no phone-home. There is no analytics SDK embedded in the App. The App only makes network requests to Cloudflare's API endpoints on your behalf &mdash; no requests are made to our servers.</p>
+<h2>2. Anonymous Telemetry (On by Default, Opt-Out)</h2>
+<p>R2Drop sends anonymous usage telemetry via <a href="https://posthog.com" target="_blank">PostHog</a> to help improve the app. This is <strong>on by default</strong> and can be turned off at any time in Settings &rarr; General &rarr; &ldquo;Share anonymous usage data.&rdquo;</p>
+<p><strong>What is sent:</strong> feature usage events (e.g. &ldquo;upload started&rdquo;), error types, app version, macOS version, and a random anonymous identifier generated at install time.</p>
+<p><strong>What is never sent:</strong> file names, file contents, file paths, upload URLs, bucket names, account names, API credentials, or any personal information. Bucket and account names are one-way hashed before transmission.</p>
 
 <h2>3. Your Cloudflare API Credentials</h2>
 <p>R2Drop requires a Cloudflare API token to upload files to your R2 bucket. This token is:</p>

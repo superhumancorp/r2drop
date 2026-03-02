@@ -4,7 +4,7 @@ The `r2drop` CLI is a standalone macOS binary. It supports both Apple Silicon (a
 
 ---
 
-## Option 1: Homebrew (Coming Soon)
+## Option 1: Homebrew 
 
 The Homebrew tap is not yet published. For now, use the quick install script or build from source.
 

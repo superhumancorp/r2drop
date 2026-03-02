@@ -51,7 +51,7 @@ r2drop/                           # Monorepo root
 - **IPC:** App Groups (`group.com.superhumancorp.r2drop`) + shared SQLite
 - **Auto-updates:** Sparkle framework (Ed25519 key: `NWlOpvs7+ccCaW6557MqyCO94w3KVziS7uAOOxR8gQk=`)
 - **CI/CD:** GitHub Actions
-- **Distribution:** .dmg from GitHub Releases (Homebrew tap templates exist but not yet published)
+- **Distribution:** .dmg from GitHub Releases (Homebrew tap at github.com/superhumancorp/homebrew-tap)
 
 ## Credentials & Secrets
 
