@@ -92,4 +92,4 @@ R2Drop is fully open source under the MIT License. You can audit every network c
 
 ## Contact
 
-Privacy questions? Email [legal@r2drop.com](mailto:legal@r2drop.com) or open an issue on [GitHub](https://github.com/superhumancorp/r2drop/issues).
+Privacy questions? Email [support@r2drop.com](mailto:support@r2drop.com) or open an issue on [GitHub](https://github.com/superhumancorp/r2drop/issues).

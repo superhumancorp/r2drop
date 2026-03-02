@@ -81,6 +81,6 @@ R2Drop was created by Paul Pierre and is maintained by Superhuman Intelligence L
 
 ## Contact
 
-- Email: legal@r2drop.com
+- Email: support@r2drop.com
 - GitHub Issues: https://github.com/superhumancorp/r2drop/issues
-- X/Twitter: https://x.com/superhumancorp
+- X/Twitter: https://x.com/paulpierre

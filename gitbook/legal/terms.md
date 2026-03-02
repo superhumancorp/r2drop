@@ -45,6 +45,6 @@ These Terms are governed by the laws of the State of California, United States.
 
 ## Contact
 
-Questions? Email [legal@r2drop.com](mailto:legal@r2drop.com) or open an issue on [GitHub](https://github.com/superhumancorp/r2drop/issues).
+Questions? Email [support@r2drop.com](mailto:support@r2drop.com) or open an issue on [GitHub](https://github.com/superhumancorp/r2drop/issues).
 
 Full terms: [r2drop.com/terms/](https://r2drop.com/terms/)
