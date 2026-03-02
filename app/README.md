@@ -71,4 +71,4 @@ See `RELEASE.md` for full env vars, signing requirements, CI/tag releases, and t
   - `com.superhumancorp.r2drop`
   - `com.superhumancorp.r2drop.FinderExtension`
   - `com.superhumancorp.r2drop.QuickActionExtension`
-- `GEMINI_API_KEY` can be stored in `.env`, but release-note generation is not wired into the app release workflows in `src/app` by default yet.
+- `GEMINI_API_KEY` can be stored in `.env`, but release-note generation is not wired into the app release workflows in `app` by default yet.

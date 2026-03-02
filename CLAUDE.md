@@ -11,33 +11,29 @@ The companion CLI (`r2-cli`) shares the same Rust upload engine and config, enab
 ## Repo Layout
 
 ```
-r2drop/                           # Monorepo root
+r2drop/                           # Repo root (this directory)
+├── .github/workflows/            # CI/CD workflows
+│   ├── release.yml               # Release: sign, notarize, publish .dmg
+│   ├── cli-release.yml           # CLI binary release
+│   ├── deploy-www.yml            # Deploy website to R2
+│   └── ci.yml                    # PR: lint, build, test
 ├── CLAUDE.md                     # ← You are here. Keep this updated.
-├── R2Drop-Requirements.md        # Authoritative PRD (FR-001 through FR-068)
-├── art/                          # Brand assets (SVG, PNG, PSD)
-├── docs/                         # GitBook documentation (future)
-└── src/
-    ├── app/                      # Xcode workspace root
-    │   ├── R2Drop.xcworkspace/   # Open this in Xcode
-    │   ├── R2Drop/               # Xcode project
-    │   │   ├── App/              # SwiftUI menu bar app
-    │   │   └── FinderExtension/  # Finder Sync Extension target
-    │   ├── Packages/
-    │   │   ├── R2Core/           # Swift package: models, config, queue, history
-    │   │   └── R2Bridge/         # Swift package: FFI wrapper around Rust
-    │   ├── engine/               # Rust workspace
-    │   │   ├── r2-core/          # Shared upload logic, S3 client
-    │   │   ├── r2-ffi/           # C FFI bridge (staticlib + cbindgen)
-    │   │   └── r2-cli/           # Standalone CLI binary
-    │   ├── scripts/
-    │   │   ├── build-rust.sh     # Compile Rust → .a + .h
-    │   │   ├── install-cli.sh
-    │   │   └── generate-dmg.sh
-    │   └── .github/workflows/
-    │       ├── ci.yml            # PR: lint, build, test
-    │       ├── release.yml       # Release: sign, notarize, publish .dmg
-    │       └── cli-release.yml   # Cross-compile CLI binaries
-    └── www/                      # Marketing website (deferred, gitignored)
+├── LICENSE                       # MIT License
+├── app/                          # Xcode workspace root
+│   ├── R2Drop.xcworkspace/       # Open this in Xcode
+│   ├── R2Drop/                   # Xcode project (SwiftUI app + extensions)
+│   ├── Packages/
+│   │   ├── R2Core/               # Swift: models, config, queue, history
+│   │   └── R2Bridge/             # Swift: FFI wrapper around Rust
+│   ├── engine/                   # Rust workspace
+│   │   ├── r2-core/              # Shared upload logic, S3 client
+│   │   ├── r2-ffi/               # C FFI bridge (staticlib + cbindgen)
+│   │   └── r2-cli/               # Standalone CLI binary
+│   └── scripts/                  # Build scripts
+├── www/                          # Marketing website (deployed to R2)
+├── gitbook/                      # GitBook documentation (synced to docs.r2drop.com)
+├── scripts/                      # Global scripts (install.sh)
+└── homebrew/                     # Homebrew tap templates
 ```
 
 ## Tech Stack
@@ -59,8 +55,8 @@ r2drop/                           # Monorepo root
 
 | Location | Contents |
 |----------|----------|
-| `src/app/.env` | CF_API_TOKEN, GITHUB_TOKEN, APPLE_CERTIFICATE_BASE64, APPLE_CERTIFICATE_PASSWORD, APPLE_TEAM_ID, APPLE_ID (email), APPLE_APP_SPECIFIC_PASSWORD |
-| `src/app/credentials/` | Apple .cer files, CSR, provisioning profiles |
+| `app/.env` | CF_API_TOKEN, GITHUB_TOKEN, APPLE_CERTIFICATE_BASE64, APPLE_CERTIFICATE_PASSWORD, APPLE_TEAM_ID, APPLE_ID (email), APPLE_APP_SPECIFIC_PASSWORD |
+| `app/credentials/` | Apple .cer files, CSR, provisioning profiles |
 | GitHub Actions Secrets | Mirror of .env values — pushed via API |
 
 **Runtime credentials** (user's R2 tokens) are stored exclusively in macOS Keychain. The config.toml contains account metadata (bucket names, endpoints) but **never** tokens or secrets.
@@ -89,11 +85,11 @@ r2drop/                           # Monorepo root
 ## Build Commands
 
 ```bash
-# Build Rust engine (from src/app/)
+# Build Rust engine (from app/)
 ./scripts/build-rust.sh
 
 # Open in Xcode
-open src/app/R2Drop.xcworkspace
+open app/R2Drop.xcworkspace
 
 # Install CLI locally
 ./scripts/install-cli.sh
