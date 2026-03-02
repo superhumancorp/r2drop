@@ -73,6 +73,8 @@ targets:
               - "r2drop"
         LSApplicationCategoryType: "public.app-category.productivity"
         SUPublicEDKey: "NWlOpvs7+ccCaW6557MqyCO94w3KVziS7uAOOxR8gQk="
+        SUFeedURL: "https://github.com/superhumancorp/r2drop/releases/latest/download/appcast.xml"
+        SUEnableAutomaticChecks: true
     dependencies:
       - package: R2Core
       - package: R2Bridge
