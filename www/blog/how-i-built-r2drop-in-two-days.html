@@ -6,14 +6,14 @@
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-KVJJSZKTX2"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-KVJJSZKTX2');</script>
 <title>How I Built R2Drop in 2 Days with AI | R2Drop</title>
-<meta content="Paul Pierre's first-person account of building R2Drop, a native macOS app for Cloudflare R2, in a single weekend using AI-assisted development with Claude and Ralph-TUI task orchestration." name="description"/>
+<meta content="How I built R2Drop — a native macOS app with Swift, Rust, and a CLI — in two afternoons without writing a line of code. The real unlock was 3 hours of architecture, TDD, and Ralph-TUI orchestration." name="description"/>
 <meta content="How I Built R2Drop in 2 Days with AI" property="og:title"/>
-<meta content="Paul Pierre's first-person account of building R2Drop, a native macOS app for Cloudflare R2, in a single weekend using AI-assisted development with Claude and Ralph-TUI task orchestration." property="og:description"/>
+<meta content="How I built R2Drop — a native macOS app with Swift, Rust, and a CLI — in two afternoons without writing a line of code. The real unlock was 3 hours of architecture, TDD, and Ralph-TUI orchestration." property="og:description"/>
 <meta content="https://cdn.r2drop.com/site/og.png" property="og:image"/>
 <meta content="https://r2drop.com/blog/how-i-built-r2drop-in-two-days" property="og:url"/>
 <meta content="article" property="og:type"/>
 <meta content="How I Built R2Drop in 2 Days with AI" property="twitter:title"/>
-<meta content="Paul Pierre's first-person account of building R2Drop, a native macOS app for Cloudflare R2, in a single weekend using AI-assisted development with Claude and Ralph-TUI task orchestration." property="twitter:description"/>
+<meta content="How I built R2Drop — a native macOS app with Swift, Rust, and a CLI — in two afternoons without writing a line of code. The real unlock was 3 hours of architecture, TDD, and Ralph-TUI orchestration." property="twitter:description"/>
 <meta content="https://cdn.r2drop.com/site/og.png" property="twitter:image"/>
 <meta content="summary_large_image" name="twitter:card"/>
 <meta name="twitter:site" content="@paulpierre"/>
@@ -43,7 +43,7 @@
   "@context": "https://schema.org",
   "@type": "BlogPosting",
   "headline": "How I Built R2Drop in 2 Days with AI",
-  "description": "First-person account of building a native macOS app for Cloudflare R2 in a weekend using AI-assisted development with Claude and Ralph-TUI task orchestration.",
+  "description": "How I built R2Drop in two afternoons without writing code. 3 hours of architecture, TDD with Ralph-TUI orchestration, Opus 4.6 as workhorse, Codex as reviewer.",
   "image": "https://cdn.r2drop.com/site/og.png",
   "author": { "@type": "Person", "name": "Paul Pierre", "url": "https://paulpierre.com" },
   "publisher": { "@type": "Organization", "name": "R2Drop", "url": "https://r2drop.com" },
@@ -126,73 +126,70 @@
 
 <p><em>By <a href="https://paulpierre.com">Paul Pierre</a></em></p>
 
-<p>I shipped R2Drop &mdash; a native macOS menu bar app, a Finder extension, a Rust upload engine, a standalone CLI, a Homebrew tap, a marketing website, CI/CD with auto-updates, and Apple code signing &mdash; in a single weekend. This is how I did it, what AI was actually good at, and where it completely fell apart.</p>
+<p>I shipped R2Drop &mdash; a native macOS menu bar app, a Finder extension, a Rust upload engine, a standalone CLI, a Homebrew tap, a marketing website, CI/CD with auto-updates, and Apple code signing &mdash; in two afternoons. Friday evening and Saturday morning, on a road trip to a lake. I didn't write a single line of code. Here's what actually happened.</p>
 
-<h2>The Problem: No Good macOS Tool for Cloudflare R2</h2>
-<p>I use Cloudflare R2 constantly. Screenshots, documentation images, build artifacts, static assets for client projects. Every time I needed to upload something, I had the same awful workflow: open a browser tab, navigate to the Cloudflare dashboard, click through three screens, drag in the file, wait, then manually copy the URL. For a single file. Multiple times a day.</p>
-<p>S3 has dozens of macOS tools &mdash; Transmit, Cyberduck, Mountain Duck, the AWS CLI. R2 has... rclone, if you don't mind configuring a <code>.conf</code> file by hand. For a service that's S3-compatible, the tooling gap was absurd. I kept waiting for someone to build a simple macOS upload app for R2. Nobody did.</p>
-<p>So on a Friday evening in February 2026, I opened a terminal and started.</p>
+<h2>The Backstory</h2>
+<p>At my day job I was leading a large engineering team into taking a radical approach to a massive codebase refactor. One of the tools we were evaluating was <a href="https://ralph-tui.com/">Ralph-TUI</a>, an AI task orchestration framework that keeps coding agents in a loop until the work is done. Before recommending it to the team, I needed to dogfood it myself &mdash; with enough variance to really stress-test the approach. A native macOS app touching Swift, Rust, FFI, Apple code signing, and CI/CD seemed like sufficient variance.</p>
+<p>I also had a genuine itch. I use Cloudflare R2 constantly &mdash; screenshots, docs, build artifacts, static assets. Every upload meant opening the dashboard, clicking through three screens, dragging in a file, waiting, copying the URL. S3 has dozens of macOS tools. R2 had... rclone, if you don't mind hand-editing config files. The tooling gap was absurd.</p>
+<p>So on a Friday evening in February 2026, I sat down and started designing.</p>
 
-<h2>The Stack Decision</h2>
-<p>I wanted something that felt native. A real macOS menu bar app, not an Electron wrapper. That meant Swift and SwiftUI for the UI layer. But I also wanted a fast, reliable upload engine that could handle multipart uploads, parallel transfers, and resumable sessions. Swift's networking stack can do this, but Rust's async ecosystem (tokio + aws-sdk-s3) is more battle-tested for S3-compatible APIs.</p>
-<p>The architecture I landed on: <strong>Swift/SwiftUI for the UI, Rust for the upload engine, FFI to bridge them.</strong> The Rust code compiles to a static library (<code>staticlib</code>) with a C header generated by <code>cbindgen</code>. The Swift side calls into it through a thin wrapper package called R2Bridge.</p>
-<p>This is not a stack most solo developers would choose for a weekend project. It's two languages, an FFI boundary, two build systems (Xcode and Cargo), and all the complexity that comes with native macOS distribution (code signing, notarization, Sparkle updates). Under normal circumstances, this would be a multi-week project.</p>
-<p>AI changed that math.</p>
+<h2>The Hardest 3 Hours: Architecture and Specs</h2>
+<p>Here's the part nobody wants to hear: the most important work was the 3 hours I spent before any agent touched a line of code. No scaffolding. No prompting. Just thinking through the architecture, the core user flows, and every edge case I could anticipate.</p>
+<p>I wanted something native &mdash; a real macOS menu bar app, not an Electron wrapper. That meant Swift and SwiftUI for the UI. But I also wanted a fast, reliable upload engine that could handle multipart uploads, parallel transfers, and resumable sessions. Rust's async ecosystem (tokio + aws-sdk-s3) was the right call. The architecture: <strong>Swift/SwiftUI for the UI, Rust for the upload engine, FFI to bridge them.</strong></p>
+<p>Two languages, an FFI boundary, two build systems, Apple code signing, notarization, Sparkle updates. Under normal circumstances, this would be a multi-week project. But the key insight was that none of this complexity matters if you codify it properly upfront.</p>
+<p>What I actually spent those 3 hours on:</p>
+<ul>
+<li><strong>Core user flows as user stories</strong> &mdash; every way a user could trigger an upload (Finder right-click, menu bar drag, Dock drop, CLI, deep link, file picker), written out step by step so I could mentally traverse every edge case</li>
+<li><strong>Functional requirements</strong> &mdash; converting the user stories into technical specs so the agents could traverse the <em>technical</em> edge cases (what happens when the network drops mid-chunk? when credentials expire? when two uploads target the same key?)</li>
+<li><strong>Technology choices for maximum flexibility</strong> &mdash; Swift and Rust aren't the easy path, but they're the right one. I've built apps for the last decade, and recent work with Go and TypeScript made Rust feel natural. Picking technologies you understand deeply is how you move fast.</li>
+</ul>
 
-<h2>How I Used AI: The Real Workflow</h2>
-<p>I used Claude as my primary coding assistant, running through <a href="https://ralph-tui.com/">Ralph-TUI</a>, an AI task orchestration tool I built for managing multi-step development workflows. Ralph breaks down high-level goals into ordered tasks, tracks dependencies, and feeds context to Claude at each step. It's like having a project manager sitting between you and the AI.</p>
-<p>Here's what the actual workflow looked like: I'd describe a feature at a high level ("implement multipart upload with 5MB chunk size, parallel upload of up to 4 chunks, SHA-256 checksum verification"). Ralph would decompose that into subtasks. Claude would generate the implementation. I'd review, test, and iterate.</p>
-<p>The entire project was about 30% me writing code directly, 50% me reviewing and editing AI-generated code, and 20% me debugging things AI couldn't figure out.</p>
+<h2>How I Used AI: I Didn't Write Code</h2>
+<p>Let me be clear: I didn't write code. Not a line. What I did was invest heavily in setting up the harness and nailing the specifications.</p>
+<p>The orchestration stack was <a href="https://ralph-tui.com/">Ralph-TUI</a> with <a href="https://github.com/ArcadeLabsInc/beads">Beads</a> for issue tracking. Opus 4.6 (Claude) was the workhorse &mdash; it did all the implementation. But here's the thing that made it work: I had ChatGPT 5.3 Codex interrogate every output. Claude Code rushes. It generates fast, confident, and sometimes wrong. Codex is pedantic in review &mdash; annoyingly thorough &mdash; but it catches the mistakes Claude misses. The two models complement each other perfectly.</p>
+<p>The entire workflow was test-driven development, which is where Ralph-TUI really shines. Every task started with writing tests. The agent would implement until tests passed. If tests failed, Ralph would loop the agent back with the failure context. No ambiguity about "done" &mdash; either the tests pass or they don't.</p>
+<p>Ralph-TUI perfectly one-shotted most tasks. That's not hyperbole. With well-written specs and TDD, the agent loop just... worked.</p>
 
 <h2>Where AI Was Genuinely Great</h2>
 
 <h3>Scaffolding and Boilerplate</h3>
-<p>The initial project structure &mdash; Xcode workspace, Swift package manifests, Rust workspace with three crates, build scripts, Makefile targets &mdash; would have taken me half a day to set up manually. Claude generated all of it in minutes. Not perfectly, but close enough that I only needed minor corrections. For a project with this many moving parts (SwiftUI app, Finder Sync Extension, Rust workspace with three crates, CLI binary), the scaffolding alone saved hours.</p>
+<p>Xcode workspace, Swift package manifests, Rust workspace with three crates, build scripts, Makefile targets &mdash; all generated in minutes. For a project with this many moving parts, the scaffolding alone saved hours.</p>
 
-<h3>Rust S3 Client Implementation</h3>
-<p>Claude is remarkably good at Rust. The core upload engine &mdash; multipart uploads with configurable chunk sizes, parallel part uploads via tokio tasks, ETag verification, abort-on-failure cleanup &mdash; came out nearly production-ready on the first pass. I was genuinely surprised. The aws-sdk-s3 API is well-documented and Claude clearly had strong training data for it.</p>
+<h3>Rust S3 Client</h3>
+<p>The core upload engine &mdash; multipart uploads, parallel chunk transfers, ETag verification, abort-on-failure &mdash; came out nearly production-ready on the first pass. The aws-sdk-s3 API is well-documented and Claude had strong training data for it.</p>
 
 <h3>SwiftUI Views</h3>
-<p>The menu bar popover, settings panels, upload queue view, and history view were all generated by Claude with minimal iteration. SwiftUI's declarative syntax is apparently a sweet spot for LLMs &mdash; the intent maps cleanly to the output. Claude handled @State, @Binding, @ObservedObject patterns correctly almost every time.</p>
+<p>Menu bar popover, settings, upload queue, history &mdash; all generated with minimal iteration. SwiftUI's declarative syntax is a sweet spot for LLMs. @State, @Binding, @ObservedObject patterns were correct almost every time.</p>
 
-<h3>FFI Bridge</h3>
-<p>The C FFI layer between Rust and Swift is mostly ceremony: defining C-compatible structs, writing extern functions, generating the header with cbindgen, and wrapping it all in a Swift package. It's tedious, error-prone work that benefits enormously from code generation. Claude handled the cbindgen configuration, the unsafe pointer conversions in Swift, and the memory management (CString allocation and deallocation) correctly.</p>
-
-<h3>CI/CD Workflows</h3>
-<p>GitHub Actions workflows for building a signed macOS .dmg, notarizing it with Apple, generating a Sparkle appcast for auto-updates, and deploying the website to R2 &mdash; Claude generated solid first drafts of all four workflows. CI/CD YAML is exactly the kind of boilerplate-heavy, well-documented domain where AI shines.</p>
+<h3>FFI Bridge and CI/CD</h3>
+<p>The C FFI layer between Rust and Swift, cbindgen config, unsafe pointer conversions, memory management &mdash; all tedious ceremony that benefits enormously from code generation. Same for GitHub Actions workflows: build, sign, notarize, deploy. Boilerplate-heavy domains where AI delivers.</p>
 
 <h2>Where AI Completely Struggled</h2>
 
 <h3>Apple Code Signing and Notarization</h3>
-<p>This was the biggest time sink of the entire project, and AI was almost useless here. Apple's code signing is a maze of certificates, provisioning profiles, entitlements, and identity types that interact in non-obvious ways. Claude kept confusing Developer ID Application certificates (for outside-App-Store distribution) with Apple Distribution certificates (for App Store). It suggested using <code>security cms -S</code> when I needed <code>codesign</code>. It generated entitlements files with capabilities that required specific provisioning profiles.</p>
-<p>The worst part: when my .p12 export failed because the private key wasn't in the same Keychain as the certificate, Claude couldn't diagnose it. The error messages from <code>security</code> and <code>codesign</code> are cryptic, and this specific failure mode (CSR generated on a different machine than the one doing the export) doesn't appear clearly in training data. I spent three hours on this alone, eventually solving it by regenerating the CSR with <code>openssl</code> locally.</p>
+<p>The biggest time sink, and AI was almost useless. Apple's signing maze &mdash; certificates, provisioning profiles, entitlements &mdash; has non-obvious interactions. Claude confused Developer ID with Apple Distribution certificates. When my .p12 export failed because the private key was in a different Keychain, Claude couldn't diagnose it. The error messages from <code>codesign</code> are cryptic. This is exactly the kind of edge case that well-written tests catch early.</p>
 
-<h3>macOS Keychain Integration</h3>
-<p>Storing and retrieving credentials from the macOS Keychain through Swift's Security framework seems straightforward until you hit the edge cases. The Keychain API has different behaviors depending on whether the app is sandboxed, whether it's running as an App Extension, and whether App Groups are configured. Claude generated Keychain code that worked in isolation but broke when the Finder Sync Extension tried to access the same credentials. The fix required configuring App Groups (<code>group.com.superhumancorp.r2drop</code>) and using the shared group Keychain access &mdash; a pattern Claude didn't suggest on its own.</p>
-
-<h3>Finder Sync Extension</h3>
-<p>Apple's Finder Sync Extension API is poorly documented and has behaviors that aren't covered in any public tutorial. The extension runs in a separate process from the main app. Communicating between the two &mdash; "the user right-clicked a file, here's the path, now queue it for upload" &mdash; required using shared SQLite databases through App Groups. Claude initially suggested XPC, which is the "correct" Apple approach but significantly more complex to set up for this use case. Getting the Finder extension to appear in the right-click menu, receive the correct file paths, and communicate with the main app took several hours of debugging that AI couldn't shortcut.</p>
-
-<h3>Sparkle Auto-Update Configuration</h3>
-<p>Sparkle is the de facto framework for macOS app auto-updates. The setup involves Ed25519 key generation, embedding the public key in Info.plist, signing the .dmg with the private key, generating an appcast XML file, and hosting it alongside the update binary. Claude got the broad strokes right but missed critical details: the Ed25519 key format Sparkle expects, the exact XML schema for the appcast, and the fact that the appcast signing step in CI needs the private key as a GitHub Actions secret. Each of these small gaps cost 20&ndash;30 minutes of debugging.</p>
+<h3>macOS Keychain + Finder Extension</h3>
+<p>Keychain behaves differently depending on sandbox state, App Extensions, and App Groups. Claude generated code that worked in isolation but broke when the Finder Sync Extension tried to access shared credentials. Getting the extension to appear in the right-click menu, receive correct file paths, and communicate through shared SQLite via App Groups took real debugging. The Finder Sync API is poorly documented &mdash; sparse training data means sparse AI performance.</p>
 
 <h2>The Timeline</h2>
-<p><strong>Friday evening (4 hours):</strong> Project scaffolding. Rust workspace, Swift packages, Xcode project, build scripts. Claude handled most of this. First successful FFI call from Swift to Rust by midnight.</p>
-<p><strong>Saturday (12 hours):</strong> Core features. Rust upload engine with multipart support. SwiftUI menu bar app with settings and upload queue. Finder Sync Extension (this ate 3 hours). Keychain integration. TOML config file. Upload history with SQLite. By end of Saturday, I could right-click a file in Finder and have it upload to R2.</p>
-<p><strong>Sunday (10 hours):</strong> Polish and distribution. CLI binary. Code signing and notarization (3 painful hours). Sparkle auto-updates. GitHub Actions CI/CD. Marketing website. Homebrew formula. README. First public release on GitHub.</p>
-<p>Total: roughly 26 hours of focused work across two days.</p>
+<p><strong>Friday evening (~3 hours):</strong> Architecture and specs. User stories, functional requirements, technology decisions. Set up Ralph-TUI harness with Beads. Zero code written by me. First agent runs started producing scaffolding by the end of the evening.</p>
+<p><strong>Saturday morning (~3 hours, on a road trip to a lake):</strong> Agents running through the task list while I reviewed outputs on my laptop. Core upload engine, SwiftUI app, Finder extension, Keychain integration, CLI, config system, upload history. By the time we arrived at the lake, I could right-click a file in Finder and have it upload to R2.</p>
+<p>The following days were polish: code signing (painful), Sparkle auto-updates, CI/CD, marketing website, Homebrew formula. But the core product was built in two afternoons.</p>
 
-<h2>What I'd Tell Other Developers</h2>
-<p>AI-assisted development is not "tell the AI what to build and it builds it." That framing is misleading and sets people up for frustration. Here's what it actually is, at least for a project like this:</p>
-<p><strong>AI is a force multiplier for things you already understand.</strong> I know Swift. I know Rust. I know how macOS apps are structured. Claude accelerated the parts where I knew what I wanted but didn't want to type it all out. It did not replace the need to understand the architecture, debug the edge cases, or make design decisions.</p>
-<p><strong>AI is worst at platform-specific dark corners.</strong> Apple's signing infrastructure, Keychain behaviors, Finder extension quirks, Sparkle configuration &mdash; these are all areas with sparse, sometimes contradictory documentation. AI models trained on this data inherit the confusion. If you're building native macOS software, expect to spend real time in Apple's developer documentation and on StackOverflow for the last 20% of the work.</p>
-<p><strong>Task orchestration matters.</strong> The reason I could move this fast wasn't just Claude &mdash; it was having <a href="https://ralph-tui.com/">Ralph-TUI</a> break the project into ordered, scoped tasks with clear deliverables. Without that structure, I would have wasted time context-switching between the upload engine, the UI, the FFI bridge, and the CI pipeline. AI works best when you give it a focused, well-defined task with clear inputs and outputs.</p>
-<p><strong>Ship the minimal thing.</strong> R2Drop v1 is upload-only. No browsing, no downloading, no sync. That constraint is what made a weekend build possible. Every feature you add is another surface area for AI to generate bugs in and for you to debug. Scope ruthlessly.</p>
+<h2>The Real Unlocks</h2>
+<p>People want to hear "AI built my app." The truth is more nuanced. Here's what actually made this possible:</p>
+<p><strong>Specs are the real code.</strong> The 3 hours I spent on architecture and user stories were the hardest and most valuable work of the entire project. Thinking through core flows, codifying them as user stories so you can traverse user edge cases, then converting those to functional requirements so you can traverse technical edge cases &mdash; that's the work. The agents just executed the specs.</p>
+<p><strong>TDD is the real hero.</strong> Well-written tests are what make autonomous agent loops work. Without them, you're reviewing every line of generated code manually. With them, "done" is unambiguous. The agents write code until tests pass. Period. If I had to pick one practice that made this build possible, it's test-driven development.</p>
+<p><strong>Use complementary models.</strong> Opus 4.6 as the implementer, Codex as the reviewer. Claude rushes and sometimes misses things. Codex is pedantic and catches what Claude misses. Don't rely on a single model &mdash; use the tension between them.</p>
+<p><strong>Orchestration matters.</strong> <a href="https://ralph-tui.com/">Ralph-TUI</a> kept the agents focused on scoped, ordered tasks with clear deliverables. Without that structure, context-switching between the upload engine, UI, FFI bridge, and CI pipeline would have burned all the time savings.</p>
+<p><strong>Play to your strengths.</strong> I've built apps for the last decade. Recent Go and TypeScript work made Rust feel natural. Choosing technologies I deeply understood meant I could review agent output quickly and catch architectural mistakes before they compounded. Don't use AI as an excuse to work in unfamiliar territory &mdash; use it to move faster in territory you already know.</p>
+<p><strong>Ship the minimal thing.</strong> R2Drop v1 is upload-only. No browsing, no downloading, no sync. That constraint is what made a two-afternoon build possible.</p>
 
 <h2>Try It</h2>
 <p>R2Drop is free and open source under the MIT license. You can <a href="https://github.com/superhumancorp/r2drop/releases">download it from GitHub</a> or install via Homebrew. If you use Cloudflare R2 and you're on a Mac, I think you'll find it useful. And if you want to see the code, it's all <a href="https://github.com/superhumancorp/r2drop">on GitHub</a>.</p>
 <p>For a step-by-step setup guide, see <a href="getting-started-with-r2drop">Getting Started with R2Drop</a>. If you want terminal access, check out the <a href="r2drop-cli-guide">R2Drop CLI guide</a>.</p>
-<figure style="margin:32px 0;"><img src="../screenshot-2.png" alt="R2Drop upload queue showing files uploading to Cloudflare R2" loading="lazy" style="width:100%;border-radius:8px;border:1px solid rgba(255,255,255,0.1);"/><figcaption style="text-align:center;font-size:0.85rem;color:#888;margin-top:8px;">R2Drop &mdash; built in a weekend, used every day since</figcaption></figure>
+<figure style="margin:32px 0;"><img src="../screenshot-2.png" alt="R2Drop upload queue showing files uploading to Cloudflare R2" loading="lazy" style="width:100%;border-radius:8px;border:1px solid rgba(255,255,255,0.1);"/><figcaption style="text-align:center;font-size:0.85rem;color:#666;margin-top:8px;">R2Drop &mdash; built in two afternoons, used every day since</figcaption></figure>
 
 </div>
 </div>
