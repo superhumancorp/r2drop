@@ -34,6 +34,7 @@
 		5D525698D7F5A279EAEE6DC8 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 895B4748BE8DA2F5A012B32C /* NotificationService.swift */; };
 		6D241D7208D0BBD8512BAA9D /* R2Core in Frameworks */ = {isa = PBXBuildFile; productRef = 0655B0C2DF0053D85C194E67 /* R2Core */; };
 		721BD11D81B5D65412985497 /* AccountDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1706FFB21E4DD0D4C688812 /* AccountDetailView.swift */; };
+		7C6BAF9546BEB501DC21451B /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 31041CEEDF5650FA66389A3B /* Sparkle */; };
 		80C6A5F627CC3567514E2A6D /* Background-1.png in Resources */ = {isa = PBXBuildFile; fileRef = 2F7747EEE426AC86E245F67C /* Background-1.png */; };
 		89FBD3C970E9CCD9464A0205 /* FinderSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11146A78EED30F66A1B4E9C4 /* FinderSync.swift */; };
 		8FB96BF695B807642B267439 /* ConfettiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39A98603B94F2CA7D853BF21 /* ConfettiView.swift */; };
@@ -170,6 +171,7 @@
 				1DC6605C3B322B25C9F3ABB4 /* R2Bridge in Frameworks */,
 				AE5B487FADE44977751FBF31 /* ConfettiSwiftUI in Frameworks */,
 				EF44E6355E13CA88FC6133F9 /* PostHog in Frameworks */,
+				7C6BAF9546BEB501DC21451B /* Sparkle in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -446,6 +448,7 @@
 				9A0B2592ABA6D517E479184E /* R2Bridge */,
 				AABDFDEBAB26E9C36125096A /* ConfettiSwiftUI */,
 				3C78B0CA22E55D3B56CABA69 /* PostHog */,
+				31041CEEDF5650FA66389A3B /* Sparkle */,
 			);
 			productName = R2Drop;
 			productReference = A1D3B81C8C2E55DB0D042611 /* R2Drop.app */;
@@ -473,6 +476,7 @@
 			packageReferences = (
 				5F6FFC80C4A2F0F923BB2D6F /* XCRemoteSwiftPackageReference "ConfettiSwiftUI" */,
 				13024E61DDE45131364887C7 /* XCRemoteSwiftPackageReference "posthog-ios" */,
+				D0EE24C125ED268DA9EF614D /* XCRemoteSwiftPackageReference "Sparkle" */,
 				54A00052BDE555F13C51791B /* XCLocalSwiftPackageReference "../Packages/R2Bridge" */,
 				AEE43ABAD0762645C6D0DAAF /* XCLocalSwiftPackageReference "../Packages/R2Core" */,
 			);
@@ -930,12 +934,25 @@
 				minimumVersion = 3.0.0;
 			};
 		};
+		D0EE24C125ED268DA9EF614D /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = exactVersion;
+				version = 2.9.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		0655B0C2DF0053D85C194E67 /* R2Core */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = R2Core;
+		};
+		31041CEEDF5650FA66389A3B /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D0EE24C125ED268DA9EF614D /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
 		};
 		3C78B0CA22E55D3B56CABA69 /* PostHog */ = {
 			isa = XCSwiftPackageProductDependency;

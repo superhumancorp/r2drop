@@ -514,10 +514,10 @@ private enum MenuBarUploadQueueWorker {
         let config = (try? ConfigManager.load()) ?? R2Config()
         let exclusions = config.preferences.exclusionPatterns
         let token = try? KeychainManager().getToken(account: account.name)
-        var queuedAny = false
         var jobsEnqueued = 0
         var filesSkippedExcluded = 0
         var containsDirectory = false
+        var drafts: [UploadJobDraft] = []
 
         for url in urls {
             let isDirectory = (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
@@ -542,16 +542,13 @@ private enum MenuBarUploadQueueWorker {
                     let name = "\(baseName)/\(relativePath)"
                     let pathPrefix = account.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
                     let r2Key = pathPrefix.isEmpty ? name : "\(pathPrefix)/\(name)"
-                    if (try? qm.insertJob(
+                    drafts.append(UploadJobDraft(
                         filePath: fileURL.path,
                         r2Key: r2Key,
                         bucket: account.bucket,
                         accountName: account.name,
                         totalBytes: fileSize(fileURL)
-                    )) != nil {
-                        queuedAny = true
-                        jobsEnqueued += 1
-                    }
+                    ))
                 }
                 continue
             }
@@ -584,17 +581,16 @@ private enum MenuBarUploadQueueWorker {
                 }
             }
 
-            if (try? qm.insertJob(
+            drafts.append(UploadJobDraft(
                 filePath: url.path,
                 r2Key: r2Key,
                 bucket: account.bucket,
                 accountName: account.name,
                 totalBytes: fileSize(url)
-            )) != nil {
-                queuedAny = true
-                jobsEnqueued += 1
-            }
+            ))
         }
+
+        jobsEnqueued = (try? qm.insertJobs(drafts)) ?? 0
 
         // P0: upload_jobs_enqueued
         let jobsEnqueuedSnapshot = jobsEnqueued
@@ -609,7 +605,7 @@ private enum MenuBarUploadQueueWorker {
             ])
         }
 
-        if queuedAny {
+        if jobsEnqueued > 0 {
             await MainActor.run {
                 NotificationCenter.default.post(name: .r2dropQueueDidChange, object: nil)
             }

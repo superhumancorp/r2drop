@@ -12,6 +12,9 @@ struct QueueTabView: View {
 
     /// Tracks whether user is hovering a file over the drop zone.
     @State private var isDropTargeted = false
+    @State private var showClearFailedConfirm = false
+    @State private var showClearQueueConfirm = false
+    @State private var showRetryFailedConfirm = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -32,6 +35,30 @@ struct QueueTabView: View {
         }
         .onAppear { viewModel.start() }
         .onDisappear { viewModel.stop() }
+        .alert("Clear Failed Uploads?", isPresented: $showClearFailedConfirm) {
+            Button("Clear \(viewModel.failedCount) Failed Uploads", role: .destructive) {
+                viewModel.clearFailedJobs()
+            }
+            Button("Keep", role: .cancel) {}
+        } message: {
+            Text("This removes failed uploads from the local queue. Files on disk and objects already in R2 are not deleted.")
+        }
+        .alert("Clear Queue?", isPresented: $showClearQueueConfirm) {
+            Button("Clear \(viewModel.clearableCount) Uploads", role: .destructive) {
+                viewModel.clearInactiveJobs()
+            }
+            Button("Keep", role: .cancel) {}
+        } message: {
+            Text("This removes pending, paused, and failed uploads from the local queue. Active uploads are left running.")
+        }
+        .alert("Retry Failed Uploads?", isPresented: $showRetryFailedConfirm) {
+            Button("Retry \(viewModel.failedCount) Failed Uploads") {
+                viewModel.retryFailedJobs()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Failed uploads will be moved back to pending and processed again.")
+        }
         // Full-view drop target for when jobs exist
         .onDrop(of: [.fileURL], isTargeted: $isDropTargeted) { providers in
             handleDrop(providers)
@@ -54,6 +81,8 @@ struct QueueTabView: View {
                 .font(.callout)
                 .foregroundColor(.secondary)
 
+            recoveryActions
+
             // Average upload rate (only when actively uploading)
             if viewModel.hasActiveUploads {
                 let speed = viewModel.aggregateSpeed
@@ -67,6 +96,37 @@ struct QueueTabView: View {
                     }
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private var recoveryActions: some View {
+        if viewModel.failedCount > 0 {
+            Button {
+                showRetryFailedConfirm = true
+            } label: {
+                Label("Retry Failed", systemImage: "arrow.clockwise")
+            }
+            .buttonStyle(.borderless)
+            .help("Retry failed uploads")
+
+            Button(role: .destructive) {
+                showClearFailedConfirm = true
+            } label: {
+                Label("Clear Failed", systemImage: "trash")
+            }
+            .buttonStyle(.borderless)
+            .help("Clear failed uploads")
+        }
+
+        if viewModel.clearableCount > viewModel.failedCount {
+            Button(role: .destructive) {
+                showClearQueueConfirm = true
+            } label: {
+                Label("Clear Queue", systemImage: "trash.slash")
+            }
+            .buttonStyle(.borderless)
+            .help("Clear pending, paused, and failed uploads")
         }
     }
 
@@ -104,7 +164,11 @@ struct QueueTabView: View {
     private var jobList: some View {
         ScrollView {
             LazyVStack(spacing: 12) {
-                ForEach(viewModel.jobs) { job in
+                if viewModel.hiddenJobCount > 0 {
+                    backlogSummary
+                }
+
+                ForEach(viewModel.displayedJobs) { job in
                     QueueJobRow(
                         job: job,
                         speed: viewModel.speed(for: job),
@@ -124,6 +188,25 @@ struct QueueTabView: View {
                 .strokeBorder(Color.accentColor.opacity(isDropTargeted ? 0.6 : 0), lineWidth: 2)
                 .animation(.easeInOut(duration: 0.2), value: isDropTargeted)
         )
+    }
+
+    private var backlogSummary: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "tray.full")
+                .foregroundColor(.secondary)
+            Text("Showing \(viewModel.displayedJobs.count) of \(viewModel.totalCount) uploads")
+                .font(.callout)
+                .foregroundColor(.secondary)
+            Spacer()
+            if viewModel.failedCount > 0 {
+                Text("\(viewModel.failedCount) failed")
+                    .font(.callout)
+                    .foregroundColor(.red)
+            }
+        }
+        .padding(12)
+        .background(.thinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 
     // MARK: - Empty State

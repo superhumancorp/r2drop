@@ -321,6 +321,7 @@ enum DeepLinkHandler {
         let exclusions = config.preferences.exclusionPatterns
 
         let isDirectory = (try? fileURL.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
+        var drafts: [UploadJobDraft] = []
 
         if isDirectory {
             // Recursively enumerate folder contents
@@ -341,8 +342,15 @@ enum DeepLinkHandler {
                 let r2Key = pathPrefix.isEmpty ? name : "\(pathPrefix)/\(name)"
                 let attrs = try? FileManager.default.attributesOfItem(atPath: childURL.path)
                 let size = attrs?[.size] as? UInt64 ?? 0
-                _ = try? qm.insertJob(filePath: childURL.path, r2Key: r2Key, bucket: account.bucket, accountName: account.name, totalBytes: size)
+                drafts.append(UploadJobDraft(
+                    filePath: childURL.path,
+                    r2Key: r2Key,
+                    bucket: account.bucket,
+                    accountName: account.name,
+                    totalBytes: size
+                ))
             }
+            _ = try? qm.insertJobs(drafts)
             return
         }
 
@@ -353,11 +361,12 @@ enum DeepLinkHandler {
         let r2Key = pathPrefix.isEmpty ? name : "\(pathPrefix)/\(name)"
         let attrs = try? FileManager.default.attributesOfItem(atPath: fileURL.path)
         let size = attrs?[.size] as? UInt64 ?? 0
-        _ = try? qm.insertJob(
+        drafts.append(UploadJobDraft(
             filePath: fileURL.path, r2Key: r2Key,
             bucket: account.bucket, accountName: account.name,
             totalBytes: size
-        )
+        ))
+        _ = try? qm.insertJobs(drafts)
     }
 
 

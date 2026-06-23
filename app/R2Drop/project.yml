@@ -22,6 +22,9 @@ packages:
   PostHog:
     url: https://github.com/PostHog/posthog-ios.git
     from: "3.0.0"
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    exactVersion: 2.9.0
 
 targets:
   R2Drop:
@@ -80,6 +83,7 @@ targets:
       - package: R2Bridge
       - package: ConfettiSwiftUI
       - package: PostHog
+      - package: Sparkle
       - target: FinderExtension
         embed: true
       - target: QuickActionExtension
