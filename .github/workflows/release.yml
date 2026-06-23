@@ -34,7 +34,7 @@ permissions:
   contents: write
 
 env:
-  SCHEME: R2Drop
+  SCHEME: R2Drop Production
   PROJECT: app/R2Drop/R2Drop.xcodeproj
   SPARKLE_CLI_VERSION: 2.9.0
 
@@ -152,19 +152,26 @@ jobs:
           NOTES=$(cat "${{ steps.changelog.outputs.notes_file }}")
 
           mkdir -p releases
+          RELEASE_FILE="releases/v${VERSION}.md"
 
-          # Write per-release file.
-          {
-            echo "# R2Drop v${VERSION}"
-            echo ""
-            echo "Released: ${DATE}"
-            echo ""
-            echo "${NOTES}"
-          } > "releases/v${VERSION}.md"
+          # Write per-release file once. Retries should not churn existing notes.
+          if [ -f "$RELEASE_FILE" ]; then
+            echo "$RELEASE_FILE already exists; leaving it unchanged."
+          else
+            {
+              echo "# R2Drop v${VERSION}"
+              echo ""
+              echo "Released: ${DATE}"
+              echo ""
+              echo "${NOTES}"
+            } > "$RELEASE_FILE"
+          fi
 
-          # Prepend new entry to docs/CHANGELOG.md.
+          # Prepend new entry to docs/CHANGELOG.md once.
           HEADER="## [v${VERSION}](https://github.com/superhumancorp/r2drop/releases/tag/v${VERSION}) — ${DATE}"
-          if [ -f docs/CHANGELOG.md ]; then
+          if [ -f docs/CHANGELOG.md ] && grep -Fq "## [v${VERSION}]" docs/CHANGELOG.md; then
+            echo "docs/CHANGELOG.md already contains v${VERSION}; leaving it unchanged."
+          elif [ -f docs/CHANGELOG.md ]; then
             printf '%s\n\n%s\n\n---\n\n%s' "$HEADER" "$NOTES" "$(cat docs/CHANGELOG.md)" > docs/CHANGELOG.md
           else
             printf '%s\n\n%s\n' "$HEADER" "$NOTES" > docs/CHANGELOG.md
@@ -173,10 +180,13 @@ jobs:
           # Commit and push back to main.
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/CHANGELOG.md "releases/v${VERSION}.md"
-          git diff --cached --quiet || \
+          git add docs/CHANGELOG.md "$RELEASE_FILE"
+          if git diff --cached --quiet; then
+            echo "No changelog changes to commit."
+          else
             git commit -m "chore: update changelog for v${VERSION} [skip ci]"
-          git push origin HEAD:main || true
+            git push origin HEAD:main || true
+          fi
 
       # ─────────────────────────────────────────────
       # 5. Select correct Xcode version.

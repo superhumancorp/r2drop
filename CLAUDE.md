@@ -132,6 +132,10 @@ make release-verify-update-feed
 
 <!-- Append dated entries as you learn things. Most recent first. -->
 
+### 2026-06-23
+- Release workflow archives must use the shared `R2Drop Production` scheme. The project has `R2Drop Debug` and `R2Drop Production` shared schemes, not a bare `R2Drop` scheme.
+- Release note markdown files under `releases/` are tracked source artifacts; binary release artifacts remain ignored.
+
 ### 2026-03-02
 - Release workflow hardened for Sparkle updates: pinned Sparkle CLI to `2.9.0`, enforced required Sparkle private key (`SPARKLE_ED25519_KEY` preferred, `SPARKLE_PRIVATE_KEY` legacy), and fail-closed appcast signing.
 - Fixed root release workflow project path to `app/R2Drop/R2Drop.xcodeproj`.
