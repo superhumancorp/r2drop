@@ -1,3 +1,11 @@
+## Unreleased — 2026-06-23
+
+- fix(app): add bulk Uploads recovery actions for clearing failed upload backlogs, retrying failed uploads, and clearing inactive queued uploads without deleting active uploads.
+- perf(app): limit large Uploads backlog rendering and batch queue writes so very large file/folder drops remain recoverable.
+- test(app): cover 10,000 failed queued uploads being cleared in one operation while preserving pending and active rows.
+
+---
+
 ## [v0.1.1](https://github.com/superhumancorp/r2drop/releases/tag/v0.1.1) — 2026-02-27
 
 - fix(www): rebuild about page using privacy template layout
