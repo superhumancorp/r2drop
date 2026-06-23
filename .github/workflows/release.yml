@@ -52,6 +52,11 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
       # ─────────────────────────────────────────────
       # 2. Resolve the version number.
       #    - workflow_dispatch: use the input, then create + push the tag.
@@ -315,6 +320,13 @@ jobs:
           fi
           security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" "$KEYCHAIN_PATH"
+
+      - name: Build Rust FFI (release, universal)
+        working-directory: app
+        run: |
+          ./scripts/build-rust.sh --release
+          test -f engine/target/release/libr2_ffi.a
+          lipo -info engine/target/release/libr2_ffi.a
 
       # ─────────────────────────────────────────────
       # 8. Archive the app for both Apple Silicon and Intel.
