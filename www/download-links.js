@@ -10,9 +10,9 @@
     return navigator.platform || navigator.userAgent || "";
   }
 
-  function isAppleDevice() {
+  function isMacDesktop() {
     const value = platform();
-    return /mac|iphone|ipad|ipod/i.test(value);
+    return /mac/i.test(value);
   }
 
   function relativeBadgePath() {
@@ -58,6 +58,16 @@
       || anchor.classList.contains("social-icon-link");
   }
 
+  function isDownloadButton(anchor) {
+    const label = `${anchor.getAttribute("aria-label") || ""} ${anchor.textContent || ""}`.toLowerCase();
+
+    return anchor.hasAttribute("data-r2drop-download")
+      || (anchor.classList.contains("btn-menu") && label.includes("download"))
+      || (anchor.classList.contains("social-icon-link") && label.includes("download"))
+      || (anchor.classList.contains("footer-link-item") && label.includes("download"))
+      || anchor.classList.contains("btn-dl");
+  }
+
   function renderBadge(anchor) {
     anchor.classList.add("app-store-badge-link");
     anchor.style.background = "transparent";
@@ -80,12 +90,16 @@
     anchor.appendChild(image);
   }
 
-  const useAppStore = isAppleDevice();
+  const useAppStore = isMacDesktop();
   const targetUrl = useAppStore ? appStoreUrl : githubUrl;
   const targetLabel = useAppStore ? "Download R2Drop on the Mac App Store" : "Download R2Drop from GitHub Releases";
   const targetText = useAppStore ? "Download on the App Store" : "Download for macOS";
 
-  document.querySelectorAll(`a[href="${githubUrl}"], a[data-r2drop-download]`).forEach((anchor) => {
+  document.querySelectorAll("a").forEach((anchor) => {
+    if (!isDownloadButton(anchor)) {
+      return;
+    }
+
     anchor.href = targetUrl;
     anchor.target = "_blank";
     anchor.rel = "noopener";
