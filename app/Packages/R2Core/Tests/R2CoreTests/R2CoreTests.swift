@@ -192,6 +192,92 @@ final class R2CoreTests: XCTestCase {
         XCTAssertFalse(try queue.deleteJob(id: id))
     }
 
+    func testQueueInsertJobsBatch() throws {
+        let queue = try makeQueueManager()
+        let inserted = try queue.insertJobs([
+            UploadJobDraft(filePath: "/a", r2Key: "a", bucket: "b", accountName: "acct", totalBytes: 1),
+            UploadJobDraft(filePath: "/b", r2Key: "b", bucket: "b", accountName: "acct", totalBytes: 2),
+            UploadJobDraft(filePath: "/c", r2Key: "c", bucket: "b", accountName: "acct", totalBytes: 3)
+        ])
+
+        XCTAssertEqual(inserted, 3)
+        let jobs = try queue.listAllJobs()
+        XCTAssertEqual(jobs.count, 3)
+        XCTAssertEqual(Set(jobs.map(\.r2Key)), ["a", "b", "c"])
+        XCTAssertTrue(jobs.allSatisfy { $0.status == .pending })
+    }
+
+    func testQueueDeleteJobsByStatusRemovesLargeFailedBacklog() throws {
+        let queue = try makeQueueManager()
+        let failedJobs = (0..<10_000).map { index in
+            UploadJobDraft(
+                filePath: "/failed-\(index)",
+                r2Key: "failed-\(index)",
+                bucket: "b",
+                accountName: "acct",
+                status: .failed,
+                errorMessage: "synthetic failure"
+            )
+        }
+        XCTAssertEqual(try queue.insertJobs(failedJobs), 10_000)
+
+        let pendingId = try queue.insertJob(
+            filePath: "/pending", r2Key: "pending", bucket: "b", accountName: "acct"
+        )
+        let uploadingId = try queue.insertJob(
+            filePath: "/uploading", r2Key: "uploading", bucket: "b", accountName: "acct"
+        )
+        try queue.updateStatus(id: uploadingId, status: .uploading)
+
+        XCTAssertEqual(try queue.listJobs(status: .failed).count, 10_000)
+        XCTAssertEqual(try queue.deleteJobs(status: .failed), 10_000)
+        XCTAssertTrue(try queue.listJobs(status: .failed).isEmpty)
+        XCTAssertNotNil(try queue.getJob(id: pendingId))
+        XCTAssertNotNil(try queue.getJob(id: uploadingId))
+    }
+
+    func testQueueDeleteJobsByStatusesKeepsUploadingRows() throws {
+        let queue = try makeQueueManager()
+        let pendingId = try queue.insertJob(
+            filePath: "/pending", r2Key: "pending", bucket: "b", accountName: "acct"
+        )
+        let pausedId = try queue.insertJob(
+            filePath: "/paused", r2Key: "paused", bucket: "b", accountName: "acct"
+        )
+        let failedId = try queue.insertJob(
+            filePath: "/failed", r2Key: "failed", bucket: "b", accountName: "acct"
+        )
+        let uploadingId = try queue.insertJob(
+            filePath: "/uploading", r2Key: "uploading", bucket: "b", accountName: "acct"
+        )
+
+        try queue.updateStatus(id: pausedId, status: .paused)
+        try queue.updateStatus(id: failedId, status: .failed, errorMessage: "boom")
+        try queue.updateStatus(id: uploadingId, status: .uploading)
+
+        XCTAssertEqual(try queue.deleteJobs(statuses: [.pending, .paused, .failed]), 3)
+        XCTAssertNil(try queue.getJob(id: pendingId))
+        XCTAssertNil(try queue.getJob(id: pausedId))
+        XCTAssertNil(try queue.getJob(id: failedId))
+        XCTAssertEqual(try queue.getJob(id: uploadingId)?.status, .uploading)
+    }
+
+    func testQueueRetryFailedJobsResetsFailureState() throws {
+        let queue = try makeQueueManager()
+        let id = try queue.insertJob(
+            filePath: "/failed", r2Key: "failed", bucket: "b", accountName: "acct"
+        )
+        try queue.updateProgress(id: id, bytesUploaded: 42)
+        try queue.updateStatus(id: id, status: .failed, errorMessage: "boom", uploadId: "upload-1")
+
+        XCTAssertEqual(try queue.retryFailedJobs(), 1)
+        let job = try XCTUnwrap(queue.getJob(id: id))
+        XCTAssertEqual(job.status, .pending)
+        XCTAssertEqual(job.bytesUploaded, 0)
+        XCTAssertNil(job.errorMessage)
+        XCTAssertNil(job.uploadId)
+    }
+
     // MARK: - HistoryManager Tests
 
     func testHistoryInsertAndGet() throws {

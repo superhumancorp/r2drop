@@ -4,7 +4,7 @@
 import Foundation
 
 /// Status of an upload job in the queue.
-public enum UploadStatus: String, Codable {
+public enum UploadStatus: String, Codable, Sendable {
     case pending
     case uploading
     case paused

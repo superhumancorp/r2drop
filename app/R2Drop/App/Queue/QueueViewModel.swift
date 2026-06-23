@@ -7,6 +7,16 @@ import Foundation
 import AppKit
 import R2Core
 
+private struct QueueDropBuildResult: Sendable {
+    let isDirectory: Bool
+    let drafts: [UploadJobDraft]
+}
+
+private struct QueueDropInsertResult: Sendable {
+    let insertedCount: Int
+    let containsDirectory: Bool
+}
+
 @MainActor
 final class QueueViewModel: ObservableObject {
 
@@ -27,6 +37,7 @@ final class QueueViewModel: ObservableObject {
     /// avoid deleting rows that the Rust runner is still updating.
     private var pendingCancelDeletes: Set<Int64> = []
     private let pollInterval: TimeInterval = 0.5
+    private let largeBacklogDisplayLimit = 200
 
     // MARK: - Lifecycle
 
@@ -93,8 +104,12 @@ final class QueueViewModel: ObservableObject {
             newPrevious[job.id] = job.bytesUploaded
         }
 
-        self.jobs = visible
-        self.jobSpeeds = newSpeeds
+        if self.jobs != visible {
+            self.jobs = visible
+        }
+        if self.jobSpeeds != newSpeeds {
+            self.jobSpeeds = newSpeeds
+        }
         self.previousBytes = newPrevious
     }
 
@@ -133,6 +148,53 @@ final class QueueViewModel: ObservableObject {
     /// True if any job is currently uploading.
     var hasActiveUploads: Bool {
         jobs.contains { $0.status == .uploading }
+    }
+
+    var failedCount: Int {
+        jobs.filter { $0.status == .failed }.count
+    }
+
+    var clearableCount: Int {
+        jobs.filter { Self.isClearableStatus($0.status) }.count
+    }
+
+    var hasLargeBacklog: Bool {
+        jobs.count > largeBacklogDisplayLimit
+    }
+
+    var displayedJobs: [UploadJob] {
+        guard hasLargeBacklog else { return jobs }
+        var displayed: [UploadJob] = []
+        displayed.reserveCapacity(largeBacklogDisplayLimit)
+
+        for job in jobs where job.status != .failed {
+            displayed.append(job)
+            if displayed.count == largeBacklogDisplayLimit {
+                return displayed
+            }
+        }
+
+        for job in jobs where job.status == .failed {
+            displayed.append(job)
+            if displayed.count == largeBacklogDisplayLimit {
+                return displayed
+            }
+        }
+
+        return displayed
+    }
+
+    var hiddenJobCount: Int {
+        max(0, jobs.count - displayedJobs.count)
+    }
+
+    private static func isClearableStatus(_ status: UploadStatus) -> Bool {
+        switch status {
+        case .pending, .paused, .failed:
+            return true
+        case .uploading, .completed:
+            return false
+        }
     }
 
     // MARK: - Speed Lookup
@@ -201,6 +263,52 @@ final class QueueViewModel: ObservableObject {
         poll()
     }
 
+    func retryFailedJobs() {
+        #if DEBUG
+        R2Log.ui.debug("QueueViewModel: retryFailedJobs count=\(self.failedCount)")
+        #endif
+        guard let qm = try? QueueManager() else { return }
+        let requested = failedCount
+        let retried = (try? qm.retryFailedJobs()) ?? 0
+        TelemetryService.shared.track("queue_bulk_retry_failed_requested", properties: [
+            "requested_count": requested,
+            "retried_count": retried
+        ])
+        poll()
+        if retried > 0 {
+            NotificationCenter.default.post(name: .r2dropQueueDidChange, object: nil)
+        }
+    }
+
+    func clearFailedJobs() {
+        #if DEBUG
+        R2Log.ui.debug("QueueViewModel: clearFailedJobs count=\(self.failedCount)")
+        #endif
+        guard let qm = try? QueueManager() else { return }
+        let requested = failedCount
+        let removed = (try? qm.deleteJobs(status: .failed)) ?? 0
+        TelemetryService.shared.track("queue_bulk_clear_failed_requested", properties: [
+            "requested_count": requested,
+            "removed_count": removed
+        ])
+        poll()
+    }
+
+    func clearInactiveJobs() {
+        #if DEBUG
+        R2Log.ui.debug("QueueViewModel: clearInactiveJobs count=\(self.clearableCount)")
+        #endif
+        guard let qm = try? QueueManager() else { return }
+        let requested = clearableCount
+        let removed = (try? qm.deleteJobs(statuses: [.pending, .paused, .failed])) ?? 0
+        pendingCancelDeletes.removeAll()
+        TelemetryService.shared.track("queue_bulk_clear_inactive_requested", properties: [
+            "requested_count": requested,
+            "removed_count": removed
+        ])
+        poll()
+    }
+
     /// Copy the public URL for a completed upload to the clipboard.
     func copyURL(for job: UploadJob) {
         let config = (try? ConfigManager.load()) ?? R2Config()
@@ -255,18 +363,68 @@ final class QueueViewModel: ObservableObject {
             return
         }
 
-        guard let qm = try? QueueManager() else { return }
-
         // Get exclusion patterns from config
         let exclusions = config.preferences.exclusionPatterns
+        let accountName = account.name
+        let bucket = account.bucket
+        let pathPrefix = account.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        let droppedName = url.lastPathComponent
 
+        Task { [weak self, url, activeName, accountName, bucket, pathPrefix, exclusions, droppedName] in
+            let result = await Task.detached(priority: .userInitiated) {
+                guard let qm = try? QueueManager() else {
+                    return QueueDropInsertResult(insertedCount: 0, containsDirectory: false)
+                }
+                let build = Self.buildUploadJobDrafts(
+                    for: url,
+                    pathPrefix: pathPrefix,
+                    bucket: bucket,
+                    accountName: accountName,
+                    exclusions: exclusions
+                )
+                let insertedCount = (try? qm.insertJobs(build.drafts)) ?? 0
+                return QueueDropInsertResult(
+                    insertedCount: insertedCount,
+                    containsDirectory: build.isDirectory
+                )
+            }.value
 
+            guard let self, result.insertedCount > 0 else { return }
 
-        // Check if the URL is a directory
+            #if DEBUG
+            R2Log.ui.debug("QueueViewModel: queued dropped file(s) from \(droppedName)")
+            #endif
+            // P1: queue_tab_files_dropped
+            TelemetryService.shared.track("queue_tab_files_dropped", properties: [
+                "file_count": result.insertedCount,
+                "contains_directory": result.containsDirectory
+            ])
+
+            // P0: upload_enqueue_requested (from queue drop)
+            TelemetryService.shared.track("upload_enqueue_requested", properties: [
+                "entrypoint": "queue_drop",
+                "file_count": result.insertedCount,
+                "contains_directory": result.containsDirectory,
+                "account_name_hash": TelemetrySanitizer.hash(activeName),
+                "bucket_hash": TelemetrySanitizer.hash(bucket)
+            ])
+            self.poll() // Refresh immediately
+            // Trigger immediate processing instead of waiting for the 3s timer.
+            NotificationCenter.default.post(name: .r2dropQueueDidChange, object: nil)
+        }
+    }
+
+    private nonisolated static func buildUploadJobDrafts(
+        for url: URL,
+        pathPrefix: String,
+        bucket: String,
+        accountName: String,
+        exclusions: [String]
+    ) -> QueueDropBuildResult {
         let isDirectory = (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
+        var drafts: [UploadJobDraft] = []
 
         if isDirectory {
-            // Enumerate all files in the folder recursively
             let enumerator = FileManager.default.enumerator(
                 at: url,
                 includingPropertiesForKeys: [.isRegularFileKey, .fileSizeKey],
@@ -276,57 +434,42 @@ final class QueueViewModel: ObservableObject {
             while let fileURL = enumerator?.nextObject() as? URL {
                 let isFile = (try? fileURL.resourceValues(forKeys: [.isRegularFileKey]))?.isRegularFile ?? false
                 guard isFile else { continue }
-                // Skip files matching exclusion patterns
                 let fileName = fileURL.lastPathComponent
                 guard !matchesExclusionPattern(fileName, patterns: exclusions) else { continue }
-                // Build r2Key preserving folder structure
                 let relativePath = fileURL.path.replacingOccurrences(of: url.path + "/", with: "")
                 let name = "\(baseName)/\(relativePath)"
-                let pathPrefix = account.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
                 let r2Key = pathPrefix.isEmpty ? name : "\(pathPrefix)/\(name)"
-                let size = fileSize(fileURL)
-                _ = try? qm.insertJob(filePath: fileURL.path, r2Key: r2Key, bucket: account.bucket, accountName: account.name, totalBytes: size)
+                drafts.append(UploadJobDraft(
+                    filePath: fileURL.path,
+                    r2Key: r2Key,
+                    bucket: bucket,
+                    accountName: accountName,
+                    totalBytes: fileSize(fileURL)
+                ))
             }
         } else {
-            // Single file logic
             let fileName = url.lastPathComponent
             guard !matchesExclusionPattern(fileName, patterns: exclusions) else {
                 #if DEBUG
                 R2Log.ui.debug("QueueViewModel: skipped excluded file \(fileName)")
                 #endif
-                return
+                return QueueDropBuildResult(isDirectory: false, drafts: [])
             }
-            let name = url.lastPathComponent
-            let pathPrefix = account.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-            let r2Key = pathPrefix.isEmpty ? name : "\(pathPrefix)/\(name)"
-            let size = fileSize(url)
-            _ = try? qm.insertJob(filePath: url.path, r2Key: r2Key, bucket: account.bucket, accountName: account.name, totalBytes: size)
+            let r2Key = pathPrefix.isEmpty ? fileName : "\(pathPrefix)/\(fileName)"
+            drafts.append(UploadJobDraft(
+                filePath: url.path,
+                r2Key: r2Key,
+                bucket: bucket,
+                accountName: accountName,
+                totalBytes: fileSize(url)
+            ))
         }
 
-        #if DEBUG
-        R2Log.ui.debug("QueueViewModel: queued dropped file(s) from \(url.lastPathComponent)")
-        #endif
-        // P1: queue_tab_files_dropped
-        TelemetryService.shared.track("queue_tab_files_dropped", properties: [
-            "file_count": 1,
-            "contains_directory": isDirectory
-        ])
-
-        // P0: upload_enqueue_requested (from queue drop)
-        TelemetryService.shared.track("upload_enqueue_requested", properties: [
-            "entrypoint": "queue_drop",
-            "file_count": 1,
-            "contains_directory": isDirectory,
-            "account_name_hash": TelemetrySanitizer.hash(activeName),
-            "bucket_hash": TelemetrySanitizer.hash(account.bucket)
-        ])
-        poll() // Refresh immediately
-        // Trigger immediate processing instead of waiting for the 3s timer.
-        NotificationCenter.default.post(name: .r2dropQueueDidChange, object: nil)
+        return QueueDropBuildResult(isDirectory: isDirectory, drafts: drafts)
     }
 
     /// Get the file size in bytes.
-    private func fileSize(_ url: URL) -> UInt64 {
+    private nonisolated static func fileSize(_ url: URL) -> UInt64 {
         let attrs = try? FileManager.default.attributesOfItem(atPath: url.path)
         return attrs?[.size] as? UInt64 ?? 0
     }
@@ -334,7 +477,7 @@ final class QueueViewModel: ObservableObject {
     /// Check if a filename matches any of the exclusion patterns.
     /// Supports suffix wildcards ("*.tmp"), prefix wildcards ("._*"),
     /// contains wildcards ("foo*bar"), and exact matches ("Thumbs.db").
-    private func matchesExclusionPattern(_ filename: String, patterns: [String]) -> Bool {
+    private nonisolated static func matchesExclusionPattern(_ filename: String, patterns: [String]) -> Bool {
         for pattern in patterns {
             if pattern.contains("*") {
                 if pattern.hasPrefix("*") {

@@ -61,7 +61,7 @@ final class QuickActionRequestHandler: NSObject, NSExtensionRequestHandling {
         }
 
         let exclusions = config.preferences.exclusionPatterns
-        var insertedCount = 0
+        var drafts: [UploadJobDraft] = []
 
         for url in normalizedURLs {
             let fileName = url.lastPathComponent
@@ -74,8 +74,10 @@ final class QuickActionRequestHandler: NSObject, NSExtensionRequestHandling {
                 }
             }
 
-            insertedCount += queueURL(url, account: account, qm: qm, exclusions: exclusions)
+            appendJobs(for: url, account: account, exclusions: exclusions, drafts: &drafts)
         }
+
+        let insertedCount = (try? qm.insertJobs(drafts)) ?? 0
 
         NSLog("R2Drop QuickAction: queued %ld job(s) from %ld selected item(s)",
               insertedCount, normalizedURLs.count)
@@ -182,16 +184,21 @@ final class QuickActionRequestHandler: NSObject, NSExtensionRequestHandling {
     // MARK: - Queueing
 
     @discardableResult
-    private func queueURL(
-        _ url: URL,
+    private func appendJobs(
+        for url: URL,
         account: ConfigAccount,
-        qm: QueueManager,
-        exclusions: [String]
+        exclusions: [String],
+        drafts: inout [UploadJobDraft]
     ) -> Int {
         let isDirectory = (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
 
         if isDirectory {
-            return queueDirectory(url, account: account, qm: qm, exclusions: exclusions)
+            return appendDirectoryJobs(
+                rootURL: url,
+                account: account,
+                exclusions: exclusions,
+                drafts: &drafts
+            )
         }
 
         let name = url.lastPathComponent
@@ -199,26 +206,22 @@ final class QuickActionRequestHandler: NSObject, NSExtensionRequestHandling {
         let r2Key = pathPrefix.isEmpty ? name : "\(pathPrefix)/\(name)"
         let size = fileSize(url)
 
-        do {
-            _ = try qm.insertJob(
-                filePath: url.path,
-                r2Key: r2Key,
-                bucket: account.bucket,
-                accountName: account.name,
-                totalBytes: size
-            )
-            return 1
-        } catch {
-            NSLog("R2Drop QuickAction: failed to queue file %@: %@", url.path, String(describing: error))
-            return 0
-        }
+        drafts.append(UploadJobDraft(
+            filePath: url.path,
+            r2Key: r2Key,
+            bucket: account.bucket,
+            accountName: account.name,
+            totalBytes: size
+        ))
+        return 1
     }
 
-    private func queueDirectory(
-        _ rootURL: URL,
+    @discardableResult
+    private func appendDirectoryJobs(
+        rootURL: URL,
         account: ConfigAccount,
-        qm: QueueManager,
-        exclusions: [String]
+        exclusions: [String],
+        drafts: inout [UploadJobDraft]
     ) -> Int {
         guard let enumerator = FileManager.default.enumerator(
             at: rootURL,
@@ -228,7 +231,7 @@ final class QuickActionRequestHandler: NSObject, NSExtensionRequestHandling {
 
         let baseName = rootURL.lastPathComponent
         let pathPrefix = account.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-        var inserted = 0
+        var appended = 0
 
         while let fileURL = enumerator.nextObject() as? URL {
             let isFile = (try? fileURL.resourceValues(forKeys: [.isRegularFileKey]))?.isRegularFile ?? false
@@ -242,20 +245,16 @@ final class QuickActionRequestHandler: NSObject, NSExtensionRequestHandling {
             let r2Key = pathPrefix.isEmpty ? keyName : "\(pathPrefix)/\(keyName)"
             let size = fileSize(fileURL)
 
-            do {
-                _ = try qm.insertJob(
-                    filePath: fileURL.path,
-                    r2Key: r2Key,
-                    bucket: account.bucket,
-                    accountName: account.name,
-                    totalBytes: size
-                )
-                inserted += 1
-            } catch {
-                NSLog("R2Drop QuickAction: failed to queue file %@: %@", fileURL.path, String(describing: error))
-            }
+            drafts.append(UploadJobDraft(
+                filePath: fileURL.path,
+                r2Key: r2Key,
+                bucket: account.bucket,
+                accountName: account.name,
+                totalBytes: size
+            ))
+            appended += 1
         }
-        return inserted
+        return appended
     }
 
     // MARK: - Helpers

@@ -176,6 +176,7 @@ class FinderSync: FIFinderSync {
         // Load exclusion patterns for per-file filtering during folder enumeration
         let config = (try? ConfigManager.load()) ?? R2Config()
         let exclusions = config.preferences.exclusionPatterns
+        var drafts: [UploadJobDraft] = []
 
         for url in urls {
             let isDirectory = (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
@@ -198,7 +199,13 @@ class FinderSync: FIFinderSync {
                     let pathPrefix = account.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
                     let r2Key = pathPrefix.isEmpty ? name : "\(pathPrefix)/\(name)"
                     let size = fileSize(fileURL)
-                    _ = try? qm.insertJob(filePath: fileURL.path, r2Key: r2Key, bucket: account.bucket, accountName: account.name, totalBytes: size)
+                    drafts.append(UploadJobDraft(
+                        filePath: fileURL.path,
+                        r2Key: r2Key,
+                        bucket: account.bucket,
+                        accountName: account.name,
+                        totalBytes: size
+                    ))
                 }
                 continue  // Skip the single-file logic below
             }
@@ -210,17 +217,19 @@ class FinderSync: FIFinderSync {
             let r2Key = pathPrefix.isEmpty ? name : "\(pathPrefix)/\(name)"
             let size = fileSize(url)
 
-            _ = try? qm.insertJob(
+            drafts.append(UploadJobDraft(
                 filePath: url.path,
                 r2Key: r2Key,
                 bucket: account.bucket,
                 accountName: account.name,
                 totalBytes: size
-            )
+            ))
         }
 
+        let insertedCount = (try? qm.insertJobs(drafts)) ?? 0
+
         NSLog("R2Drop FinderExtension: queued %ld item(s) for account %@",
-              urls.count, account.name)
+              insertedCount, account.name)
     }
 
     // MARK: - Exclusion Patterns (FR-049)

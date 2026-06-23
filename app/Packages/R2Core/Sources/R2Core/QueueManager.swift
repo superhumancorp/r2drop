@@ -6,6 +6,36 @@
 
 import Foundation
 
+/// A job to insert into the upload queue.
+/// Batch insert callers use this to avoid one SQLite transaction per file.
+public struct UploadJobDraft: Equatable, Sendable {
+    public var filePath: String
+    public var r2Key: String
+    public var bucket: String
+    public var accountName: String
+    public var totalBytes: UInt64
+    public var status: UploadStatus
+    public var errorMessage: String?
+
+    public init(
+        filePath: String,
+        r2Key: String,
+        bucket: String,
+        accountName: String,
+        totalBytes: UInt64 = 0,
+        status: UploadStatus = .pending,
+        errorMessage: String? = nil
+    ) {
+        self.filePath = filePath
+        self.r2Key = r2Key
+        self.bucket = bucket
+        self.accountName = accountName
+        self.totalBytes = totalBytes
+        self.status = status
+        self.errorMessage = errorMessage
+    }
+}
+
 // MARK: - QueueManager
 
 /// Manages the persistent upload queue backed by SQLite.
@@ -52,12 +82,49 @@ public final class QueueManager {
     ) throws -> Int64 {
         try db.run(
             """
-            INSERT INTO jobs (file_path, r2_key, bucket, account_name, total_bytes)
-            VALUES (?1, ?2, ?3, ?4, ?5)
+            INSERT INTO jobs (file_path, r2_key, bucket, account_name, status, total_bytes)
+            VALUES (?1, ?2, ?3, ?4, ?5, ?6)
             """,
-            params: [filePath, r2Key, bucket, accountName, totalBytes]
+            params: [filePath, r2Key, bucket, accountName, UploadStatus.pending.rawValue, totalBytes]
         )
         return db.lastInsertRowId()
+    }
+
+    /// Insert multiple upload jobs in a single SQLite transaction.
+    /// Returns the number of inserted rows.
+    @discardableResult
+    public func insertJobs(_ jobs: [UploadJobDraft]) throws -> Int {
+        guard !jobs.isEmpty else { return 0 }
+
+        try db.execute("BEGIN IMMEDIATE TRANSACTION")
+        do {
+            var inserted = 0
+            for job in jobs {
+                inserted += try db.run(
+                    """
+                    INSERT INTO jobs (
+                        file_path, r2_key, bucket, account_name,
+                        status, total_bytes, error_message
+                    )
+                    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+                    """,
+                    params: [
+                        job.filePath,
+                        job.r2Key,
+                        job.bucket,
+                        job.accountName,
+                        job.status.rawValue,
+                        job.totalBytes,
+                        job.errorMessage
+                    ]
+                )
+            }
+            try db.execute("COMMIT")
+            return inserted
+        } catch {
+            _ = try? db.execute("ROLLBACK")
+            throw error
+        }
     }
 
     /// Fetch a single job by ID. Returns nil if not found.
@@ -137,6 +204,44 @@ public final class QueueManager {
             params: [id]
         )
         return changed > 0
+    }
+
+    /// Delete jobs matching one status. Returns the number of rows deleted.
+    @discardableResult
+    public func deleteJobs(status: UploadStatus) throws -> Int {
+        try deleteJobs(statuses: [status])
+    }
+
+    /// Delete jobs matching any of the provided statuses.
+    /// Use this for queue-level cleanup; active `.uploading` rows should not be
+    /// included because the Rust runner may still be updating them.
+    @discardableResult
+    public func deleteJobs(statuses: [UploadStatus]) throws -> Int {
+        guard !statuses.isEmpty else { return 0 }
+        let placeholders = statuses.indices.map { "?\($0 + 1)" }.joined(separator: ", ")
+        return try db.run(
+            "DELETE FROM jobs WHERE status IN (\(placeholders))",
+            params: statuses.map(\.rawValue)
+        )
+    }
+
+    /// Reset all failed jobs so the runner can process them again.
+    /// Returns the number of rows moved back to pending.
+    @discardableResult
+    public func retryFailedJobs() throws -> Int {
+        try db.run(
+            """
+            UPDATE jobs
+            SET status = ?1,
+                retry_count = 0,
+                bytes_uploaded = 0,
+                upload_id = NULL,
+                error_message = NULL,
+                updated_at = datetime('now')
+            WHERE status = ?2
+            """,
+            params: [UploadStatus.pending.rawValue, UploadStatus.failed.rawValue]
+        )
     }
 
     // MARK: - Private
