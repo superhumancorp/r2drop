@@ -11,6 +11,9 @@
 #   APPLE_TEAM_ID               — 10-character Apple team ID
 #   GEMINI_API_KEY              — Google Gemini API key (for changelog generation)
 #   TAP_GITHUB_TOKEN            — PAT with access to superhumancorp/homebrew-tap
+#   APP_STORE_CONNECT_KEY_ID    — App Store Connect API key ID for automatic signing
+#   APP_STORE_CONNECT_ISSUER_ID — App Store Connect API issuer ID for automatic signing
+#   APP_STORE_CONNECT_API_KEY   — Base64-encoded or raw App Store Connect .p8 key
 #   SPARKLE_ED25519_KEY         — Sparkle private Ed25519 key (preferred)
 #   SPARKLE_PRIVATE_KEY         — legacy Sparkle private key secret name (supported)
 
@@ -212,6 +215,9 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
           SPARKLE_ED25519_KEY: ${{ secrets.SPARKLE_ED25519_KEY }}
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: |
@@ -226,6 +232,9 @@ jobs:
             APPLE_TEAM_ID
             GEMINI_API_KEY
             TAP_GITHUB_TOKEN
+            APP_STORE_CONNECT_KEY_ID
+            APP_STORE_CONNECT_ISSUER_ID
+            APP_STORE_CONNECT_API_KEY
           )
 
           missing=0
@@ -321,6 +330,30 @@ jobs:
           security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" "$KEYCHAIN_PATH"
 
+      - name: Prepare App Store Connect API key
+        id: asc
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+        run: |
+          set -euo pipefail
+          KEY_DIR="$RUNNER_TEMP/app-store-connect"
+          KEY_PATH="$KEY_DIR/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8"
+
+          mkdir -p "$KEY_DIR"
+          if ! (printf '%s' "$APP_STORE_CONNECT_API_KEY" | base64 --decode > "$KEY_PATH" 2>/dev/null || \
+                printf '%s' "$APP_STORE_CONNECT_API_KEY" | base64 -D > "$KEY_PATH" 2>/dev/null); then
+            printf '%s' "$APP_STORE_CONNECT_API_KEY" > "$KEY_PATH"
+          fi
+
+          if [ ! -s "$KEY_PATH" ]; then
+            echo "::error::APP_STORE_CONNECT_API_KEY decoded to an empty key file."
+            exit 1
+          fi
+
+          chmod 600 "$KEY_PATH"
+          echo "key_path=${KEY_PATH}" >> "$GITHUB_OUTPUT"
+
       - name: Resolve Developer ID signing identity
         id: signing
         env:
@@ -353,9 +386,14 @@ jobs:
       - name: Build & Archive (Apple Silicon)
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
         run: |
-          SIGN_IDENTITY="${{ steps.signing.outputs.identity }}"
           xcodebuild archive \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "${{ steps.asc.outputs.key_path }}" \
+            -authenticationKeyID "$APP_STORE_CONNECT_KEY_ID" \
+            -authenticationKeyIssuerID "$APP_STORE_CONNECT_ISSUER_ID" \
             -project "$PROJECT" \
             -scheme "$SCHEME" \
             -configuration Release \
@@ -365,16 +403,19 @@ jobs:
             MARKETING_VERSION="${{ steps.version.outputs.version }}" \
             CURRENT_PROJECT_VERSION="${{ steps.version.outputs.build_number }}" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="$SIGN_IDENTITY" \
-            OTHER_CODE_SIGN_FLAGS="--timestamp"
+            CODE_SIGN_STYLE=Automatic
 
       - name: Build & Archive (Intel)
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
         run: |
-          SIGN_IDENTITY="${{ steps.signing.outputs.identity }}"
           xcodebuild archive \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "${{ steps.asc.outputs.key_path }}" \
+            -authenticationKeyID "$APP_STORE_CONNECT_KEY_ID" \
+            -authenticationKeyIssuerID "$APP_STORE_CONNECT_ISSUER_ID" \
             -project "$PROJECT" \
             -scheme "$SCHEME" \
             -configuration Release \
@@ -384,9 +425,7 @@ jobs:
             MARKETING_VERSION="${{ steps.version.outputs.version }}" \
             CURRENT_PROJECT_VERSION="${{ steps.version.outputs.build_number }}" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="$SIGN_IDENTITY" \
-            OTHER_CODE_SIGN_FLAGS="--timestamp"
+            CODE_SIGN_STYLE=Automatic
 
       # ─────────────────────────────────────────────
       # 9. Export signed .app bundles from each archive.
@@ -394,6 +433,8 @@ jobs:
       - name: Export .app bundles
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
         run: |
           cat > "$RUNNER_TEMP/ExportOptions.plist" << EOF
           <?xml version="1.0" encoding="UTF-8"?>
@@ -402,15 +443,22 @@ jobs:
           <plist version="1.0"><dict>
             <key>method</key><string>developer-id</string>
             <key>teamID</key><string>${APPLE_TEAM_ID}</string>
-            <key>signingStyle</key><string>manual</string>
-            <key>signingCertificate</key><string>Developer ID Application</string>
+            <key>signingStyle</key><string>automatic</string>
           </dict></plist>
           EOF
           xcodebuild -exportArchive \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "${{ steps.asc.outputs.key_path }}" \
+            -authenticationKeyID "$APP_STORE_CONNECT_KEY_ID" \
+            -authenticationKeyIssuerID "$APP_STORE_CONNECT_ISSUER_ID" \
             -archivePath "$RUNNER_TEMP/R2Drop-arm64.xcarchive" \
             -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
             -exportPath "$RUNNER_TEMP/export-arm64"
           xcodebuild -exportArchive \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "${{ steps.asc.outputs.key_path }}" \
+            -authenticationKeyID "$APP_STORE_CONNECT_KEY_ID" \
+            -authenticationKeyIssuerID "$APP_STORE_CONNECT_ISSUER_ID" \
             -archivePath "$RUNNER_TEMP/R2Drop-x86_64.xcarchive" \
             -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
             -exportPath "$RUNNER_TEMP/export-x86_64"

@@ -13,7 +13,7 @@ This file is paired with `CLAUDE.md`. Keep both files aligned when release tooli
 
 - CI desktop releases archive the shared `R2Drop Production` Xcode scheme.
 - CI desktop releases build the universal Rust FFI library before Xcode archives.
-- CI desktop releases archive/export with the `APPLE_TEAM_ID` Developer ID Application identity.
+- CI desktop releases use automatic Xcode signing with `APPLE_TEAM_ID` and App Store Connect API auth.
 - Sparkle appcast must be Ed25519 signed for releases.
 - CI release workflow uses Sparkle CLI pinned to `2.9.0`.
 - CI requires Sparkle private key secret:
