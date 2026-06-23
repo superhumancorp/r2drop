@@ -384,4 +384,4 @@ The local install script builds from source and expects a modern Rust stable too
 ## Related Docs
 
 - `README.md` — product overview and macOS app workflows
-- `INSTRUMENTATION.md` — analytics/telemetry plan and event catalog
+- `TELEMETRY.md` — telemetry event catalog and privacy documentation

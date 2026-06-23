@@ -10,12 +10,12 @@
 <link rel="canonical" href="https://r2drop.com/blog/cloudflare-r2-vs-aws-s3-cost-comparison"/>
 <meta content="Cloudflare R2 vs AWS S3: Cost Comparison for Developers in 2026" property="og:title"/>
 <meta content="A detailed cost comparison of Cloudflare R2 vs AWS S3 in 2026. We break down storage pricing, egress fees, free tiers, and when each service wins for developers." property="og:description"/>
-<meta content="https://cdn.r2drop.com/site/og.png" property="og:image"/>
+<meta content="https://r2drop.com/blog-banner-3.png" property="og:image"/>
 <meta content="https://r2drop.com/blog/cloudflare-r2-vs-aws-s3-cost-comparison" property="og:url"/>
 <meta content="article" property="og:type"/>
 <meta content="Cloudflare R2 vs AWS S3: Cost Comparison for Developers in 2026" property="twitter:title"/>
 <meta content="A detailed cost comparison of Cloudflare R2 vs AWS S3 in 2026. We break down storage pricing, egress fees, free tiers, and when each service wins for developers." property="twitter:description"/>
-<meta content="https://cdn.r2drop.com/site/og.png" property="twitter:image"/>
+<meta content="https://r2drop.com/blog-banner-3.png" property="twitter:image"/>
 <meta content="summary_large_image" name="twitter:card"/>
 <meta name="twitter:site" content="@paulpierre"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
@@ -34,16 +34,17 @@
 <link rel="manifest" href="../site.webmanifest"/>
 <style>.footer-social .social-icon-link svg{fill:#ff8a1f!important;color:#ff8a1f!important;}
 .w-webflow-badge{display:none!important;}
-.footer-links-grid{grid-template-columns:repeat(3,1fr)!important;gap:40px!important;}
+.footer-links-grid{grid-template-columns:repeat(4,1fr)!important;gap:40px!important;}
+@media(max-width:767px){.footer-links-grid{grid-template-columns:repeat(2,1fr)!important;}}
 .footer-bottom{grid-template-columns:auto!important;justify-items:center!important;}
-.copyright-wrapper .copyright{grid-template-columns:1fr auto!important;}</style>
+.copyright-wrapper .copyright{grid-template-columns:1fr auto!important;}.richtext h2,.w-richtext h2{margin-top:48px;margin-bottom:16px;}.richtext td,.w-richtext td{color:#333;}.richtext th,.w-richtext th{color:#111;background:#f8f8f8;}.richtext td,.w-richtext td{border-bottom:1px solid #e5e5e5;}.w-richtext table{border-collapse:collapse;width:100%;}.w-richtext th,.w-richtext td{padding:12px 16px;text-align:left;}.w-richtext th{font-weight:600;border-bottom:2px solid rgba(255,138,31,0.5);}</style>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "BlogPosting",
   "headline": "Cloudflare R2 vs AWS S3: Cost Comparison for Developers in 2026",
   "description": "A detailed cost comparison of Cloudflare R2 vs AWS S3 in 2026. We break down storage pricing, egress fees, free tiers, and when each service wins for developers.",
-  "image": "https://cdn.r2drop.com/site/og.png",
+  "image": "https://r2drop.com/blog-banner-3.png",
   "author": { "@type": "Organization", "name": "Superhuman Intelligence LLC" },
   "publisher": { "@type": "Organization", "name": "R2Drop", "url": "https://r2drop.com" },
   "datePublished": "2026-02-26",
@@ -61,7 +62,7 @@
 <div class="nav-left"><a aria-label="R2Drop" href="../" class="brand-logo w-nav-brand" style="display: flex; align-items: center; text-decoration: none;"><img loading="lazy" src="../r2-logo.png" alt="R2Drop Logo" class="logo-nav" style="height: 64px; margin-right: 12px;"/><span style="font-family: 'Poppins', sans-serif; font-style: italic; color: white; font-size: 28px; line-height: 1;"><span style="font-weight: 500;">R2</span><span style="font-weight: 900;">Drop</span></span></a></div>
 <nav role="navigation" class="nav-menu w-nav-menu">
 <div class="default-nav-links big-menu">
-<a href="../#features" class="nav-link w-nav-link">Features</a><a href="https://docs.r2drop.com" target="_blank" class="nav-link w-nav-link">Docs</a><a href="../about" class="nav-link w-nav-link">About</a><a href="../articles" class="nav-link w-nav-link">Articles</a>
+<a href="../#features" class="nav-link w-nav-link">Features</a><a href="https://docs.r2drop.com" target="_blank" class="nav-link w-nav-link">Docs</a><a href="../about" class="nav-link w-nav-link">About</a><a href="../articles" class="nav-link w-nav-link">Articles</a><a href="https://superhuman.canny.io/" target="_blank" class="nav-link w-nav-link">Feedback</a>
 </div>
 <div class="nav-mobile-social">
 <div line-split="intro" class="fsize-body-large primary-color-emphasis all-caps">Connect</div>
@@ -312,6 +313,19 @@ r2 = boto3.client(
 </ul>
 </div>
 </div>
+                  <div class="footer-links-list-wrapper">
+                     <div class="footer-links-heading">Resources</div>
+                     <div class="footer-list-wrapper">
+                        <ul role="list" class="footer-links-list">
+                           <li class="footer-list-item"><a href="/blog/best-cloudflare-r2-upload-tools" class="footer-link-item">Best R2 Upload Tools 2026</a></li>
+                           <li class="footer-list-item"><a href="/blog/r2drop-vs-r2client" class="footer-link-item">R2Drop vs R2Client</a></li>
+                           <li class="footer-list-item"><a href="/blog/r2drop-vs-flaresync" class="footer-link-item">R2Drop vs FlareSync</a></li>
+                           <li class="footer-list-item"><a href="/blog/r2drop-vs-cloudflare-dashboard" class="footer-link-item">R2Drop vs Dashboard</a></li>
+                           <li class="footer-list-item"><a href="/blog/how-i-built-r2drop-in-2-afternoons-with-ralph-tui" class="footer-link-item">How I Built R2Drop with Ralph-TUI</a></li>
+                           <li class="footer-list-item"><a href="https://superhuman.canny.io/" target="_blank" class="footer-link-item">Feedback</a></li>
+                        </ul>
+                     </div>
+                  </div>
 </div>
 <div class="w-layout-grid footer-bottom">
 <div id="w-node-_087b196d-b026-a298-5d40-c324b41ad7fc-b41ad796" class="footer-logo-wrapper">

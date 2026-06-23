@@ -130,7 +130,7 @@ R2Drop uses PostHog for anonymous telemetry with full user control:
 - Sensitive values sanitized/hashed
 - Error tracking is rate-limited and deduplicated
 
-See [`INSTRUMENTATION.md`](../app/INSTRUMENTATION.md) for the event catalog.
+See [`TELEMETRY.md`](../app/TELEMETRY.md) for the event catalog.
 
 ## 🛠️ CI/CD
 

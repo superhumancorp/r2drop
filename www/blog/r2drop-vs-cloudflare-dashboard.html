@@ -5,19 +5,19 @@
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-KVJJSZKTX2"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-KVJJSZKTX2');</script>
-<title>Getting Started with R2Drop: Your First Upload in 60 Seconds | R2Drop</title>
-<meta content="Learn how to install R2Drop, the native macOS menu bar app for Cloudflare R2, and upload your first file in under 60 seconds. Step-by-step guide for developers." name="description"/>
-<meta content="Getting Started with R2Drop: Your First Upload in 60 Seconds" property="og:title"/>
-<meta content="Learn how to install R2Drop, the native macOS menu bar app for Cloudflare R2, and upload your first file in under 60 seconds. Step-by-step guide for developers." property="og:description"/>
-<meta content="https://r2drop.com/blog-banner-1.png" property="og:image"/>
-<meta content="https://r2drop.com/blog/getting-started-with-r2drop" property="og:url"/>
+<title>R2Drop vs the Cloudflare Dashboard for R2 Uploads | R2Drop</title>
+<meta content="The Cloudflare dashboard works for R2 uploads. It's also painfully slow for anything repetitive. Here's what the workflow looks like with a native macOS uploader instead." name="description"/>
+<meta content="R2Drop vs the Cloudflare Dashboard for R2 Uploads" property="og:title"/>
+<meta content="The dashboard works. It's also slow for repetitive uploads. Here's the alternative." property="og:description"/>
+<meta content="https://r2drop.com/blog-banner-2.png" property="og:image"/>
+<meta content="https://r2drop.com/blog/r2drop-vs-cloudflare-dashboard" property="og:url"/>
 <meta content="article" property="og:type"/>
-<meta content="Getting Started with R2Drop: Your First Upload in 60 Seconds" property="twitter:title"/>
-<meta content="Learn how to install R2Drop, the native macOS menu bar app for Cloudflare R2, and upload your first file in under 60 seconds. Step-by-step guide for developers." property="twitter:description"/>
-<meta content="https://r2drop.com/blog-banner-1.png" property="twitter:image"/>
+<meta content="R2Drop vs the Cloudflare Dashboard for R2 Uploads" property="twitter:title"/>
+<meta content="The dashboard works. It's also slow for repetitive uploads. Here's a faster way." property="twitter:description"/>
+<meta content="https://r2drop.com/blog-banner-2.png" property="twitter:image"/>
 <meta content="summary_large_image" name="twitter:card"/>
 <meta name="twitter:site" content="@paulpierre"/>
-<link rel="canonical" href="https://r2drop.com/blog/getting-started-with-r2drop"/>
+<link rel="canonical" href="https://r2drop.com/blog/r2drop-vs-cloudflare-dashboard"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
 <meta content="R2Drop" name="generator"/>
 <link href="https://cdn.prod.website-files.com/69383496538f3c3da700a557/css/orvimo.webflow.shared.4ccc8b082.min.css" rel="stylesheet" type="text/css" integrity="sha384-TMyLCCqRf402eL9Xa141g9lhk+tJWCTwPtAHheUrmRVyE66GCRAZ+zpBk6WoX6Bl" crossorigin="anonymous"/>
@@ -27,7 +27,18 @@
 .footer-links-grid{grid-template-columns:repeat(4,1fr)!important;gap:40px!important;}
 @media(max-width:767px){.footer-links-grid{grid-template-columns:repeat(2,1fr)!important;}}
 .footer-bottom{grid-template-columns:auto!important;justify-items:center!important;}
-.copyright-wrapper .copyright{grid-template-columns:1fr auto!important;}.richtext h2,.w-richtext h2{margin-top:48px!important;margin-bottom:16px!important;}.richtext td,.w-richtext td{color:#333!important;border-bottom:1px solid #e5e5e5!important;padding:12px 16px;}.richtext th,.w-richtext th{color:#111!important;background:#f8f8f8!important;font-weight:600;padding:12px 16px;border-bottom:2px solid rgba(255,138,31,0.5)!important;}.w-richtext table,.richtext table{border-collapse:collapse;width:100%;}</style>
+.copyright-wrapper .copyright{grid-template-columns:1fr auto!important;}
+.richtext table{width:100%;border-collapse:collapse;margin:24px 0;font-size:0.95rem;}
+.richtext th{text-align:left;padding:12px 16px;background:#f8f8f8;color:#111;font-weight:600;border-bottom:2px solid rgba(255,138,31,0.5);}
+.richtext td{padding:12px 16px;border-bottom:1px solid #e5e5e5;color:#333;}
+.richtext tr:hover td{background:rgba(255,255,255,0.02);}
+.richtext .cta-box{background:rgba(255,138,31,0.08);border:1px solid rgba(255,138,31,0.2);border-radius:12px;padding:32px;margin:48px 0;text-align:center;}
+.richtext .cta-box p{color:#555;margin-bottom:16px;}
+.richtext .cta-box .btn-dl{display:inline-block;padding:12px 28px;font-size:16px;background:#ff8a1f;color:#000;border-radius:8px;font-weight:600;text-decoration:none;}
+.richtext .cta-box .btn-dl:hover{background:#ff9d42;}
+.compare-footer{text-align:center;padding:24px;color:#555;font-size:0.85rem;}
+.compare-footer a{color:#888;margin:0 8px;text-decoration:none;}
+.compare-footer a:hover{color:#ff8a1f;}.richtext h2,.w-richtext h2{margin-top:48px;margin-bottom:16px;}</style>
 <link href="https://fonts.googleapis.com/" rel="preconnect"/>
 <link href="https://fonts.gstatic.com/" rel="preconnect" crossorigin="anonymous"/>
 <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js" type="text/javascript"></script>
@@ -41,15 +52,16 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "Getting Started with R2Drop: Your First Upload in 60 Seconds",
-  "description": "Learn how to install R2Drop, the native macOS menu bar app for Cloudflare R2, and upload your first file in under 60 seconds. Step-by-step guide for developers.",
-  "image": "https://r2drop.com/blog-banner-1.png",
-  "author": { "@type": "Organization", "name": "Superhuman Intelligence LLC" },
+  "@type": "Article",
+  "headline": "R2Drop vs the Cloudflare Dashboard for R2 Uploads",
+  "description": "The Cloudflare dashboard works for R2 uploads. It's also painfully slow for anything repetitive.",
+  "image": "https://r2drop.com/blog-banner-2.png",
+  "author": { "@type": "Person", "name": "Paul Pierre", "url": "https://paulpierre.com" },
   "publisher": { "@type": "Organization", "name": "R2Drop", "url": "https://r2drop.com" },
-  "datePublished": "2026-02-25",
-  "url": "https://r2drop.com/blog/getting-started-with-r2drop",
-  "mainEntityOfPage": "https://r2drop.com/blog/getting-started-with-r2drop"
+  "datePublished": "2026-02-27",
+  "dateModified": "2026-02-27",
+  "url": "https://r2drop.com/blog/r2drop-vs-cloudflare-dashboard",
+  "mainEntityOfPage": "https://r2drop.com/blog/r2drop-vs-cloudflare-dashboard"
 }
 </script>
 </head>
@@ -102,12 +114,12 @@
 <header class="header single-post">
 <div class="w-layout-blockcontainer container single-post w-container">
 <div reveal-content="true" class="header-text-wrapper centered">
-<h1 line-split="hero-header" class="header-title l">Getting Started with R2Drop: Your First Upload in 60 Seconds</h1>
+<h1 line-split="hero-header" class="header-title l">R2Drop vs the Cloudflare Dashboard for R2 Uploads</h1>
 <div class="single-post-infos">
-<a line-split="intro" href="../articles" class="category-link single-post">Getting Started</a>
+<a line-split="intro" href="../articles" class="category-link single-post">Comparison</a>
 <div class="date-wrapper">
 <div line-split="intro" class="date single-post">&mdash;</div>
-<div line-split="intro" class="date single-post">February 25, 2026</div>
+<div line-split="intro" class="date single-post">February 27, 2026</div>
 </div>
 </div>
 </div>
@@ -116,75 +128,123 @@
 <section class="section single-post-content">
 <div reveal-content="true" class="w-layout-blockcontainer container single-post w-container">
 <div parallax-container="true" class="blog-list-img-wrapper blog">
-<img src="../blog-banner-1.png" loading="lazy" img-hover="false" alt="Getting started with R2Drop for Cloudflare R2 uploads" class="blog-img parallax"/>
+<img src="../blog-banner-1.png" loading="lazy" img-hover="false" alt="R2Drop vs the Cloudflare Dashboard for R2 uploads" class="blog-img parallax"/>
 <div class="img-curtain"></div>
 </div>
 <div fade-in="intro" class="post-richtext-wrapper">
 <div class="richtext w-richtext">
-<p>R2Drop is the first native macOS menu bar app built specifically for Cloudflare R2 uploads. If you've spent time navigating the Cloudflare dashboard just to upload a file, R2Drop eliminates that entirely. This guide walks you through installing R2Drop and completing your first upload to Cloudflare R2 in under 60 seconds.</p>
 
-<h2>What is R2Drop?</h2>
-<p>R2Drop is a native macOS application that lives in your menu bar. It integrates with macOS Finder through a right-click context menu extension, so you can upload any file or folder to your Cloudflare R2 bucket directly from Finder &mdash; no browser required. Under the hood, R2Drop uses a Rust-powered upload engine that supports multipart uploads, parallel transfers, and resumable sessions for large files.</p>
-<p>R2Drop is free, open source under the MIT license, and stores your Cloudflare API credentials exclusively in the macOS Keychain. Your files go directly from your Mac to your R2 bucket &mdash; they never touch R2Drop's servers.</p>
+<p>This is the comparison everyone can relate to, because everyone starts with the dashboard. You sign up for Cloudflare, create an R2 bucket, and the first time you upload something, you use the web UI. It works.</p>
 
-<h2>Prerequisites</h2>
-<p>Before installing R2Drop, make sure you have the following:</p>
-<ul role="list">
-<li>A Mac running macOS 13 Ventura or later</li>
-<li>A Cloudflare account with at least one R2 bucket created</li>
-<li>A Cloudflare R2 API token with <strong>Object Read &amp; Write</strong> permissions (you can create one at dash.cloudflare.com &rarr; R2 &rarr; Manage R2 API Tokens)</li>
-</ul>
+<p>The tenth time you upload something, you start to feel the friction. By the fiftieth time, you're looking for alternatives. That's roughly how I ended up building <a href="https://r2drop.com">R2Drop</a>.</p>
 
-<h2>Step 1: Install R2Drop</h2>
-<p>There are two ways to install R2Drop on your Mac:</p>
+<h2>The workflow problem</h2>
 
-<h3>Option A: Download the .dmg (Recommended)</h3>
-<p>Visit the <a href="https://github.com/superhumancorp/r2drop/releases">R2Drop GitHub Releases page</a> and download the latest <code>.dmg</code> file. Open it, drag R2Drop to your Applications folder, then double-click to launch. macOS may ask for permission to open an app from an identified developer &mdash; click Open to proceed.</p>
+<p>Let me walk through what "upload a file to R2 via the dashboard" actually looks like:</p>
 
-<h3>Option B: Install via Homebrew</h3>
-<p>If you prefer Homebrew, run the following commands in your terminal:</p>
-<pre><code>brew tap superhumancorp/tap
-brew install --cask r2drop</code></pre>
-<p>Homebrew will download, verify, and install R2Drop automatically.</p>
-
-<h2>Step 2: Launch R2Drop and Configure Your First Account</h2>
-<p>After installing, launch R2Drop from your Applications folder or Spotlight. You'll see the R2Drop icon appear in your macOS menu bar. Click it to open the setup panel.</p>
-<p>Click <strong>Add Account</strong> and fill in the following details:</p>
-<ul role="list">
-<li><strong>Account Name</strong> &mdash; a friendly label (e.g., "Personal R2" or "Work Bucket")</li>
-<li><strong>Access Key ID</strong> &mdash; from your Cloudflare R2 API token</li>
-<li><strong>Secret Access Key</strong> &mdash; from your Cloudflare R2 API token</li>
-<li><strong>Bucket Name</strong> &mdash; the name of your R2 bucket</li>
-<li><strong>Endpoint URL</strong> &mdash; found in your Cloudflare R2 dashboard (format: <code>https://&lt;account-id&gt;.r2.cloudflarestorage.com</code>)</li>
-</ul>
-<p>Optionally, set a <strong>custom domain</strong> if your R2 bucket is connected to a Cloudflare custom domain. This means uploaded files will get shareable links using your own domain.</p>
-<p>Click <strong>Save</strong>. R2Drop stores your credentials securely in the macOS Keychain &mdash; they are never written to disk or sent to any server.</p>
-<figure style="margin:32px 0;"><img src="../screenshot-3.png" alt="R2Drop accounts configuration showing account name, access keys, bucket, and endpoint fields" loading="lazy" style="width:100%;border-radius:8px;border:1px solid rgba(255,255,255,0.1);"/><figcaption style="text-align:center;font-size:0.85rem;color:#888;margin-top:8px;">R2Drop accounts configuration</figcaption></figure>
-
-<h2>Step 3: Upload Your First File</h2>
-<p>With your account configured, uploading to Cloudflare R2 is as simple as:</p>
+<h3>Cloudflare Dashboard</h3>
 <ol role="list">
-<li>Open Finder and navigate to any file or folder you want to upload</li>
-<li>Right-click (or Control-click) the file</li>
-<li>Select <strong>&ldquo;Send to R2&rdquo;</strong> from the context menu</li>
-<li>R2Drop uploads the file in the background and copies the shareable URL to your clipboard</li>
+  <li>Open browser</li>
+  <li>Go to dash.cloudflare.com</li>
+  <li>Log in (or wait for session check)</li>
+  <li>Click R2 in the sidebar</li>
+  <li>Click your bucket</li>
+  <li>Navigate to the right folder</li>
+  <li>Click "Upload"</li>
+  <li>Pick the file from the system dialog</li>
+  <li>Wait for upload</li>
+  <li>Click the uploaded file</li>
+  <li>Copy the URL manually</li>
+  <li>Paste it where you need it</li>
 </ol>
-<p>That's it. Within seconds, your file is live on Cloudflare R2 and the link is ready to paste. No browser tabs, no dashboard navigation, no manual copy-pasting of URLs.</p>
-<figure style="margin:32px 0;"><video autoplay loop muted playsinline style="width:100%;border-radius:8px;border:1px solid rgba(255,255,255,0.1);"><source src="https://cdn.r2drop.com/r2drop-1.mp4" type="video/mp4"/></video><figcaption style="text-align:center;font-size:0.85rem;color:#888;margin-top:8px;">Right-click any file in Finder → Send to R2</figcaption></figure>
+<p><strong>~45-90 seconds per file</strong></p>
 
-<h2>Step 4: Monitor Upload Progress</h2>
-<p>Click the R2Drop menu bar icon at any time to see active uploads, their progress, and a log of recently uploaded files. Each entry shows the filename, upload time, size, and the public URL. You can click any URL in the history to copy it to your clipboard again.</p>
-<figure style="margin:32px 0;"><img src="../screenshot-8.png" alt="R2Drop upload history tab showing searchable list of uploaded files with URLs" loading="lazy" style="width:100%;border-radius:8px;border:1px solid rgba(255,255,255,0.1);"/><figcaption style="text-align:center;font-size:0.85rem;color:#888;margin-top:8px;">Upload history with searchable URLs</figcaption></figure>
-<p>For large files, R2Drop automatically switches to multipart upload mode, splitting the file into parallel chunks for maximum speed. Uploads are also resumable &mdash; if your connection drops, R2Drop picks up where it left off.</p>
+<h3>R2Drop</h3>
+<ol role="list">
+  <li>Right-click file in Finder</li>
+  <li>"Send to R2"</li>
+  <li>URL is in your clipboard</li>
+</ol>
+<p><strong>~3-5 seconds per file</strong></p>
 
-<h2>What's Next?</h2>
-<p>Now that you've completed your first Cloudflare R2 upload with R2Drop, here are some things to explore:</p>
+<p>That's not a typo. Twelve steps versus two. And the time difference compounds. Upload ten files a day through the dashboard and you're burning 10-15 minutes on pure navigation overhead. With R2Drop, same ten files take under a minute.</p>
+
+<h2>What the dashboard does well</h2>
+
+<p>I want to be fair. The Cloudflare dashboard does things R2Drop doesn't:</p>
+
 <ul role="list">
-<li><a href="multi-account-setup">Set up multiple Cloudflare accounts</a> &mdash; useful if you manage R2 buckets for multiple projects or clients</li>
-<li><a href="r2drop-cli-guide">Use the R2Drop CLI</a> &mdash; for terminal uploads, shell scripts, and CI/CD pipelines</li>
-<li>Configure path prefixes in the account settings to organize uploads into folders automatically</li>
+  <li>Browse and search your bucket contents</li>
+  <li>Delete objects</li>
+  <li>View storage usage and billing</li>
+  <li>Manage bucket settings (CORS, lifecycle rules, etc.)</li>
+  <li>Create and manage API tokens</li>
+  <li>Works on any device with a browser</li>
 </ul>
+
+<p>The dashboard is the control panel for your R2 account. R2Drop isn't trying to replace that. You still need the dashboard for account management. R2Drop just takes over the upload part.</p>
+
+<h2>What R2Drop does that the dashboard can't</h2>
+
+<p><strong>Finder integration.</strong> Right-click any file or folder in Finder, "Send to R2." The upload happens in the background. You don't switch windows, you don't leave what you're doing.</p>
+
+<p><strong>Auto-copy URLs.</strong> When the upload finishes, the public URL is in your clipboard. With custom domain support. No clicking around to find the URL.</p>
+
+<p><strong>Batch uploads.</strong> Select twenty files in Finder, right-click, send. They upload in parallel. The dashboard makes you upload one at a time (or select multiple through a single file picker dialog, which isn't great for files scattered across different folders).</p>
+
+<p><strong>CLI for automation.</strong> <code>r2drop upload ./dist/ --json</code> in a deploy script. The dashboard has no scripting equivalent (you'd need the Cloudflare API or wrangler for that).</p>
+
+<p><strong>Offline queue.</strong> If you're on spotty wifi, R2Drop queues uploads and retries automatically. The dashboard just fails.</p>
+
+<h2>Side-by-side</h2>
+
+<table>
+<thead>
+<tr><th>Feature</th><th>R2Drop</th><th>Cloudflare Dashboard</th></tr>
+</thead>
+<tbody>
+<tr><td>Price</td><td>Free</td><td>Free</td></tr>
+<tr><td>Platform</td><td>macOS</td><td>Any browser</td></tr>
+<tr><td>Setup</td><td>~2 min (one-time)</td><td>Already have it</td></tr>
+<tr><td>Upload speed (workflow)</td><td>~3-5 sec per file</td><td>~45-90 sec per file</td></tr>
+<tr><td>Finder integration</td><td>Yes</td><td>No</td></tr>
+<tr><td>Auto URL copy</td><td>Yes</td><td>No</td></tr>
+<tr><td>Batch upload</td><td>Parallel, any source</td><td>Single file picker</td></tr>
+<tr><td>Resumable uploads</td><td>Yes</td><td>No</td></tr>
+<tr><td>CLI / scripting</td><td>Yes</td><td>No (use wrangler/API)</td></tr>
+<tr><td>Bucket browsing</td><td>No</td><td>Yes</td></tr>
+<tr><td>Account management</td><td>No</td><td>Yes</td></tr>
+<tr><td>Credential storage</td><td>macOS Keychain</td><td>Browser session</td></tr>
+</tbody>
+</table>
+
+<h2>When to use the dashboard</h2>
+
+<p>Managing buckets, checking billing, setting CORS rules, creating API tokens, deleting objects you no longer need. All dashboard territory.</p>
+
+<p>Also if you're on a borrowed computer, a Windows machine, or anywhere you can't install R2Drop. The dashboard is always there.</p>
+
+<h2>When to use R2Drop</h2>
+
+<p>Every time you upload a file. Seriously. Once you've set up R2Drop (takes two minutes), there's no reason to go back to the dashboard for uploads. Right-click, send, done.</p>
+
+<p>I still use the dashboard for account management. I haven't used it for uploading in months.</p>
+
+<div class="cta-box">
+  <p>Stop navigating the dashboard every time you need to upload a file.</p>
+  <a href="https://github.com/superhumancorp/r2drop/releases" class="btn-dl">Download R2Drop</a>
+  <p style="margin-top:12px;font-size:0.85rem;color:#888">Free, open source, MIT license. <a href="https://github.com/superhumancorp/r2drop">Source on GitHub</a>.</p>
 </div>
+
+<p>Have a great day. Carry on.</p>
+
+</div>
+</div>
+<div class="compare-footer">
+  Compare: <a href="r2drop-vs-r2client">R2Drop vs R2Client</a> &middot;
+  <a href="r2drop-vs-flaresync">R2Drop vs FlareSync</a> &middot;
+  <a href="r2drop-vs-r2-uploader">R2Drop vs R2Uploader</a> &middot;
+  <a href="best-cloudflare-r2-upload-tools">All R2 tools compared</a>
 </div>
 </div>
 </section>
@@ -195,43 +255,43 @@ brew install --cask r2drop</code></pre>
 </div>
 <div class="w-dyn-list">
 <div reveal-content="true" role="list" class="blog-list single-post w-dyn-items">
-<div fade-in="true" id="w-node-_266691d4-6dc0-57b1-f0e6-8dfb837c26ea-5907614b" role="listitem" class="blog-item cross-article w-dyn-item">
-<a parallax-container="true" aria-label="read more" no-events="true" href="r2drop-cli-guide" class="blog-list-img-wrapper blog w-inline-block">
-<img src="../blog-banner-2.png" loading="lazy" img-hover="true" alt="R2Drop CLI Guide" class="blog-img parallax"/>
+<div fade-in="true" role="listitem" class="blog-item cross-article w-dyn-item">
+<a parallax-container="true" aria-label="read more" no-events="true" href="r2drop-vs-r2client" class="blog-list-img-wrapper blog w-inline-block">
+<img src="../blog-banner-2.png" loading="lazy" img-hover="true" alt="R2Drop vs R2Client" class="blog-img parallax"/>
 </a>
 <div class="blog-list-content">
 <div class="blog-category-wrapper">
-<div class="blog-category-title">CLI</div>
+<div class="blog-category-title">Comparison</div>
 </div>
-<a aria-label="read more" href="r2drop-cli-guide" class="blog-title-wrapper w-inline-block">
-<div class="blog-title-text">R2Drop CLI: Terminal Uploads to Cloudflare R2</div>
+<a aria-label="read more" href="r2drop-vs-r2client" class="blog-title-wrapper w-inline-block">
+<div class="blog-title-text">R2Drop vs R2Client for Cloudflare R2</div>
 </a>
 <div class="summary-wrapper">
-<p class="summary-text">Upload files to Cloudflare R2 from the terminal, shell scripts, and CI/CD pipelines with the R2Drop CLI.</p>
+<p class="summary-text">R2Drop is free and open source. R2Client costs money after a 3-day trial.</p>
 </div>
 <div class="date-wrapper">
 <div class="date">&mdash;</div>
-<div class="date">February 25, 2026</div>
+<div class="date">February 27, 2026</div>
 </div>
 </div>
 </div>
-<div fade-in="true" id="w-node-_266691d4-6dc0-57b1-f0e6-8dfb837c26ea-59076150" role="listitem" class="blog-item cross-article w-dyn-item">
-<a parallax-container="true" aria-label="read more" no-events="true" href="multi-account-setup" class="blog-list-img-wrapper blog w-inline-block">
-<img src="../blog-banner-1.png" loading="lazy" img-hover="true" alt="Multi-account setup" class="blog-img parallax"/>
+<div fade-in="true" role="listitem" class="blog-item cross-article w-dyn-item">
+<a parallax-container="true" aria-label="read more" no-events="true" href="best-cloudflare-r2-upload-tools" class="blog-list-img-wrapper blog w-inline-block">
+<img src="../blog-banner-1.png" loading="lazy" img-hover="true" alt="Best R2 upload tools" class="blog-img parallax"/>
 </a>
 <div class="blog-list-content">
 <div class="blog-category-wrapper">
-<div class="blog-category-title">Configuration</div>
+<div class="blog-category-title">Comparison</div>
 </div>
-<a aria-label="read more" href="multi-account-setup" class="blog-title-wrapper w-inline-block">
-<div class="blog-title-text">Managing Multiple Cloudflare R2 Accounts with R2Drop</div>
+<a aria-label="read more" href="best-cloudflare-r2-upload-tools" class="blog-title-wrapper w-inline-block">
+<div class="blog-title-text">Best Cloudflare R2 Upload Tools in 2026</div>
 </a>
 <div class="summary-wrapper">
-<p class="summary-text">Learn how to configure and switch between multiple Cloudflare R2 accounts in R2Drop for different projects and teams.</p>
+<p class="summary-text">Comparing R2Drop, R2Client, FlareSync, R2 Explorer, rclone, and Cyberduck for Cloudflare R2 uploads.</p>
 </div>
 <div class="date-wrapper">
 <div class="date">&mdash;</div>
-<div class="date">February 25, 2026</div>
+<div class="date">February 27, 2026</div>
 </div>
 </div>
 </div>
@@ -268,27 +328,26 @@ brew install --cask r2drop</code></pre>
 </div>
 <div id="w-node-_087b196d-b026-a298-5d40-c324b41ad7c1-b41ad796" class="footer-links-list-wrapper">
 <div class="footer-links-heading">Legal</div>
-<div class="footer-list-wrapper">
-<ul role="list" class="footer-links-list">
-<li class="footer-list-item"><a href="../privacy/" class="footer-link-item">Privacy Policy</a></li>
-<li class="footer-list-item"><a href="../terms/" class="footer-link-item">Terms of Service</a></li>
-<li class="footer-list-item"><a href="https://github.com/superhumancorp/r2drop/blob/main/LICENSE" target="_blank" class="footer-link-item">MIT License</a></li>
-</ul>
-</div>
-</div>
-                  <div class="footer-links-list-wrapper">
-                     <div class="footer-links-heading">Resources</div>
                      <div class="footer-list-wrapper">
                         <ul role="list" class="footer-links-list">
-                           <li class="footer-list-item"><a href="/blog/best-cloudflare-r2-upload-tools" class="footer-link-item">Best R2 Upload Tools 2026</a></li>
-                           <li class="footer-list-item"><a href="/blog/r2drop-vs-r2client" class="footer-link-item">R2Drop vs R2Client</a></li>
-                           <li class="footer-list-item"><a href="/blog/r2drop-vs-flaresync" class="footer-link-item">R2Drop vs FlareSync</a></li>
-                           <li class="footer-list-item"><a href="/blog/r2drop-vs-cloudflare-dashboard" class="footer-link-item">R2Drop vs Dashboard</a></li>
-                           <li class="footer-list-item"><a href="/blog/how-i-built-r2drop-in-2-afternoons-with-ralph-tui" class="footer-link-item">How I Built R2Drop with Ralph-TUI</a></li>
-                           <li class="footer-list-item"><a href="https://superhuman.canny.io/" target="_blank" class="footer-link-item">Feedback</a></li>
+                           <li class="footer-list-item"><a href="/privacy/" class="footer-link-item">Privacy Policy</a></li>
+                           <li class="footer-list-item"><a href="/terms/" class="footer-link-item">Terms of Service</a></li>
+                           <li class="footer-list-item"><a href="https://github.com/superhumancorp/r2drop/blob/main/LICENSE" target="_blank" class="footer-link-item">MIT License</a></li>
                         </ul>
                      </div>
                   </div>
+                  <div class="footer-links-list-wrapper">
+                     <div class="footer-links-heading">Resources</div>
+<div class="footer-list-wrapper">
+<ul role="list" class="footer-links-list">
+<li class="footer-list-item"><a href="r2drop-vs-r2client" class="footer-link-item">R2Drop vs R2Client</a></li>
+<li class="footer-list-item"><a href="r2drop-vs-flaresync" class="footer-link-item">R2Drop vs FlareSync</a></li>
+<li class="footer-list-item"><a href="r2drop-vs-r2-uploader" class="footer-link-item">R2Drop vs R2Uploader</a></li>
+<li class="footer-list-item"><a href="r2drop-vs-cloudflare-dashboard" class="footer-link-item">R2Drop vs Dashboard</a></li>
+<li class="footer-list-item"><a href="best-cloudflare-r2-upload-tools" class="footer-link-item">All R2 tools compared</a></li>
+</ul>
+</div>
+</div>
 </div>
 <div class="w-layout-grid footer-bottom">
 <div id="w-node-_087b196d-b026-a298-5d40-c324b41ad7fc-b41ad796" class="footer-logo-wrapper">
@@ -315,6 +374,5 @@ brew install --cask r2drop</code></pre>
 <script src="https://cdn.prod.website-files.com/gsap/3.14.2/gsap.min.js" type="text/javascript"></script>
 <script src="https://cdn.prod.website-files.com/gsap/3.14.2/SplitText.min.js" type="text/javascript"></script>
 <script src="https://cdn.prod.website-files.com/gsap/3.14.2/ScrollTrigger.min.js" type="text/javascript"></script>
-<script src="../download-links.js" defer></script>
-</body>
+<script src="../download-links.js" defer></script>\n</body>
 </html>
