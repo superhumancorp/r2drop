@@ -1,0 +1,8 @@
+# GitBook sync configuration for R2Drop documentation.
+# Keep this at the repository root so GitBook can find the docs directory.
+
+root: ./gitbook
+
+structure:
+  readme: README.md
+  summary: SUMMARY.md
