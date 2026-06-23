@@ -1,3 +1,54 @@
+## [v0.1.2](https://github.com/superhumancorp/r2drop/releases/tag/v0.1.2) — 2026-06-23
+
+- Fix release notes tracking in release workflow
+- Update changelog for bulk upload recovery
+- Add GitBook legacy path shim
+- Fix GitBook docs root config
+- Fix App Store download button routing
+- Fix bulk upload queue recovery
+- Add comprehensive SEO fixes documentation
+- Complete blog post OG image fixes and add SEO health check script
+- Fix blog post OG images for better social sharing
+- Fix SEO issues and deployment workflow
+- Rename build story: 'How I Built R2Drop in 2 Afternoons with Ralph-TUI (Agentic Loop)'
+- Rewrite build story with accurate details
+- Update Ralph-TUI links to ralph-tui.com
+- Fix Ralph-TUI links to correct GitHub repo (subsy/ralph-tui)
+- Apply CSS fixes to ALL 14 article pages
+- Fix comparison article readability: darker text, table contrast, h2 spacing
+- Replace Compare bar with Resources footer column across all pages
+- Add 2 more articles to homepage (7 total for balanced layout)
+- Fix comparison articles: replace Cyberduck/rclone with R2Client/FlareSync, stagger dates
+- Add comparison articles, update roundup with Perplexity competitors
+- Restore docs/README.md (main repo documentation)
+- Add ROADMAP.md, feedback link, clean up docs
+- Replace INSTRUMENTATION.md with simplified TELEMETRY.md
+- fix: link Superhuman Intelligence LLC to superhumancorp.com in README
+- fix: update X links to @paulpierre, change email to support@r2drop.com
+- feat(geo): add 3 GEO-optimized articles, update listings, fix paths
+- feat(geo): add llms.txt, allow AI crawlers, update sitemap for GEO
+- chore: clarify release signing commands and enforce signed appcast workflow
+- fix(sparkle): implement Ed25519 signing for appcast enclosures
+- fix(sparkle): fix all 4 blocking auto-update issues
+- feat: add SHA-256 checksum verification + update Homebrew formulas
+- fix: address all pre-public audit issues (#1-#9)
+- fix: remove personal email from beads tracker, gitignore beads.db
+- fix: update OG image URL to cdn.r2drop.com/site/og.png
+- fix(seo): use resized OG banner (1200x630) across all pages
+- feat(seo): add Paul Pierre author credit, fix structured data, improve OG
+- fix: update all paths after repo restructure (src/ is now root)
+- fix: remove personal Apple ID email from Appfile and CLAUDE.md
+- fix: remove PII from CLAUDE.md, update sitemap, add og:image to all pages
+- chore: make src/ the repo root, remove art/archive from tracking
+- chore: restructure repo — src/ becomes the root
+- chore: remove old Orvimo templates, fix privacy, update Homebrew refs
+- Reorganize root assets under src and update path references
+- Move top-level markdown docs into src/docs
+- feat(app): enable Sparkle auto-updates pointing to GitHub Releases
+- chore: update changelog for v0.1.1 [skip ci]
+
+---
+
 ## Unreleased — 2026-06-23
 
 - fix(app): add bulk Uploads recovery actions for clearing failed upload backlogs, retrying failed uploads, and clearing inactive queued uploads without deleting active uploads.
