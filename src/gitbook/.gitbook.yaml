@@ -1,0 +1,9 @@
+# Compatibility shim for the pre-2026-03-02 GitBook Project directory.
+# The repo root moved from src/ to this directory, but GitBook may still
+# look for its config in src/gitbook.
+
+root: ../../gitbook
+
+structure:
+  readme: README.md
+  summary: SUMMARY.md
