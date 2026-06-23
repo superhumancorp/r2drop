@@ -321,6 +321,25 @@ jobs:
           security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" "$KEYCHAIN_PATH"
 
+      - name: Resolve Developer ID signing identity
+        id: signing
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          SIGN_IDENTITY=$(security find-identity -v -p codesigning | \
+            awk -v team="(${APPLE_TEAM_ID})" -F '"' \
+              '$2 ~ /^Developer ID Application: / && index($2, team) { print $2; exit }')
+
+          if [ -z "$SIGN_IDENTITY" ]; then
+            echo "::error::No Developer ID Application signing identity found for team ${APPLE_TEAM_ID}."
+            security find-identity -v -p codesigning || true
+            exit 1
+          fi
+
+          echo "Using signing identity: $SIGN_IDENTITY"
+          echo "identity=${SIGN_IDENTITY}" >> "$GITHUB_OUTPUT"
+
       - name: Build Rust FFI (release, universal)
         working-directory: app
         run: |
@@ -332,7 +351,10 @@ jobs:
       # 8. Archive the app for both Apple Silicon and Intel.
       # ─────────────────────────────────────────────
       - name: Build & Archive (Apple Silicon)
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
+          SIGN_IDENTITY="${{ steps.signing.outputs.identity }}"
           xcodebuild archive \
             -project "$PROJECT" \
             -scheme "$SCHEME" \
@@ -341,10 +363,17 @@ jobs:
             -archivePath "$RUNNER_TEMP/R2Drop-arm64.xcarchive" \
             ARCHS=arm64 \
             MARKETING_VERSION="${{ steps.version.outputs.version }}" \
-            CURRENT_PROJECT_VERSION="${{ steps.version.outputs.build_number }}"
+            CURRENT_PROJECT_VERSION="${{ steps.version.outputs.build_number }}" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="$SIGN_IDENTITY" \
+            OTHER_CODE_SIGN_FLAGS="--timestamp"
 
       - name: Build & Archive (Intel)
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
+          SIGN_IDENTITY="${{ steps.signing.outputs.identity }}"
           xcodebuild archive \
             -project "$PROJECT" \
             -scheme "$SCHEME" \
@@ -353,20 +382,28 @@ jobs:
             -archivePath "$RUNNER_TEMP/R2Drop-x86_64.xcarchive" \
             ARCHS=x86_64 \
             MARKETING_VERSION="${{ steps.version.outputs.version }}" \
-            CURRENT_PROJECT_VERSION="${{ steps.version.outputs.build_number }}"
+            CURRENT_PROJECT_VERSION="${{ steps.version.outputs.build_number }}" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="$SIGN_IDENTITY" \
+            OTHER_CODE_SIGN_FLAGS="--timestamp"
 
       # ─────────────────────────────────────────────
       # 9. Export signed .app bundles from each archive.
       # ─────────────────────────────────────────────
       - name: Export .app bundles
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
-          cat > "$RUNNER_TEMP/ExportOptions.plist" << 'EOF'
+          cat > "$RUNNER_TEMP/ExportOptions.plist" << EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
             "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0"><dict>
             <key>method</key><string>developer-id</string>
-            <key>signingStyle</key><string>automatic</string>
+            <key>teamID</key><string>${APPLE_TEAM_ID}</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>signingCertificate</key><string>Developer ID Application</string>
           </dict></plist>
           EOF
           xcodebuild -exportArchive \
