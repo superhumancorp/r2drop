@@ -200,7 +200,8 @@ What it does:
 The shared Xcode schemes used by automation are:
 
 - `R2Drop Debug` (CI build checks)
-- `R2Drop Production` (Fastlane/TestFlight/App Store/release builds)
+- `R2Drop Production` (direct DMG/GitHub release builds with Sparkle)
+- `R2Drop App Store` (Fastlane/TestFlight/App Store builds without Sparkle)
 
 If you see scheme-related failures, verify shared schemes exist:
 

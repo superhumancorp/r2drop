@@ -9,61 +9,116 @@
 /* Begin PBXBuildFile section */
 		00B565BA70404A6EDE20B689 /* Hero2.png in Resources */ = {isa = PBXBuildFile; fileRef = C64D34E37032AD47D0CE9DE9 /* Hero2.png */; };
 		00C15278A00EF8DCBC27A1E1 /* Screenshot-3.png in Resources */ = {isa = PBXBuildFile; fileRef = 2852450707AACFDA81A1D672 /* Screenshot-3.png */; };
+		013CAD421C01D529D1AADFC8 /* MenuBarHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F2D07F320D9C23E73C72A24 /* MenuBarHeaderView.swift */; };
 		0721F6E94D65FF46B2027AE5 /* Hero4.png in Resources */ = {isa = PBXBuildFile; fileRef = 8787DED0FC77F0AD054CA323 /* Hero4.png */; };
+		073869D0EA9E487DA72CA795 /* AccountsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 124CA1A97D09E4B5B83AB2BC /* AccountsTabView.swift */; };
+		0B80EE196062710AC12FDC9C /* OnboardingWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE544A156394A0F0F04B0E9F /* OnboardingWindow.swift */; };
 		0C4EC35B7770884EB39D14C0 /* R2Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD90BD3564BED9B179739294 /* R2Log.swift */; };
+		0EEADFD144C2F484A729615C /* TelemetryRateLimiter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC0D57F8DBDEB7C72FBBCC8 /* TelemetryRateLimiter.swift */; };
 		0F2CDC8165FB3442DF5FB49B /* AccountsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1F07D637845620D21D51236 /* AccountsViewModel.swift */; };
 		12A30511312DDE746EE6067E /* TelemetrySanitizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8097D3B1DF6AFB4D238A5C0 /* TelemetrySanitizer.swift */; };
 		16BA101A0E7886EBD2CCD0A6 /* TelemetryErrorTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 951CA6481D599E9A5C6C0186 /* TelemetryErrorTracker.swift */; };
 		1B3EDC56F9ACE50974548C76 /* GlassComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7291541A708E05FA97C9FF2A /* GlassComponents.swift */; };
 		1B5B336EBB3AE3FFCC632FB1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6BE1681DC9D485DE5BFFDCC7 /* Assets.xcassets */; };
 		1DC6605C3B322B25C9F3ABB4 /* R2Bridge in Frameworks */ = {isa = PBXBuildFile; productRef = 9A0B2592ABA6D517E479184E /* R2Bridge */; };
+		1F8B6F4469DDAEBD1D412EDD /* Screenshot-1.png in Resources */ = {isa = PBXBuildFile; fileRef = 1955B6355B994F942109C4CA /* Screenshot-1.png */; };
+		22AF3AF375DF155FE6E894F8 /* R2Bridge in Frameworks */ = {isa = PBXBuildFile; productRef = 26C8C6BFEA1DE5D3D90A7C94 /* R2Bridge */; };
 		244CF342C83CE84F5B20254D /* AboutTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0303EC699D6329DB04D261F5 /* AboutTabView.swift */; };
 		246600BDBEF8073194AB94AD /* OnboardingHowItWorksPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61084A1955269B0E3E233C04 /* OnboardingHowItWorksPanel.swift */; };
 		2545899AF42BF7179DE1E713 /* Hero3.png in Resources */ = {isa = PBXBuildFile; fileRef = 2D193ADB7405EB5DEEBCCD0A /* Hero3.png */; };
+		27560E25D178EC92196425FB /* FinderExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = FF1ABF73310B6C8543ECFE9A /* FinderExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		2784836E9879CDDFDE35AC9E /* FinderExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = FF1ABF73310B6C8543ECFE9A /* FinderExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		2899A6335E1FCFC0DBBD1627 /* SettingsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8501464791299D219B21F14E /* SettingsTabView.swift */; };
+		2DC297BB1C0DEB76D286B3F1 /* R2Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD90BD3564BED9B179739294 /* R2Log.swift */; };
+		34A8218B664644BA8B93EC84 /* Background-1.png in Resources */ = {isa = PBXBuildFile; fileRef = 2F7747EEE426AC86E245F67C /* Background-1.png */; };
 		36189925036A7B9CB1F4239B /* OnboardingCreateTokenPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 059ED55A4AF523EF0DC63232 /* OnboardingCreateTokenPanel.swift */; };
+		3681F214909520C2BF105B6D /* MenuBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D37053996DA6608CA79C70D /* MenuBarController.swift */; };
+		3CC3BB774FC42E0544358942 /* OnboardingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7579519F793101201BDE7A67 /* OnboardingViewModel.swift */; };
+		3F67C7E4E193703340100E5D /* Screenshot-3.png in Resources */ = {isa = PBXBuildFile; fileRef = 2852450707AACFDA81A1D672 /* Screenshot-3.png */; };
+		418A0C573709D15B219F5913 /* R2DropApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B224CAEF69D3828B9F742FC /* R2DropApp.swift */; };
 		435C405E21FFA53F4E8CD00B /* QuickActionRequestHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D7701760A0A503C4CC6E3B /* QuickActionRequestHandler.swift */; };
 		446409FFAC19A3C84349BC4C /* UploadMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C040D0288EF490C9BB3613BA /* UploadMonitor.swift */; };
 		452CF180075871151AC639F8 /* TelemetryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08EC0C66AF5553B3D1CE5F93 /* TelemetryService.swift */; };
+		45CBF5AB961D7F9C1D860DD7 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9C356FFCDF3B03131017A08 /* SettingsView.swift */; };
+		471392EBE7C9685543B75D25 /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43DCFEC6696401ADDAB01C97 /* SettingsViewModel.swift */; };
+		471B62F507ADE57004007516 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 895B4748BE8DA2F5A012B32C /* NotificationService.swift */; };
+		477D0637342CD59E67C7F7C7 /* PermissionChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF459A8E4B734BF28B534D3A /* PermissionChecker.swift */; };
+		48C02256D8A56B15FE3D57E3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6BE1681DC9D485DE5BFFDCC7 /* Assets.xcassets */; };
+		48E513CD2A036E6B77DCB68D /* QueueTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DF2E0FB70D7FA22051B5C4E /* QueueTabView.swift */; };
 		4900B66D65E03BF6D5611C3B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9C356FFCDF3B03131017A08 /* SettingsView.swift */; };
 		4BE113099D35BE3343F8FCF0 /* MenuBarHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F2D07F320D9C23E73C72A24 /* MenuBarHeaderView.swift */; };
 		4D607E471C91E0C34CBE14D5 /* OnboardingWelcomePanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6E3F8073CD22D3BE5291A2 /* OnboardingWelcomePanel.swift */; };
 		511C93F7AD20A50CA4DC05B1 /* PermissionChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF459A8E4B734BF28B534D3A /* PermissionChecker.swift */; };
 		51E14B44F7505EC41B3DE7F0 /* DeepLinkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B2C6A165C12FE42A21E70FA /* DeepLinkHandler.swift */; };
+		5AA37137F07E470CD4CA905B /* ConfettiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39A98603B94F2CA7D853BF21 /* ConfettiView.swift */; };
 		5D491FDE58B6688F64DDBE4F /* OnboardingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7579519F793101201BDE7A67 /* OnboardingViewModel.swift */; };
 		5D525698D7F5A279EAEE6DC8 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 895B4748BE8DA2F5A012B32C /* NotificationService.swift */; };
+		5E3A65D303611F2F8C58348C /* OnboardingCreateTokenPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 059ED55A4AF523EF0DC63232 /* OnboardingCreateTokenPanel.swift */; };
+		6576C08B9FDB5ABAC33A124C /* UploadMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C040D0288EF490C9BB3613BA /* UploadMonitor.swift */; };
+		6B41F97803A2C72A32F1B2E1 /* OnboardingChooseBucketPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C64368FB058666531A0DB21 /* OnboardingChooseBucketPanel.swift */; };
 		6D241D7208D0BBD8512BAA9D /* R2Core in Frameworks */ = {isa = PBXBuildFile; productRef = 0655B0C2DF0053D85C194E67 /* R2Core */; };
 		721BD11D81B5D65412985497 /* AccountDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1706FFB21E4DD0D4C688812 /* AccountDetailView.swift */; };
+		75B85B0749442E402A73AD3A /* TokenValidationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C5B8A7A0BE9FBB08B30708 /* TokenValidationService.swift */; };
+		7C45067195E394FF487861BA /* QuickActionExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2A96FAE99719CF9B79058699 /* QuickActionExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		7C6BAF9546BEB501DC21451B /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 31041CEEDF5650FA66389A3B /* Sparkle */; };
+		7D444F04DC298C2F5EC984DD /* QueueViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D7D3E1104FE5EF77D9A051C /* QueueViewModel.swift */; };
+		7F2C07F14F1DE2B8412182B4 /* OnboardingHowItWorksPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61084A1955269B0E3E233C04 /* OnboardingHowItWorksPanel.swift */; };
 		80C6A5F627CC3567514E2A6D /* Background-1.png in Resources */ = {isa = PBXBuildFile; fileRef = 2F7747EEE426AC86E245F67C /* Background-1.png */; };
+		828D7CD579D642A63BCA1B3D /* QueueJobRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63723F38B23FCAF195B1F07 /* QueueJobRow.swift */; };
+		85050421BAF740DF3CCC05FE /* AccountsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1F07D637845620D21D51236 /* AccountsViewModel.swift */; };
+		89A8A2C67CE20D539EAC7B97 /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = 7F1A5A8EEB3D8D6B3BBCDF75 /* PostHog */; };
 		89FBD3C970E9CCD9464A0205 /* FinderSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11146A78EED30F66A1B4E9C4 /* FinderSync.swift */; };
 		8FB96BF695B807642B267439 /* ConfettiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39A98603B94F2CA7D853BF21 /* ConfettiView.swift */; };
 		92AFD08BCCF0BE6CB16D01DD /* ConflictResolution.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8786A46A12B9274C56F04EBB /* ConflictResolution.swift */; };
+		92D5A6C70439580F62D0925E /* TelemetryErrorTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 951CA6481D599E9A5C6C0186 /* TelemetryErrorTracker.swift */; };
+		949EDEE6B68BB53BCF4C0603 /* HistoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CF3A0ED4891B0AC8074417A /* HistoryViewModel.swift */; };
 		97766BA0197ADFBA7AE3293F /* Screenshot-2.png in Resources */ = {isa = PBXBuildFile; fileRef = BE3A1795231F320C43031D96 /* Screenshot-2.png */; };
+		99AA8DC94158EE69379D574E /* GlassComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7291541A708E05FA97C9FF2A /* GlassComponents.swift */; };
 		9B60E6D4441B738AA276F766 /* Screenshot-1.png in Resources */ = {isa = PBXBuildFile; fileRef = 1955B6355B994F942109C4CA /* Screenshot-1.png */; };
 		A3B3F91F46A891285001C190 /* TokenValidationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C5B8A7A0BE9FBB08B30708 /* TokenValidationService.swift */; };
 		AA6E9523D29409C640C17CA0 /* MenuBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D37053996DA6608CA79C70D /* MenuBarController.swift */; };
 		AE5B487FADE44977751FBF31 /* ConfettiSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = AABDFDEBAB26E9C36125096A /* ConfettiSwiftUI */; };
 		B0982EF330E4CABB5B23C432 /* TelemetryRateLimiter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC0D57F8DBDEB7C72FBBCC8 /* TelemetryRateLimiter.swift */; };
+		B17E7C032054DF63AEF240F9 /* AboutViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 299D9D5E713C277B14FF8174 /* AboutViewModel.swift */; };
+		B1E532221366B26945660792 /* AccountDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1706FFB21E4DD0D4C688812 /* AccountDetailView.swift */; };
+		B1F4A7BF5BFCBE156B94DDCA /* OnboardingPasteTokenPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFB72034415C862EE50D4187 /* OnboardingPasteTokenPanel.swift */; };
 		B28E190AD845661318810D52 /* OnboardingPasteTokenPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFB72034415C862EE50D4187 /* OnboardingPasteTokenPanel.swift */; };
 		B392C49392BE6388F1689425 /* R2Core in Frameworks */ = {isa = PBXBuildFile; productRef = FEC26E9B8067944C2F872D0E /* R2Core */; };
 		B6B483AB04C5B4FE5ACF489F /* R2DropApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B224CAEF69D3828B9F742FC /* R2DropApp.swift */; };
 		BEA5130470E8F652BC311DDB /* FinderQueueBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 959609F94F0860F0DF282AE4 /* FinderQueueBridge.swift */; };
+		C150013E4921E3F080D82429 /* StatusBarDragView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E2EB54091718754465BE53F /* StatusBarDragView.swift */; };
+		C2A13473608FBAC08A30CD4F /* TelemetryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08EC0C66AF5553B3D1CE5F93 /* TelemetryService.swift */; };
+		C81CE96FFA4B10C5013DE1F4 /* AboutTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0303EC699D6329DB04D261F5 /* AboutTabView.swift */; };
 		C8F20641F019908D739608AD /* OnboardingChooseBucketPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C64368FB058666531A0DB21 /* OnboardingChooseBucketPanel.swift */; };
+		CE6BB65423112624895CE423 /* TelemetrySanitizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8097D3B1DF6AFB4D238A5C0 /* TelemetrySanitizer.swift */; };
+		D7757F3976411536D73563F0 /* ConfettiSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = 61EC6ECC6D8E2858A88282D2 /* ConfettiSwiftUI */; };
+		D82BDF86C28BB1FD31919597 /* HistoryTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AF5FAD50680BA166646996F /* HistoryTabView.swift */; };
+		D8BBDADFFF6EB862E575AF26 /* Hero2.png in Resources */ = {isa = PBXBuildFile; fileRef = C64D34E37032AD47D0CE9DE9 /* Hero2.png */; };
+		DB70E241F4DFB2FAF71DE042 /* Hero3.png in Resources */ = {isa = PBXBuildFile; fileRef = 2D193ADB7405EB5DEEBCCD0A /* Hero3.png */; };
+		DBD1D6457981B1F1DBFDE789 /* R2Core in Frameworks */ = {isa = PBXBuildFile; productRef = 15BD5604C80D3F4E7F73E6B9 /* R2Core */; };
 		DC712ED39DDCEE4C9769FDC5 /* QueueTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DF2E0FB70D7FA22051B5C4E /* QueueTabView.swift */; };
+		DD0A723420949256155DEF90 /* ConflictDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66AA868AD68E0206A57BD8EC /* ConflictDialog.swift */; };
 		DD540FEA0F6C9D9B2A221A9B /* HistoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CF3A0ED4891B0AC8074417A /* HistoryViewModel.swift */; };
 		DF9B9EC06267434ED3CA2E5A /* OnboardingWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE544A156394A0F0F04B0E9F /* OnboardingWindow.swift */; };
+		E19FA90B677D277AE689C61F /* UploadProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9027CF9993303E331BE21BDD /* UploadProcessor.swift */; };
+		E1EECE4B7CFAAA5F27DCD335 /* ConflictResolution.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8786A46A12B9274C56F04EBB /* ConflictResolution.swift */; };
+		E1F2CBC6C8B5EEFCF86C8CEC /* Screenshot-2.png in Resources */ = {isa = PBXBuildFile; fileRef = BE3A1795231F320C43031D96 /* Screenshot-2.png */; };
 		E1FF5846E7E10C58D50D3A0C /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43DCFEC6696401ADDAB01C97 /* SettingsViewModel.swift */; };
 		E32124B7C40A7C6332AB24A8 /* ConflictDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66AA868AD68E0206A57BD8EC /* ConflictDialog.swift */; };
 		E38064E51BA89F759CB6E2C6 /* QuickActionExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2A96FAE99719CF9B79058699 /* QuickActionExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		E6A8636B628B3C41586EA06B /* Hero4.png in Resources */ = {isa = PBXBuildFile; fileRef = 8787DED0FC77F0AD054CA323 /* Hero4.png */; };
 		E8A30AECF68CDB36EB5129ED /* QueueViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D7D3E1104FE5EF77D9A051C /* QueueViewModel.swift */; };
 		EA02C3E3AAD8D5FC353FE46D /* AccountsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 124CA1A97D09E4B5B83AB2BC /* AccountsTabView.swift */; };
 		EA12E51672881552C5293739 /* Hero1.png in Resources */ = {isa = PBXBuildFile; fileRef = 88961B41D4106631A1D5E7E2 /* Hero1.png */; };
+		EC5B020F068D0D9BC37E81CA /* DeepLinkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B2C6A165C12FE42A21E70FA /* DeepLinkHandler.swift */; };
+		ECE582968A5EB4F53AE4A6AE /* OnboardingWelcomePanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6E3F8073CD22D3BE5291A2 /* OnboardingWelcomePanel.swift */; };
 		EDF92286C18C14953AEAC958 /* AboutViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 299D9D5E713C277B14FF8174 /* AboutViewModel.swift */; };
 		EF44E6355E13CA88FC6133F9 /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = 3C78B0CA22E55D3B56CABA69 /* PostHog */; };
 		EFFDA890F678B796EFF8BC96 /* HistoryTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AF5FAD50680BA166646996F /* HistoryTabView.swift */; };
 		F09838517F97C719A81F295C /* QueueJobRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63723F38B23FCAF195B1F07 /* QueueJobRow.swift */; };
 		F41C1471697D68536F188F4B /* SettingsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8501464791299D219B21F14E /* SettingsTabView.swift */; };
+		F496DB2514900168E417B815 /* FinderQueueBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 959609F94F0860F0DF282AE4 /* FinderQueueBridge.swift */; };
+		FA474F9FAEFA25D8CF4C6C1C /* Hero1.png in Resources */ = {isa = PBXBuildFile; fileRef = 88961B41D4106631A1D5E7E2 /* Hero1.png */; };
 		FADB3198A070228F3646F6A0 /* R2Core in Frameworks */ = {isa = PBXBuildFile; productRef = C1982E7F8628BE4836CD5FB4 /* R2Core */; };
 		FB929FBF92BE6A8E68F8450D /* StatusBarDragView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E2EB54091718754465BE53F /* StatusBarDragView.swift */; };
 		FFEA2A792FD2415FE3C1FA8E /* UploadProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9027CF9993303E331BE21BDD /* UploadProcessor.swift */; };
@@ -71,6 +126,20 @@
 
 /* Begin PBXContainerItemProxy section */
 		3664A2584E7934363A33A1E7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B38B378D15160BCA26A2D7F2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 709FDF115FE2177A04582DBB;
+			remoteInfo = FinderExtension;
+		};
+		86851A4ADF6C9B4BE8BA50E6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B38B378D15160BCA26A2D7F2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C5739E7876D745311E6ECDA0;
+			remoteInfo = QuickActionExtension;
+		};
+		8C72E2EFEB7CBB01E82F927D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = B38B378D15160BCA26A2D7F2 /* Project object */;
 			proxyType = 1;
@@ -95,6 +164,18 @@
 			files = (
 				2784836E9879CDDFDE35AC9E /* FinderExtension.appex in Embed Foundation Extensions */,
 				E38064E51BA89F759CB6E2C6 /* QuickActionExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FA6F96D1DA12C754B56AD348 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				27560E25D178EC92196425FB /* FinderExtension.appex in Embed Foundation Extensions */,
+				7C45067195E394FF487861BA /* QuickActionExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -132,6 +213,7 @@
 		6BE1681DC9D485DE5BFFDCC7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7291541A708E05FA97C9FF2A /* GlassComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassComponents.swift; sourceTree = "<group>"; };
 		7579519F793101201BDE7A67 /* OnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewModel.swift; sourceTree = "<group>"; };
+		801237FA03F56698D4F0AC22 /* R2DropAppStore.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = R2DropAppStore.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8501464791299D219B21F14E /* SettingsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTabView.swift; sourceTree = "<group>"; };
 		8786A46A12B9274C56F04EBB /* ConflictResolution.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConflictResolution.swift; sourceTree = "<group>"; };
 		8787DED0FC77F0AD054CA323 /* Hero4.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Hero4.png; sourceTree = "<group>"; };
@@ -180,6 +262,17 @@
 			buildActionMask = 2147483647;
 			files = (
 				FADB3198A070228F3646F6A0 /* R2Core in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D10E1FC005EC0D99ED35792C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DBD1D6457981B1F1DBFDE789 /* R2Core in Frameworks */,
+				22AF3AF375DF155FE6E894F8 /* R2Bridge in Frameworks */,
+				D7757F3976411536D73563F0 /* ConfettiSwiftUI in Frameworks */,
+				89A8A2C67CE20D539EAC7B97 /* PostHog in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -325,6 +418,7 @@
 				FF1ABF73310B6C8543ECFE9A /* FinderExtension.appex */,
 				2A96FAE99719CF9B79058699 /* QuickActionExtension.appex */,
 				A1D3B81C8C2E55DB0D042611 /* R2Drop.app */,
+				801237FA03F56698D4F0AC22 /* R2DropAppStore.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -427,6 +521,32 @@
 			productReference = 2A96FAE99719CF9B79058699 /* QuickActionExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		CE271481D8C12DEFAF4EB3E9 /* R2DropAppStore */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3CEBD0426108BC5DCA4D349F /* Build configuration list for PBXNativeTarget "R2DropAppStore" */;
+			buildPhases = (
+				EE1EB8C2393430E26A9EBA4C /* Sources */,
+				00B0A64B664E59D19AED93C1 /* Resources */,
+				D10E1FC005EC0D99ED35792C /* Frameworks */,
+				FA6F96D1DA12C754B56AD348 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				861324622267824DA351888F /* PBXTargetDependency */,
+				2CCACAFE827E3513713C1B8D /* PBXTargetDependency */,
+			);
+			name = R2DropAppStore;
+			packageProductDependencies = (
+				15BD5604C80D3F4E7F73E6B9 /* R2Core */,
+				26C8C6BFEA1DE5D3D90A7C94 /* R2Bridge */,
+				61EC6ECC6D8E2858A88282D2 /* ConfettiSwiftUI */,
+				7F1A5A8EEB3D8D6B3BBCDF75 /* PostHog */,
+			);
+			productName = R2DropAppStore;
+			productReference = 801237FA03F56698D4F0AC22 /* R2DropAppStore.app */;
+			productType = "com.apple.product-type.application";
+		};
 		FEB9D304B597761540AAC05C /* R2Drop */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 34215974B1C02F6E01C6A55F /* Build configuration list for PBXNativeTarget "R2Drop" */;
@@ -487,11 +607,28 @@
 				709FDF115FE2177A04582DBB /* FinderExtension */,
 				C5739E7876D745311E6ECDA0 /* QuickActionExtension */,
 				FEB9D304B597761540AAC05C /* R2Drop */,
+				CE271481D8C12DEFAF4EB3E9 /* R2DropAppStore */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		00B0A64B664E59D19AED93C1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				48C02256D8A56B15FE3D57E3 /* Assets.xcassets in Resources */,
+				34A8218B664644BA8B93EC84 /* Background-1.png in Resources */,
+				FA474F9FAEFA25D8CF4C6C1C /* Hero1.png in Resources */,
+				D8BBDADFFF6EB862E575AF26 /* Hero2.png in Resources */,
+				DB70E241F4DFB2FAF71DE042 /* Hero3.png in Resources */,
+				E6A8636B628B3C41586EA06B /* Hero4.png in Resources */,
+				1F8B6F4469DDAEBD1D412EDD /* Screenshot-1.png in Resources */,
+				E1F2CBC6C8B5EEFCF86C8CEC /* Screenshot-2.png in Resources */,
+				3F67C7E4E193703340100E5D /* Screenshot-3.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8342D55A40FBCDAFF64B2958 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -574,9 +711,66 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		EE1EB8C2393430E26A9EBA4C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C81CE96FFA4B10C5013DE1F4 /* AboutTabView.swift in Sources */,
+				B17E7C032054DF63AEF240F9 /* AboutViewModel.swift in Sources */,
+				B1E532221366B26945660792 /* AccountDetailView.swift in Sources */,
+				073869D0EA9E487DA72CA795 /* AccountsTabView.swift in Sources */,
+				85050421BAF740DF3CCC05FE /* AccountsViewModel.swift in Sources */,
+				5AA37137F07E470CD4CA905B /* ConfettiView.swift in Sources */,
+				DD0A723420949256155DEF90 /* ConflictDialog.swift in Sources */,
+				E1EECE4B7CFAAA5F27DCD335 /* ConflictResolution.swift in Sources */,
+				EC5B020F068D0D9BC37E81CA /* DeepLinkHandler.swift in Sources */,
+				F496DB2514900168E417B815 /* FinderQueueBridge.swift in Sources */,
+				99AA8DC94158EE69379D574E /* GlassComponents.swift in Sources */,
+				D82BDF86C28BB1FD31919597 /* HistoryTabView.swift in Sources */,
+				949EDEE6B68BB53BCF4C0603 /* HistoryViewModel.swift in Sources */,
+				3681F214909520C2BF105B6D /* MenuBarController.swift in Sources */,
+				013CAD421C01D529D1AADFC8 /* MenuBarHeaderView.swift in Sources */,
+				471B62F507ADE57004007516 /* NotificationService.swift in Sources */,
+				6B41F97803A2C72A32F1B2E1 /* OnboardingChooseBucketPanel.swift in Sources */,
+				5E3A65D303611F2F8C58348C /* OnboardingCreateTokenPanel.swift in Sources */,
+				7F2C07F14F1DE2B8412182B4 /* OnboardingHowItWorksPanel.swift in Sources */,
+				B1F4A7BF5BFCBE156B94DDCA /* OnboardingPasteTokenPanel.swift in Sources */,
+				3CC3BB774FC42E0544358942 /* OnboardingViewModel.swift in Sources */,
+				ECE582968A5EB4F53AE4A6AE /* OnboardingWelcomePanel.swift in Sources */,
+				0B80EE196062710AC12FDC9C /* OnboardingWindow.swift in Sources */,
+				477D0637342CD59E67C7F7C7 /* PermissionChecker.swift in Sources */,
+				828D7CD579D642A63BCA1B3D /* QueueJobRow.swift in Sources */,
+				48E513CD2A036E6B77DCB68D /* QueueTabView.swift in Sources */,
+				7D444F04DC298C2F5EC984DD /* QueueViewModel.swift in Sources */,
+				418A0C573709D15B219F5913 /* R2DropApp.swift in Sources */,
+				2DC297BB1C0DEB76D286B3F1 /* R2Log.swift in Sources */,
+				2899A6335E1FCFC0DBBD1627 /* SettingsTabView.swift in Sources */,
+				45CBF5AB961D7F9C1D860DD7 /* SettingsView.swift in Sources */,
+				471392EBE7C9685543B75D25 /* SettingsViewModel.swift in Sources */,
+				C150013E4921E3F080D82429 /* StatusBarDragView.swift in Sources */,
+				92D5A6C70439580F62D0925E /* TelemetryErrorTracker.swift in Sources */,
+				0EEADFD144C2F484A729615C /* TelemetryRateLimiter.swift in Sources */,
+				CE6BB65423112624895CE423 /* TelemetrySanitizer.swift in Sources */,
+				C2A13473608FBAC08A30CD4F /* TelemetryService.swift in Sources */,
+				75B85B0749442E402A73AD3A /* TokenValidationService.swift in Sources */,
+				6576C08B9FDB5ABAC33A124C /* UploadMonitor.swift in Sources */,
+				E19FA90B677D277AE689C61F /* UploadProcessor.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		2CCACAFE827E3513713C1B8D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C5739E7876D745311E6ECDA0 /* QuickActionExtension */;
+			targetProxy = 86851A4ADF6C9B4BE8BA50E6 /* PBXContainerItemProxy */;
+		};
+		861324622267824DA351888F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 709FDF115FE2177A04582DBB /* FinderExtension */;
+			targetProxy = 8C72E2EFEB7CBB01E82F927D /* PBXContainerItemProxy */;
+		};
 		907A268AC8B6B0CF4E712AAC /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 709FDF115FE2177A04582DBB /* FinderExtension */;
@@ -611,6 +805,43 @@
 			};
 			name = Release;
 		};
+		0B24E0E9D8F2B6B2CED65046 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = R2Drop.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Info-AppStore.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(SRCROOT)/../engine/target/release",
+					"$(inherited)",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-L$(SRCROOT)/../engine/target/release",
+					"-lr2_ffi",
+					"-framework",
+					Security,
+					"-framework",
+					SystemConfiguration,
+					"-framework",
+					CoreFoundation,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.superhumancorp.r2drop;
+				PRODUCT_NAME = R2Drop;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) APP_STORE";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
 		0D41A7F5F8F9D5FA0084617F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -642,6 +873,43 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.superhumancorp.r2drop;
 				SDKROOT = macosx;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		1EA2B731EA0416DBEFBE64B0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = R2Drop.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Info-AppStore.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(SRCROOT)/../engine/target/release",
+					"$(inherited)",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-L$(SRCROOT)/../engine/target/release",
+					"-lr2_ffi",
+					"-framework",
+					Security,
+					"-framework",
+					SystemConfiguration,
+					"-framework",
+					CoreFoundation,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.superhumancorp.r2drop;
+				PRODUCT_NAME = R2Drop;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) APP_STORE";
 				SWIFT_VERSION = 5.9;
 			};
 			name = Release;
@@ -886,6 +1154,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
+		3CEBD0426108BC5DCA4D349F /* Build configuration list for PBXNativeTarget "R2DropAppStore" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0B24E0E9D8F2B6B2CED65046 /* Debug */,
+				1EA2B731EA0416DBEFBE64B0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		405AF7F8F3FBC7502BBCA25E /* Build configuration list for PBXNativeTarget "QuickActionExtension" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -949,12 +1226,30 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = R2Core;
 		};
+		15BD5604C80D3F4E7F73E6B9 /* R2Core */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = R2Core;
+		};
+		26C8C6BFEA1DE5D3D90A7C94 /* R2Bridge */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = R2Bridge;
+		};
 		31041CEEDF5650FA66389A3B /* Sparkle */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = D0EE24C125ED268DA9EF614D /* XCRemoteSwiftPackageReference "Sparkle" */;
 			productName = Sparkle;
 		};
 		3C78B0CA22E55D3B56CABA69 /* PostHog */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 13024E61DDE45131364887C7 /* XCRemoteSwiftPackageReference "posthog-ios" */;
+			productName = PostHog;
+		};
+		61EC6ECC6D8E2858A88282D2 /* ConfettiSwiftUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5F6FFC80C4A2F0F923BB2D6F /* XCRemoteSwiftPackageReference "ConfettiSwiftUI" */;
+			productName = ConfettiSwiftUI;
+		};
+		7F1A5A8EEB3D8D6B3BBCDF75 /* PostHog */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 13024E61DDE45131364887C7 /* XCRemoteSwiftPackageReference "posthog-ios" */;
 			productName = PostHog;

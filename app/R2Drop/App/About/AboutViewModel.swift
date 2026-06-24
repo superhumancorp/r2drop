@@ -1,12 +1,13 @@
 // R2Drop/App/About/AboutViewModel.swift
 // ViewModel for the About tab (US-021).
-// Manages app version info, Sparkle auto-update controls, and external links.
-// Uses SPUUpdater from the Sparkle framework for checking GitHub Releases.
+// Manages app version info, update controls, and external links.
 
 import AppKit
+#if !APP_STORE
 import Sparkle
+#endif
 
-/// Manages About tab state: version info, Sparkle update checks, and external links.
+/// Manages About tab state: version info, update checks, and external links.
 @MainActor
 final class AboutViewModel: ObservableObject {
 
@@ -27,6 +28,7 @@ final class AboutViewModel: ObservableObject {
     /// Whether a check is currently in progress
     @Published var isCheckingForUpdates: Bool = false
 
+    #if !APP_STORE
     // MARK: - Sparkle
 
     /// Sparkle updater controller — manages the update lifecycle.
@@ -34,22 +36,26 @@ final class AboutViewModel: ObservableObject {
 
     /// Direct reference to the updater for programmatic access.
     private var updater: SPUUpdater { updaterController.updater }
+    #endif
 
     // MARK: - Init
 
     init() {
+        #if !APP_STORE
         // Initialize Sparkle updater (starts automatic checking if enabled in Info.plist)
         updaterController = SPUStandardUpdaterController(
             startingUpdater: true,
             updaterDelegate: nil,
             userDriverDelegate: nil
         )
+        #endif
 
         // Load version info from the main bundle
         let bundle = Bundle.main
         appVersion = bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.0.0"
         buildNumber = bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "1"
 
+        #if !APP_STORE
         // Sync auto-check state from Sparkle
         automaticallyChecksForUpdates = updater.automaticallyChecksForUpdates
 
@@ -60,18 +66,27 @@ final class AboutViewModel: ObservableObject {
             fmt.timeStyle = .short
             lastCheckDateString = fmt.string(from: lastDate)
         }
+        #else
+        automaticallyChecksForUpdates = false
+        lastCheckDateString = "Managed by App Store"
+        #endif
     }
 
     // MARK: - Actions
 
     /// Toggle automatic update checking (FR-058).
     func toggleAutoCheck(_ enabled: Bool) {
+        #if !APP_STORE
         updater.automaticallyChecksForUpdates = enabled
         automaticallyChecksForUpdates = enabled
+        #else
+        automaticallyChecksForUpdates = false
+        #endif
     }
 
     /// Trigger a manual update check (FR-058).
     func checkForUpdates() {
+        #if !APP_STORE
         updaterController.checkForUpdates(nil)
 
         // Update the last check date after a short delay
@@ -84,11 +99,16 @@ final class AboutViewModel: ObservableObject {
                 self.lastCheckDateString = fmt.string(from: lastDate)
             }
         }
+        #endif
     }
 
     /// Whether the "Check Now" button should be enabled.
     var canCheckForUpdates: Bool {
+        #if !APP_STORE
         updater.canCheckForUpdates
+        #else
+        false
+        #endif
     }
 
     // MARK: - Links (FR-056)

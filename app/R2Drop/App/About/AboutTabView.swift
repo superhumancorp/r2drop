@@ -1,7 +1,7 @@
 // R2Drop/App/About/AboutTabView.swift
 // About tab with liquid glass card sections (US-021, FR-055 through FR-058).
 // Hero1.png banner scales with window width. App info, links, copyright,
-// and Sparkle auto-update controls each in their own GlassCard.
+// and update controls each in their own GlassCard when available.
 
 import SwiftUI
 
@@ -24,8 +24,10 @@ struct AboutTabView: View {
                     // Copyright & developer info (FR-057)
                     copyrightCard
 
+                    #if !APP_STORE
                     // Auto-update controls (FR-058)
                     updateCard
+                    #endif
                 }
                 .padding(20)
             }

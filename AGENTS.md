@@ -12,6 +12,7 @@ This file is paired with `CLAUDE.md`. Keep both files aligned when release tooli
 ## Release and Sparkle Requirements
 
 - CI desktop releases archive the shared `R2Drop Production` Xcode scheme.
+- Local TestFlight/App Store submissions archive the shared `R2Drop App Store` Xcode scheme, which excludes Sparkle.
 - CI desktop releases build the universal Rust FFI library before Xcode archives.
 - CI desktop releases use automatic Xcode signing with `APPLE_TEAM_ID` and App Store Connect API auth.
 - This is a public repository; release workflows must not print signing identities, certificate subjects, tokens, or secret values to logs.

@@ -43,9 +43,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "FEB9D304B597761540AAC05C"
-               BuildableName = "R2Drop.app"
-               BlueprintName = "R2Drop"
+               BlueprintIdentifier = "CE271481D8C12DEFAF4EB3E9"
+               BuildableName = "R2DropAppStore.app"
+               BlueprintName = "R2DropAppStore"
                ReferencedContainer = "container:R2Drop.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -60,9 +60,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "FEB9D304B597761540AAC05C"
-            BuildableName = "R2Drop.app"
-            BlueprintName = "R2Drop"
+            BlueprintIdentifier = "CE271481D8C12DEFAF4EB3E9"
+            BuildableName = "R2DropAppStore.app"
+            BlueprintName = "R2DropAppStore"
             ReferencedContainer = "container:R2Drop.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -83,9 +83,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "FEB9D304B597761540AAC05C"
-            BuildableName = "R2Drop.app"
-            BlueprintName = "R2Drop"
+            BlueprintIdentifier = "CE271481D8C12DEFAF4EB3E9"
+            BuildableName = "R2DropAppStore.app"
+            BlueprintName = "R2DropAppStore"
             ReferencedContainer = "container:R2Drop.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -102,9 +102,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "FEB9D304B597761540AAC05C"
-            BuildableName = "R2Drop.app"
-            BlueprintName = "R2Drop"
+            BlueprintIdentifier = "CE271481D8C12DEFAF4EB3E9"
+            BuildableName = "R2DropAppStore.app"
+            BlueprintName = "R2DropAppStore"
             ReferencedContainer = "container:R2Drop.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

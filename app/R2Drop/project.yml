@@ -89,6 +89,65 @@ targets:
       - target: QuickActionExtension
         embed: true
 
+  R2DropAppStore:
+    type: application
+    platform: macOS
+    sources:
+      - path: App
+      - path: Assets.xcassets
+      - path: Resources
+        excludes:
+          - ".DS_Store"
+    entitlements:
+      path: R2Drop.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.application-groups:
+          - "group.com.superhumancorp.r2drop"
+        keychain-access-groups:
+          - "$(AppIdentifierPrefix)com.superhumancorp.r2drop"
+        com.apple.security.network.client: true
+    settings:
+      base:
+        PRODUCT_NAME: R2Drop
+        PRODUCT_BUNDLE_IDENTIFIER: com.superhumancorp.r2drop
+        GENERATE_INFOPLIST_FILE: YES
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        MACOSX_DEPLOYMENT_TARGET: "13.0"
+        OTHER_LDFLAGS:
+          - "-L$(SRCROOT)/../engine/target/release"
+          - "-lr2_ffi"
+          - "-framework"
+          - "Security"
+          - "-framework"
+          - "SystemConfiguration"
+          - "-framework"
+          - "CoreFoundation"
+        LIBRARY_SEARCH_PATHS:
+          - "$(SRCROOT)/../engine/target/release"
+          - "$(inherited)"
+        SWIFT_VERSION: "5.9"
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) APP_STORE"
+        CODE_SIGN_ENTITLEMENTS: R2Drop.entitlements
+    info:
+      path: Info-AppStore.plist
+      properties:
+        CFBundleURLTypes:
+          - CFBundleURLName: "com.superhumancorp.r2drop"
+            CFBundleURLSchemes:
+              - "r2drop"
+        LSApplicationCategoryType: "public.app-category.productivity"
+    dependencies:
+      - package: R2Core
+      - package: R2Bridge
+      - package: ConfettiSwiftUI
+      - package: PostHog
+      - target: FinderExtension
+        embed: true
+      - target: QuickActionExtension
+        embed: true
+
   FinderExtension:
     type: app-extension
     platform: macOS
@@ -195,8 +254,26 @@ schemes:
         QuickActionExtension: all
     run:
       config: Release
+      executable: R2Drop
       debugEnabled: false
     profile:
       config: Release
+      executable: R2Drop
+    analyze:
+      config: Release
+
+  R2Drop App Store:
+    build:
+      targets:
+        R2DropAppStore: all
+        FinderExtension: all
+        QuickActionExtension: all
+    run:
+      config: Release
+      executable: R2DropAppStore
+      debugEnabled: false
+    profile:
+      config: Release
+      executable: R2DropAppStore
     analyze:
       config: Release

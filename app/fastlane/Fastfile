@@ -36,6 +36,7 @@ TEAM_ID           = ENV.fetch("APPLE_TEAM_ID", "A89MU37ZLB")
 PROJECT_ROOT      = File.expand_path("..", __dir__)
 XCODEWORKSPACE    = File.join(PROJECT_ROOT, "R2Drop.xcworkspace")
 PRODUCTION_SCHEME = ENV.fetch("XCODE_SCHEME", "R2Drop Production")
+APPSTORE_SCHEME   = ENV.fetch("XCODE_APPSTORE_SCHEME", "R2Drop App Store")
 OUTPUT_DIR        = File.join(PROJECT_ROOT, "build", "fastlane")
 
 platform :mac do
@@ -482,7 +483,7 @@ platform :mac do
       xcargs_list << "CODE_SIGN_IDENTITY=Apple Distribution"
     end
 
-    installer_cert_name = ensure_installer_cert_available!
+    installer_cert_name = resolve_installer_cert_name
 
     unless auth_ctx[:xcode_auth_flags].empty?
       xcargs_list.concat(auth_ctx[:xcode_auth_flags])
@@ -490,7 +491,7 @@ platform :mac do
 
     gym_options = {
       workspace: XCODEWORKSPACE,
-      scheme: PRODUCTION_SCHEME,
+      scheme: APPSTORE_SCHEME,
       configuration: "Release",
       export_method: "app-store",
       clean: true,
@@ -503,8 +504,12 @@ platform :mac do
       xcargs: Shellwords.join(xcargs_list)
     }
 
-    UI.message("Using installer certificate for pkg packaging: #{installer_cert_name}")
-    gym_options[:installer_cert_name] = installer_cert_name
+    if installer_cert_name.nil? || installer_cert_name.empty?
+      UI.important("No local Mac Installer certificate found; letting Xcode automatic signing resolve package signing.")
+    else
+      UI.message("Using installer certificate for pkg packaging: #{installer_cert_name}")
+      gym_options[:installer_cert_name] = installer_cert_name
+    end
     unless auth_ctx[:xcode_auth_flags].empty?
       gym_options[:export_xcargs] = Shellwords.join(auth_ctx[:xcode_auth_flags])
     end

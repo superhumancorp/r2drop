@@ -46,7 +46,7 @@ r2drop/                           # Repo root (this directory)
 - **Config:** TOML at `~/.r2drop/config.toml`
 - **Credentials:** macOS Keychain (`Security.framework`), service: `com.superhumancorp.r2drop`
 - **IPC:** App Groups (`group.com.superhumancorp.r2drop`) + shared SQLite
-- **Auto-updates:** Sparkle framework (Ed25519 key: `NWlOpvs7+ccCaW6557MqyCO94w3KVziS7uAOOxR8gQk=`)
+- **Auto-updates:** Sparkle framework for direct GitHub/Homebrew distribution (Ed25519 key: `NWlOpvs7+ccCaW6557MqyCO94w3KVziS7uAOOxR8gQk=`). Mac App Store/TestFlight builds use the Sparkle-free `R2Drop App Store` target.
 - **CI/CD:** GitHub Actions
 - **Distribution:** .dmg from GitHub Releases (Homebrew tap at github.com/superhumancorp/homebrew-tap)
 
@@ -133,7 +133,7 @@ make release-verify-update-feed
 <!-- Append dated entries as you learn things. Most recent first. -->
 
 ### 2026-06-23
-- Release workflow archives must use the shared `R2Drop Production` scheme. The project has `R2Drop Debug` and `R2Drop Production` shared schemes, not a bare `R2Drop` scheme.
+- GitHub desktop release archives must use the shared `R2Drop Production` scheme. Local TestFlight/App Store submissions must use `R2Drop App Store`, which compiles with `APP_STORE` and excludes Sparkle because App Store validation rejects Sparkle updater helpers.
 - Release note markdown files under `releases/` are tracked source artifacts; binary release artifacts remain ignored.
 - Release workflow must build the universal Rust FFI library with `app/scripts/build-rust.sh --release` before Xcode archive, otherwise linking fails on `libr2_ffi.a`.
 - CI desktop release archive/export uses automatic signing with `DEVELOPMENT_TEAM`, App Store Connect API authentication flags, and export `teamID`; forcing manual Developer ID signing requires provisioning profiles for all App Groups targets.
