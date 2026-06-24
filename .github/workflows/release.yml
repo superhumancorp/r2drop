@@ -282,7 +282,7 @@ jobs:
             -clcerts -nokeys 2>/dev/null | \
             openssl x509 -noout -subject 2>/dev/null || true)
           if ! echo "$SUBJECT" | grep -q "Developer ID Application"; then
-            echo "::warning::Certificate subject does not appear to be 'Developer ID Application'. Current subject: ${SUBJECT}"
+            echo "::warning::Certificate subject does not appear to be 'Developer ID Application'."
           fi
 
           rm -f "$CERT_PATH"
@@ -365,13 +365,12 @@ jobs:
               '$2 ~ /^Developer ID Application: / && index($2, team) { print $2; exit }')
 
           if [ -z "$SIGN_IDENTITY" ]; then
-            echo "::error::No Developer ID Application signing identity found for team ${APPLE_TEAM_ID}."
-            security find-identity -v -p codesigning || true
+            echo "::error::No Developer ID Application signing identity found for configured Apple team."
             exit 1
           fi
 
-          echo "Using signing identity: $SIGN_IDENTITY"
-          echo "identity=${SIGN_IDENTITY}" >> "$GITHUB_OUTPUT"
+          echo "::add-mask::$SIGN_IDENTITY"
+          echo "Developer ID Application signing identity found for configured Apple team."
 
       - name: Build Rust FFI (release, universal)
         working-directory: app

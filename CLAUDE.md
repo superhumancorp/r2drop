@@ -137,6 +137,7 @@ make release-verify-update-feed
 - Release note markdown files under `releases/` are tracked source artifacts; binary release artifacts remain ignored.
 - Release workflow must build the universal Rust FFI library with `app/scripts/build-rust.sh --release` before Xcode archive, otherwise linking fails on `libr2_ffi.a`.
 - CI desktop release archive/export uses automatic signing with `DEVELOPMENT_TEAM`, App Store Connect API authentication flags, and export `teamID`; forcing manual Developer ID signing requires provisioning profiles for all App Groups targets.
+- Because the repo is public, release workflows should validate signing inputs without echoing signing identities, certificate subjects, tokens, or secret values to public logs.
 
 ### 2026-03-02
 - Release workflow hardened for Sparkle updates: pinned Sparkle CLI to `2.9.0`, enforced required Sparkle private key (`SPARKLE_ED25519_KEY` preferred, `SPARKLE_PRIVATE_KEY` legacy), and fail-closed appcast signing.
