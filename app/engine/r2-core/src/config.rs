@@ -269,7 +269,10 @@ mod tests {
         assert!(cfg.preferences.play_sound);
         assert!(!cfg.preferences.launch_at_login);
         assert!(!cfg.preferences.hide_dock_icon);
-        assert!(cfg.preferences.exclusion_patterns.contains(&".DS_Store".to_string()));
+        assert!(cfg
+            .preferences
+            .exclusion_patterns
+            .contains(&".DS_Store".to_string()));
         assert!(cfg.accounts.is_empty());
         assert!(cfg.active_account.is_none());
     }
@@ -318,6 +321,7 @@ mod tests {
                     follow_symlinks: true,
                     max_log_files: 10,
                     max_log_file_size_mb: 20,
+                    allow_anonymous_telemetry: true,
                 },
             };
 
@@ -386,7 +390,7 @@ bucket = "b"
             assert_eq!(cfg.active_account, Some("test".into()));
             assert_eq!(cfg.accounts.len(), 1);
             assert_eq!(cfg.accounts[0].path, ""); // default empty string
-            // Preferences should be defaults
+                                                  // Preferences should be defaults
             assert_eq!(cfg.preferences.concurrent_uploads, 4);
             assert_eq!(cfg.preferences.chunk_size_mb, 8);
             assert!(cfg.preferences.play_sound);
