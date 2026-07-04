@@ -390,7 +390,7 @@ bucket = "b"
             assert_eq!(cfg.active_account, Some("test".into()));
             assert_eq!(cfg.accounts.len(), 1);
             assert_eq!(cfg.accounts[0].path, ""); // default empty string
-                                                  // Preferences should be defaults
+            // Preferences should be defaults
             assert_eq!(cfg.preferences.concurrent_uploads, 4);
             assert_eq!(cfg.preferences.chunk_size_mb, 8);
             assert!(cfg.preferences.play_sound);
