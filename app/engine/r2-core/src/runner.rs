@@ -10,11 +10,11 @@ use std::time::Duration;
 
 use tracing::{error, info, warn};
 
+use crate::config::Config;
+use crate::history::HistoryDb;
 use crate::queue::{JobStatus, QueueDb, QueueError, QueueJob};
 use crate::s3::R2Client;
 use crate::upload::{UploadConfig, UploadError, UploadProgress};
-use crate::config::Config;
-use crate::history::HistoryDb;
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -66,7 +66,10 @@ pub fn recover_interrupted(queue: &QueueDb) -> Result<usize, RunnerError> {
     let stuck = queue.list_jobs_by_status(JobStatus::Uploading)?;
     let count = stuck.len();
     if count > 0 {
-        info!(recovered = count, "recovering interrupted uploads from previous session");
+        info!(
+            recovered = count,
+            "recovering interrupted uploads from previous session"
+        );
     }
     for job in &stuck {
         // Reset to pending — process_job() will handle resume via upload_id
@@ -78,7 +81,12 @@ pub fn recover_interrupted(queue: &QueueDb) -> Result<usize, RunnerError> {
             bucket = %job.bucket,
             "resetting interrupted job to pending"
         );
-        queue.update_status(job.id, JobStatus::Failed, Some("interrupted by crash"), None)?;
+        queue.update_status(
+            job.id,
+            JobStatus::Failed,
+            Some("interrupted by crash"),
+            None,
+        )?;
         queue.update_status(job.id, JobStatus::Pending, None, None)?;
     }
     Ok(count)
@@ -108,32 +116,60 @@ pub fn check_file_readable(path: &str) -> Result<(), RunnerError> {
     }
 }
 
-
 // ---------------------------------------------------------------------------
 // History recording helpers (FR-034)
 // ---------------------------------------------------------------------------
 
+/// Percent-encode a single URL path segment per RFC 3986.
+/// Encodes all characters except unreserved ones (A–Z a–z 0–9 - _ . ~).
+/// Does NOT encode `/` — call this per segment, not on the full path.
+fn percent_encode_segment(segment: &str) -> String {
+    let mut out = String::with_capacity(segment.len());
+    for byte in segment.bytes() {
+        match byte {
+            // RFC 3986 unreserved characters — pass through as-is
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+                out.push(byte as char)
+            }
+            // Everything else — percent-encode
+            b => out.push_str(&format!("%{b:02X}")),
+        }
+    }
+    out
+}
+
+/// Percent-encode each segment of an R2 key path without encoding `/` separators.
+fn percent_encode_r2_key(r2_key: &str) -> String {
+    r2_key
+        .split('/')
+        .map(percent_encode_segment)
+        .collect::<Vec<_>>()
+        .join("/")
+}
+
 /// Build the public URL for an uploaded object.
 /// Uses the account's custom_domain if configured, otherwise falls back to
 /// the standard R2 public URL format.
+/// The r2_key path segments are percent-encoded per RFC 3986.
 pub fn build_public_url(r2_key: &str, bucket: &str, account_name: &str, config: &Config) -> String {
     // Defensively strip leading slashes from r2_key to avoid double-slash URLs
     let r2_key = r2_key.trim_start_matches('/');
+    let encoded_key = percent_encode_r2_key(r2_key);
     // Look up the account to check for a custom domain
     if let Some(acct) = config.accounts.iter().find(|a| a.name == account_name) {
         if let Some(ref domain) = acct.custom_domain {
             if !domain.is_empty() {
                 let domain = domain.trim_end_matches('/');
-                return format!("https://{domain}/{r2_key}");
+                return format!("https://{domain}/{encoded_key}");
             }
         }
         // Fallback: use account_id-based R2 URL if available
         if let Some(ref aid) = acct.account_id {
-            return format!("https://{bucket}.{aid}.r2.cloudflarestorage.com/{r2_key}");
+            return format!("https://{bucket}.{aid}.r2.cloudflarestorage.com/{encoded_key}");
         }
     }
     // Last resort: bucket-only URL (account not found or no account_id)
-    format!("https://{bucket}.r2.cloudflarestorage.com/{r2_key}")
+    format!("https://{bucket}.r2.cloudflarestorage.com/{encoded_key}")
 }
 
 /// Record a completed upload in history.db (FR-034).
@@ -147,7 +183,14 @@ fn record_history(job: &QueueJob) {
         .unwrap_or_else(|| job.file_path.clone());
     let url = build_public_url(&job.r2_key, &job.bucket, &job.account_name, &config);
     if let Ok(db) = HistoryDb::open_default() {
-        if let Err(e) = db.insert_entry(&file_name, job.total_bytes, &job.r2_key, &job.bucket, &job.account_name, &url) {
+        if let Err(e) = db.insert_entry(
+            &file_name,
+            job.total_bytes,
+            &job.r2_key,
+            &job.bucket,
+            &job.account_name,
+            &url,
+        ) {
             warn!(job_id = job.id, error = %e, "failed to record upload in history");
         }
     }
@@ -185,12 +228,7 @@ pub async fn process_job(
     );
 
     // Mark as uploading
-    queue.update_status(
-        job.id,
-        JobStatus::Uploading,
-        None,
-        job.upload_id.as_deref(),
-    )?;
+    queue.update_status(job.id, JobStatus::Uploading, None, job.upload_id.as_deref())?;
 
     // Check file is readable before attempting upload (FR-031)
     if let Err(e) = check_file_readable(&job.file_path) {
@@ -238,7 +276,11 @@ pub async fn process_job(
                 return Ok(());
             }
             Err(UploadError::Cancelled) => {
-                info!(job_id = job.id, status = "paused", "upload cancelled by user");
+                info!(
+                    job_id = job.id,
+                    status = "paused",
+                    "upload cancelled by user"
+                );
                 // Only update if not already paused (UI may have already set this via SQLite)
                 if let Ok(Some(current)) = queue.get_job(job.id) {
                     if current.status != JobStatus::Paused {
@@ -276,7 +318,11 @@ pub async fn process_job(
             Ok(())
         }
         Err(UploadError::Cancelled) => {
-            info!(job_id = job.id, status = "paused", "upload cancelled by user");
+            info!(
+                job_id = job.id,
+                status = "paused",
+                "upload cancelled by user"
+            );
             // Only update if not already paused (UI may have already set this via SQLite)
             if let Ok(Some(current)) = queue.get_job(job.id) {
                 if current.status != JobStatus::Paused {
@@ -291,12 +337,7 @@ pub async fn process_job(
                 account = %job.account_name, error = %e,
                 status = "failed", "upload failed"
             );
-            queue.update_status(
-                job.id,
-                JobStatus::Failed,
-                Some(&e.to_string()),
-                None,
-            )?;
+            queue.update_status(job.id, JobStatus::Failed, Some(&e.to_string()), None)?;
             Err(RunnerError::Upload(e))
         }
     }
@@ -354,12 +395,7 @@ pub async fn process_pending(
                 retries = MAX_RETRIES, status = "failed",
                 "permanently failed after max retries"
             );
-            queue.update_status(
-                job.id,
-                JobStatus::Uploading,
-                None,
-                job.upload_id.as_deref(),
-            )?;
+            queue.update_status(job.id, JobStatus::Uploading, None, job.upload_id.as_deref())?;
             queue.update_status(
                 job.id,
                 JobStatus::Failed,
@@ -373,17 +409,18 @@ pub async fn process_pending(
         let job_id = job.id;
         let pdb = Arc::clone(&progress_db);
         let cancel_for_cb = Arc::clone(&cancel);
-        let progress_cb: Option<Box<dyn Fn(UploadProgress) + Send + Sync>> = Some(Box::new(move |p| {
-            if let Ok(q) = pdb.lock() {
-                let _ = q.update_progress(job_id, p.bytes_uploaded);
-                // Check if the UI paused this job
-                if let Ok(Some(j)) = q.get_job(job_id) {
-                    if j.status == JobStatus::Paused {
-                        cancel_for_cb.store(true, Ordering::Relaxed);
+        let progress_cb: Option<Box<dyn Fn(UploadProgress) + Send + Sync>> =
+            Some(Box::new(move |p| {
+                if let Ok(q) = pdb.lock() {
+                    let _ = q.update_progress(job_id, p.bytes_uploaded);
+                    // Check if the UI paused this job
+                    if let Ok(Some(j)) = q.get_job(job_id) {
+                        if j.status == JobStatus::Paused {
+                            cancel_for_cb.store(true, Ordering::Relaxed);
+                        }
                     }
                 }
-            }
-        }));
+            }));
         match process_job(&job, client, queue, config, &*cancel, progress_cb).await {
             Ok(()) => completed += 1,
             Err(RunnerError::FileNotReadable { .. }) => {
@@ -505,15 +542,20 @@ mod tests {
         let id2 = db.insert_job("/b", "b", "b", "acct", 200).unwrap();
 
         // id1 is pending, id2 is uploading then completed
-        db.update_status(id2, JobStatus::Uploading, None, None).unwrap();
-        db.update_status(id2, JobStatus::Completed, None, None).unwrap();
+        db.update_status(id2, JobStatus::Uploading, None, None)
+            .unwrap();
+        db.update_status(id2, JobStatus::Completed, None, None)
+            .unwrap();
 
         let recovered = recover_interrupted(&db).unwrap();
         assert_eq!(recovered, 0);
 
         // Statuses unchanged
         assert_eq!(db.get_job(id1).unwrap().unwrap().status, JobStatus::Pending);
-        assert_eq!(db.get_job(id2).unwrap().unwrap().status, JobStatus::Completed);
+        assert_eq!(
+            db.get_job(id2).unwrap().unwrap().status,
+            JobStatus::Completed
+        );
     }
 
     #[test]
@@ -536,9 +578,15 @@ mod tests {
     fn process_pending_filters_by_account() {
         // Create in-memory queue with jobs for two accounts
         let db = QueueDb::open(Path::new(":memory:")).unwrap();
-        let id1 = db.insert_job("/file1", "key1", "bucket", "acct1", 100).unwrap();
-        let id2 = db.insert_job("/file2", "key2", "bucket", "acct2", 200).unwrap();
-        let id3 = db.insert_job("/file3", "key3", "bucket", "acct1", 150).unwrap();
+        let id1 = db
+            .insert_job("/file1", "key1", "bucket", "acct1", 100)
+            .unwrap();
+        let id2 = db
+            .insert_job("/file2", "key2", "bucket", "acct2", 200)
+            .unwrap();
+        let id3 = db
+            .insert_job("/file3", "key3", "bucket", "acct1", 150)
+            .unwrap();
 
         // All three should be pending
         let all_pending = db.list_jobs_by_status(JobStatus::Pending).unwrap();
@@ -562,7 +610,6 @@ mod tests {
         assert_eq!(acct2_jobs.len(), 1);
         assert_eq!(acct2_jobs[0].id, id2);
     }
-
 
     #[test]
     fn build_public_url_with_custom_domain() {
@@ -597,7 +644,10 @@ mod tests {
             preferences: Default::default(),
         };
         let url = build_public_url("photos/cat.jpg", "my-bucket", "myacct", &config);
-        assert_eq!(url, "https://my-bucket.abc123.r2.cloudflarestorage.com/photos/cat.jpg");
+        assert_eq!(
+            url,
+            "https://my-bucket.abc123.r2.cloudflarestorage.com/photos/cat.jpg"
+        );
     }
 
     #[test]
@@ -607,4 +657,70 @@ mod tests {
         assert_eq!(url, "https://bucket.r2.cloudflarestorage.com/file.txt");
     }
 
+    #[test]
+    fn build_public_url_encodes_spaces_in_filename() {
+        let config = Config {
+            active_account: Some("myacct".into()),
+            accounts: vec![Account {
+                name: "myacct".into(),
+                account_id: Some("abc123".into()),
+                bucket: "my-bucket".into(),
+                path: String::new(),
+                custom_domain: Some("cdn.example.com".into()),
+                token_id: None,
+            }],
+            preferences: Default::default(),
+        };
+        let url = build_public_url(
+            "Screen Shot 2026-07-03 at 13.17.58 PM.png",
+            "my-bucket",
+            "myacct",
+            &config,
+        );
+        assert_eq!(
+            url,
+            "https://cdn.example.com/Screen%20Shot%202026-07-03%20at%2013.17.58%20PM.png"
+        );
+    }
+
+    #[test]
+    fn build_public_url_encodes_special_chars_preserves_path_separators() {
+        let config = Config {
+            active_account: Some("myacct".into()),
+            accounts: vec![Account {
+                name: "myacct".into(),
+                account_id: Some("abc123".into()),
+                bucket: "my-bucket".into(),
+                path: String::new(),
+                custom_domain: None,
+                token_id: None,
+            }],
+            preferences: Default::default(),
+        };
+        // Path with subdirectory + filename containing spaces and special chars
+        let url = build_public_url(
+            "uploads/my folder/file (1).pdf",
+            "my-bucket",
+            "myacct",
+            &config,
+        );
+        assert_eq!(
+            url,
+            "https://my-bucket.abc123.r2.cloudflarestorage.com/uploads/my%20folder/file%20%281%29.pdf"
+        );
+    }
+
+    #[test]
+    fn percent_encode_segment_handles_unreserved_chars() {
+        // Unreserved chars must pass through unchanged
+        assert_eq!(
+            percent_encode_segment("hello-world_v1.0~"),
+            "hello-world_v1.0~"
+        );
+    }
+
+    #[test]
+    fn percent_encode_segment_encodes_spaces_and_parens() {
+        assert_eq!(percent_encode_segment("file (1).pdf"), "file%20%281%29.pdf");
+    }
 }

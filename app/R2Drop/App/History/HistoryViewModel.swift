@@ -3,8 +3,8 @@
 // Loads completed uploads from history.db via HistoryManager.
 // Supports search filtering, URL copying, and clearing all history.
 
-import Foundation
 import AppKit
+import Foundation
 import R2Core
 
 @MainActor
@@ -23,7 +23,7 @@ final class HistoryViewModel: ObservableObject {
     /// Load all history entries (or filtered by search text).
     func load() {
         #if DEBUG
-        R2Log.ui.debug("HistoryViewModel: load search=\(self.searchText)")
+            R2Log.ui.debug("HistoryViewModel: load search=\(self.searchText)")
         #endif
         guard let hm = try? HistoryManager() else {
             entries = []
@@ -43,7 +43,7 @@ final class HistoryViewModel: ObservableObject {
     /// Uses custom domain if configured, otherwise the stored R2 URL.
     func copyURL(for entry: HistoryEntry) {
         #if DEBUG
-        R2Log.ui.debug("HistoryViewModel: copyURL entry=\(entry.fileName)")
+            R2Log.ui.debug("HistoryViewModel: copyURL entry=\(entry.fileName)")
         #endif
         let url = resolveURL(for: entry)
         NSPasteboard.general.clearContents()
@@ -53,7 +53,7 @@ final class HistoryViewModel: ObservableObject {
     /// Clear all history entries (FR-054).
     func clearHistory() {
         #if DEBUG
-        R2Log.ui.debug("HistoryViewModel: clearHistory")
+            R2Log.ui.debug("HistoryViewModel: clearHistory")
         #endif
         guard let hm = try? HistoryManager() else { return }
         _ = try? hm.clear()
@@ -64,20 +64,45 @@ final class HistoryViewModel: ObservableObject {
 
     /// Resolve the display URL for an entry.
     /// Prefers the account's custom domain over the stored R2 public URL (FR-053).
+    /// Percent-encodes each path segment of the r2Key per RFC 3986.
     func resolveURL(for entry: HistoryEntry) -> String {
         let config = (try? ConfigManager.load()) ?? R2Config()
         if let account = config.accounts.first(where: { $0.name == entry.accountName }),
-           let domain = account.customDomain, !domain.isEmpty {
-            // Build URL from custom domain + r2Key
+            let domain = account.customDomain, !domain.isEmpty
+        {
+            // Build URL from custom domain + r2Key.
+            // Percent-encode each segment without encoding '/' separators.
             let base = domain.hasSuffix("/") ? String(domain.dropLast()) : domain
             let scheme = base.hasPrefix("http") ? "" : "https://"
-            let r2KeyClean = entry.r2Key.hasPrefix("/") ? String(entry.r2Key.dropFirst()) : entry.r2Key
-            return "\(scheme)\(base)/\(r2KeyClean)"
+            let r2KeyRaw =
+                entry.r2Key.hasPrefix("/") ? String(entry.r2Key.dropFirst()) : entry.r2Key
+            let r2KeyEncoded =
+                r2KeyRaw
+                .split(separator: "/", omittingEmptySubsequences: false)
+                .map {
+                    $0.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? String($0)
+                }
+                .joined(separator: "/")
+            return "\(scheme)\(base)/\(r2KeyEncoded)"
         }
-        // Fall back to stored URL
-        // Fall back to stored URL (also strip any leading double slash)
-        let cleaned = entry.url.replacingOccurrences(of: "://", with: "SCHEME_SEP").replacingOccurrences(of: "//", with: "/").replacingOccurrences(of: "SCHEME_SEP", with: "://")
-        return cleaned
+        // Fall back to stored URL.
+        // The stored URL was written by the Rust engine which now percent-encodes
+        // path segments, so existing entries may be unencoded. Re-encode to be safe:
+        // parse with URLComponents (which handles already-encoded URLs) and
+        // reconstruct, falling back to the raw stored value if parsing fails.
+        if let components = URLComponents(string: entry.url),
+            let host = components.host
+        {
+            let scheme = components.scheme ?? "https"
+            let encodedPath = components.path
+                .split(separator: "/", omittingEmptySubsequences: false)
+                .map {
+                    $0.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? String($0)
+                }
+                .joined(separator: "/")
+            return "\(scheme)://\(host)\(encodedPath)"
+        }
+        return entry.url
     }
 
     /// Format file size as human-readable string (e.g. "4.2 MB").

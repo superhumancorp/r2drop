@@ -269,7 +269,10 @@ mod tests {
         assert!(cfg.preferences.play_sound);
         assert!(!cfg.preferences.launch_at_login);
         assert!(!cfg.preferences.hide_dock_icon);
-        assert!(cfg.preferences.exclusion_patterns.contains(&".DS_Store".to_string()));
+        assert!(cfg
+            .preferences
+            .exclusion_patterns
+            .contains(&".DS_Store".to_string()));
         assert!(cfg.accounts.is_empty());
         assert!(cfg.active_account.is_none());
     }
@@ -318,6 +321,7 @@ mod tests {
                     follow_symlinks: true,
                     max_log_files: 10,
                     max_log_file_size_mb: 20,
+                    allow_anonymous_telemetry: true,
                 },
             };
 
